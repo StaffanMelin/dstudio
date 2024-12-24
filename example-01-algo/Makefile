@@ -15,7 +15,7 @@ INCPATH       = -I. -I. \
 				-I../rtDaisySP/src/Synthesis \
 				-I../rtDaisySP/src/Utility
 LINK          = g++
-LIBS          = -lpthread -lsndfile -lasound -lpthread -lgpiod -li2c -lserial -lSDL2 -lSDL2_image -lSDL2_ttf
+LIBS          = -lpthread -lsndfile -lasound
 
 # files
 
@@ -33,22 +33,17 @@ SOURCES = main.cpp \
 		$(vildcard ../rtDaisySP/src/Utility/*.cpp)
 OBJECTS = bin/main.o \
 		bin/RtAudio.o \
-		bin/tinyxml.o \
-		bin/tinyxmlerror.o \
-		bin/tinyxmlparser.o \
 		bin/dbass.o \
 		bin/dclap.o \
 		bin/dcymbal.o \
 		bin/ddrum.o \
 		bin/dfx.o \
 		bin/dgen.o \
-		bin/dhaxo.o \
 		bin/dhihat.o \
 		bin/dmixer.o \
 		bin/dsampler.o \
 		bin/dseqmidi.o \
 		bin/dseqperm.o \
-		bin/dsettings.o \
 		bin/dsm.o \
 		bin/dsnare.o \
 		bin/dsound.o \
@@ -61,7 +56,6 @@ OBJECTS = bin/main.o \
 		bin/tclap.o \
 		bin/tcymbal.o \
 		bin/tdrum.o \
-		bin/dwindow.o \
 		bin/adenv.o \
 		bin/adsr.o \
 		bin/line.o \

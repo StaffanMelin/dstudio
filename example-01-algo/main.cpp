@@ -1,12 +1,244 @@
-#include "rtApp.h"
+#include "main.h"
 
+#include <iostream>
+#include <cstdlib>
+#include <signal.h>
+
+// standard
+#include "../rtaudio/RtAudio.h"
+#include "../rtDaisySP/src/daisysp.h"
 #include "../rtDStudio/src/dstudio.h"
 
-#include "dsettings.h"
-#include <iostream>
+// application - DStudio
+#include "../rtDStudio/src/dmixer.h"
+#include "../rtDStudio/src/dsynthsub.h"
+#include "../rtDStudio/src/dsynthfm.h"
+#include "../rtDStudio/src/dbass.h"
+#include "../rtDStudio/src/dhihat.h"
+#include "../rtDStudio/src/dsnare.h"
+#include "../rtDStudio/src/dclap.h"
+#include "../rtDStudio/src/dcymbal.h"
+#include "../rtDStudio/src/ddrum.h"
 
-void rtApp::Setup()
+
+
+//////////////////////////////////////////////////
+// global variables
+//////////////////////////////////////////////////
+
+// standard
+bool done_;
+DSound *dout_;
+
+// rtAudio data buffer
+double *rt_data_ = NULL;
+// DAC
+RtAudio rt_dac_(RtAudio::LINUX_ALSA);
+
+// application - DStudio
+DMixer dmixer; // mixer
+DSynthSub dsynth0; // chord
+DSynthSub dsynth1; // chord
+DSynthSub dsynth2; // solo portamento
+DSynthSub dsynthb; // bass
+DSynthFm dsynthfm;
+DMixer ddmixer; // drum mixer
+DBass dbass;
+DSnare dsnare;
+DHihat dhihatc;
+DHihat dhihato;
+DClap dclap;
+DCymbal dcrash;
+DCymbal dride;
+DDrum dtomhi;
+DDrum dtomlo;
+// "sequencer"
+uint8_t testcount = 0;
+uint8_t testnote1 = 0;
+uint8_t testnote2 = 0;
+uint8_t testnote3 = 0;
+daisysp::Metro clocker;
+
+
+
+//////////////////////////////////////////////////
+// util
+//////////////////////////////////////////////////
+
+// Interrupt handler function
+static void finish(int /*ignore*/)
 {
+	done_ = true;
+}
+
+
+
+//////////////////////////////////////////////////
+// Audio
+//////////////////////////////////////////////////
+
+// Audio callback, interleaved
+int AudioCallback(
+	void *output_buffer,
+	void * /*inputBuffer*/,
+	unsigned int frame_count,
+	double stream_time,
+	RtAudioStreamStatus status,
+	void *data_)
+{
+	MY_TYPE *buffer = (MY_TYPE *)output_buffer;
+
+	if (status)
+		std::cout << "Stream underflow detected!" << std::endl;
+
+	for (size_t i = 0; i < frame_count; i++)
+	{
+		MY_TYPE sigL, sigR;
+		dout_->Process(&sigL, &sigR);
+		*buffer = sigL;
+		buffer++;
+		*buffer = sigR;
+		buffer++;
+	}
+
+	return 0;
+}
+
+bool InitRtAudio()
+{
+	bool retval = true;
+
+	float sample_rate = DSTUDIO_SAMPLE_RATE;
+	unsigned int rt_device;
+	unsigned int rt_channels = 2;
+	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
+
+	RtAudio::StreamParameters rt_params;
+	RtAudio::StreamOptions rt_options;
+	RtAudio::DeviceInfo rt_info;
+
+	// output all messages
+	rt_dac_.showWarnings(true);
+
+	// setup device
+	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
+	if (deviceIds.size() < 1)
+	{
+		std::cout << "ERROR: No audio devices found!\n";
+		retval = false;
+	}
+
+	if (retval)
+	{
+		// list device information
+		// and set our device id
+		rt_device = 0;
+		std::cout << "\nFound " << deviceIds.size() << " device(s).\n";
+		std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << std::endl;
+
+		for (unsigned int i = 0; i < deviceIds.size(); i++)
+		{
+			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
+
+/*
+			if (rt_info.name.rfind("MAX98357A", 0) == 0)
+			{
+				rt_device = deviceIds[i];
+				std::cout << "Device it set to: " << rt_device << "\n";
+			}
+*/
+			std::cout << "Device Name = " << rt_info.name << "\n";
+			std::cout << "Device ID = " << deviceIds[i] << "\n";
+		}
+
+		// select device
+		// Device Name = hw:MAX98357A,0
+
+		// setup output
+		/*
+		RtAudio::StreamParameters rt_params;
+		if (rt_device == 0)
+		{
+			rt_params.deviceId = rt_dac.getDefaultOutputDevice();
+		}
+		else
+		{
+			rt_params.deviceId = rt_device;
+		}
+		rt_params.nChannels = rt_channels;
+		rt_params.firstChannel = rt_offset;
+	*/
+
+		//	rt_params.deviceId = rt_device; //rt_dac.getDefaultOutputDevice();
+		rt_params.deviceId = rt_dac_.getDefaultOutputDevice();
+		rt_params.nChannels = rt_channels;
+		rt_params.firstChannel = 0;
+
+		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
+		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
+		rt_options.priority = 1;
+
+		std::cout << "Device id:" << rt_params.deviceId << std::endl;
+
+		// data storage
+		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
+		/*
+		Found 7 device(s).
+
+		API: ALSA
+		Device Name = Default ALSA Device
+		Device ID = 129
+		Device Name = PulseAudio Sound Server
+		Device ID = 130
+		Device Name = HDA Intel PCH (ALC269VC Analog)
+		Device ID = 131
+		Device Name = HDA Intel PCH (HDMI 0)
+		Device ID = 132
+		Device Name = HDA Intel PCH (HDMI 1)
+		Device ID = 133
+		Device Name = HDA Intel PCH (HDMI 2)
+		Device ID = 134
+		Device Name = HDA Intel PCH (HDMI 3)
+		Device ID = 135
+		Stream open.
+		Stream latency = 0
+		*/
+		// open stream
+		if (rt_dac_.openStream(&rt_params, // output
+							   NULL,	   // input
+							   FORMAT,	   // sample data format
+							   sample_rate,
+							   &rt_buffer_frames, // buffer size in frames
+							   &AudioCallback,
+							   (void *)rt_data_,
+							   &rt_options)) // flags and number of buffers
+		{
+			retval = false;
+		}
+
+		std::cout << "Stream open." << std::endl;
+		std::cout << "Stream latency = " << rt_dac_.getStreamLatency() << "\n";
+
+		// start stream
+		if (rt_dac_.startStream())
+		{
+			retval = false;
+		}
+	}
+	return (retval);
+}
+
+
+
+//////////////////////////////////////////////////
+// DStudio
+//////////////////////////////////////////////////
+
+// init synths
+bool InitSynths()
+{
+	bool retval = true;
+
     // synths subtractive
     DSynthSub::Config dsynth_config;
 
@@ -49,7 +281,8 @@ void rtApp::Setup()
     dsynth_config.delay_feedback = 0.3f;
     dsynth_config.overdrive_gain = 0.0f;
     dsynth_config.overdrive_drive = 0.0f;
-    dsynth0.Init(dsynth_config);
+    dsynth0.Init();
+    dsynth0.Set(dsynth_config);
 
     // synth 1
     dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
@@ -90,7 +323,8 @@ void rtApp::Setup()
     dsynth_config.delay_feedback = 0.3f;
     dsynth_config.overdrive_gain = 0.2f;
     dsynth_config.overdrive_drive = 0.3f;
-    dsynth1.Init(dsynth_config);
+    dsynth1.Init();
+    dsynth1.Set(dsynth_config);
 
     // synth 2
     dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
@@ -131,7 +365,8 @@ void rtApp::Setup()
     dsynth_config.delay_feedback = 0.7f;
     dsynth_config.overdrive_gain = 0.0f;
     dsynth_config.overdrive_drive = 0.0f;
-    dsynth2.Init(dsynth_config);
+    dsynth2.Init();
+    dsynth2.Set(dsynth_config);
 
     // synth bass
     dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
@@ -172,7 +407,8 @@ void rtApp::Setup()
     dsynth_config.delay_feedback = 0.0f;
     dsynth_config.overdrive_gain = 0.0f;
     dsynth_config.overdrive_drive = 0.0f;
-    dsynthb.Init(dsynth_config);
+    dsynthb.Init();
+    dsynthb.Set(dsynth_config);
 
     // synth fm
     DSynthFm::Config dsynthfm_config;
@@ -211,7 +447,8 @@ void rtApp::Setup()
     dsynthfm_config.delay_feedback = 0.6f;
     dsynthfm_config.overdrive_gain = 0.0f;
     dsynthfm_config.overdrive_drive = 0.0f;
-    dsynthfm.Init(dsynthfm_config);
+    dsynthfm.Init();
+    dsynthfm.Set(dsynthfm_config);
 
     // drum bass
     DBass::Config dbass_config;
@@ -230,7 +467,8 @@ void rtApp::Setup()
     dbass_config.fm_env_decay = 0.5f;
     // opd
     dbass_config.min = 0.5;
-    dbass.Init(dbass_config);
+    dbass.Init();
+    dbass.Set(dbass_config);
 
     // drums snare
     DSnare::Config dsnare_config;
@@ -254,7 +492,8 @@ void rtApp::Setup()
     dsnare_config.res = 0.3f;
     dsnare_config.drive = 0.3f;
     dsnare_config.min = 0.3f;
-    dsnare.Init(dsnare_config);
+    dsnare.Init();
+    dsnare.Set(dsnare_config);
 
     // drum hihat closed
     DHihat::Config dhihat_config;
@@ -272,7 +511,8 @@ void rtApp::Setup()
     dhihat_config.amp = 0.3f;
     dhihat_config.res = 0.3f;
     dhihat_config.drive = 0.3f;
-    dhihatc.Init(dhihat_config);
+    dhihatc.Init();
+    dhihatc.Set(dhihat_config);
 
     // drum hihat open
     dhihat_config.sample_rate = DSTUDIO_SAMPLE_RATE;
@@ -289,7 +529,8 @@ void rtApp::Setup()
     dhihat_config.amp = 0.3f;
     dhihat_config.res = 0.3f;
     dhihat_config.drive = 0.3f;
-    dhihato.Init(dhihat_config);
+    dhihato.Init();
+    dhihato.Set(dhihat_config);
 
     // drum clap
     DClap::Config dclap_config;
@@ -300,7 +541,8 @@ void rtApp::Setup()
     dclap_config.drive = 0.1f;
     dclap_config.amp = 0.8f;
     dclap_config.decay = 0.15f;
-    dclap.Init(dclap_config);
+    dclap.Init();
+    dclap.Set(dclap_config);
 
     // drum ride
     DCymbal::Config dcymbal_config;
@@ -313,7 +555,8 @@ void rtApp::Setup()
     dcymbal_config.decay = 0.6f;
     dcymbal_config.min = 0.6f;
     dcymbal_config.mix = 0.1f;
-    dride.Init(dcymbal_config);
+    dride.Init();
+    dride.Set(dcymbal_config);
 
     // drum crash
     dcymbal_config.sample_rate = DSTUDIO_SAMPLE_RATE;
@@ -325,7 +568,8 @@ void rtApp::Setup()
     dcymbal_config.decay = 1.2f;
     dcymbal_config.min = 0.3f;
     dcymbal_config.mix = 0.3f;
-    dcrash.Init(dcymbal_config);
+    dcrash.Init();
+    dcrash.Set(dcymbal_config);
 
     // tom hi
     DDrum::Config dtomhi_config;
@@ -335,7 +579,8 @@ void rtApp::Setup()
     dtomhi_config.amp = 0.5f;
     dtomhi_config.decay = 0.4f;
     dtomhi_config.min = 0.1f;
-    dtomhi.Init(dtomhi_config);
+    dtomhi.Init();
+	dtomhi.Set(dtomhi_config);
 
     // tom lo
     DDrum::Config dtomlo_config;
@@ -345,7 +590,8 @@ void rtApp::Setup()
     dtomlo_config.amp = 0.5f;
     dtomlo_config.decay = 0.4f;
     dtomlo_config.min = 0.1f;
-    dtomlo.Init(dtomlo_config);
+    dtomlo.Init();
+	dtomlo.Set(dtomlo_config);
 
     // drum submixer = drummachine
     // bass, snare, hh open, hh closed, clap,
@@ -434,7 +680,8 @@ void rtApp::Setup()
     ddmix_config.chorus_return = 0.5;
     ddmix_config.reverb_return = 0.5f;
     ddmix_config.mix_dry = 0.5;
-    ddmixer.Init(ddmix_config);
+    ddmixer.Init();
+    ddmixer.Set(ddmix_config);
     ddmixer.SetType(DSound::MIXER_PERCUSSION);
 
     // main mixer
@@ -501,120 +748,173 @@ void rtApp::Setup()
     dmix_config.chorus_return = 0.5;
     dmix_config.reverb_return = 0.5f;
     dmix_config.mix_dry = 0.5;
-    dmixer.Init(dmix_config);
+    dmixer.Init();
+    dmixer.Set(dmix_config);
 
     // demo start
+	dsynth0.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1, MIDI_VELOCITY_MAX);
     testcount = 8;
-    clock.Init(2, DSTUDIO_SAMPLE_RATE);
+    clocker.Init(2, DSTUDIO_SAMPLE_RATE);
+	return retval;
 }
 
 
 
-void rtApp::Process(float *sigL, float *sigR)
+//////////////////////////////////////////////////
+// Application logic
+//////////////////////////////////////////////////
+
+void ProcessControl()
 {
 
-        if (clock.Process()) {
-            testcount++;
-            if (testcount >= 8) {
-                testcount = 0;
-            }
-            switch (testcount)
-            {
-            case 0:
-                testnote1 = rand() % 20 + 40;
+	if (clocker.Process()) {
+		testcount++;
+		if (testcount >= 8) {
+			testcount = 0;
+		}
+		switch (testcount)
+		{
+		case 0:
+			testnote1 = rand() % 20 + 40;
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 3, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 7, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 10, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 3, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 10, MIDI_VELOCITY_MAX);
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
 
-                testnote3 = rand() % 20 + 60;
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 2, testnote3, MIDI_VELOCITY_MAX);
+			testnote3 = rand() % 20 + 60;
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 2, testnote3, MIDI_VELOCITY_MAX);
 
-                // dbass, ddmixer 0
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 0, MIDI_VELOCITY_MAX);
-                break;
+			// dbass, ddmixer 0
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 0, MIDI_VELOCITY_MAX);
+			break;
 
-            case 1:
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 4, testnote1 - 12, MIDI_VELOCITY_MAX);
+		case 1:
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 4, testnote1 - 12, MIDI_VELOCITY_MAX);
 
-                // dhihatc, ddmixer 2
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
-                break;
+			// dhihatc, ddmixer 2
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
+			break;
 
-            case 2:
-                // dhihato, ddmixer 3
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
+		case 2:
+			// dhihato, ddmixer 3
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
 
-                // dride, ddmixer 5
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 5, MIDI_VELOCITY_MAX);
-                break;
+			// dride, ddmixer 5
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 5, MIDI_VELOCITY_MAX);
+			break;
 
-            case 3:
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 4, testnote1 - 12, MIDI_VELOCITY_MAX);
+		case 3:
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 4, testnote1 - 12, MIDI_VELOCITY_MAX);
 
-                // dhihatc, ddmixer 2
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
+			// dhihatc, ddmixer 2
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
-                break;
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
+			break;
 
-            case 4:
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 3, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 7, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 10, MIDI_VELOCITY_MAX);
+		case 4:
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 3, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, testnote1 + 10, MIDI_VELOCITY_MAX);
 
-                testnote2 = rand() % 20 + 40;
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
-                dsnare.NoteOn(MIDI_VELOCITY_MAX);
-                break;
+			testnote2 = rand() % 20 + 40;
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
+			dsnare.NoteOn(MIDI_VELOCITY_MAX);
+			break;
 
-            case 5:
-                // dhihatc, ddmixer 2
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
+		case 5:
+			// dhihatc, ddmixer 2
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 3, testnote3, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 3, testnote3, MIDI_VELOCITY_MAX);
 
-                // dcrash, ddmixer 6
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 6, MIDI_VELOCITY_MAX);
-                break;
+			// dcrash, ddmixer 6
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 6, MIDI_VELOCITY_MAX);
+			break;
 
-            case 6:
-                // dhihato, ddmixer 3
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
+		case 6:
+			// dhihato, ddmixer 3
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
 
-                // dclap, ddmixer 3
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 4, MIDI_VELOCITY_MAX);
+			// dclap, ddmixer 3
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 4, MIDI_VELOCITY_MAX);
 
-                // dtomhi, ddmixer 7
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 7, MIDI_VELOCITY_MAX);
+			// dtomhi, ddmixer 7
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 7, MIDI_VELOCITY_MAX);
 
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3, MIDI_VELOCITY_MAX);
-                break;
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3, MIDI_VELOCITY_MAX);
+			break;
 
-            case 7:
-                // dhihatc, ddmixer 2
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
+		case 7:
+			// dhihatc, ddmixer 2
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
 
-                // dtomlo, ddmixer 3
-                dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 8, MIDI_VELOCITY_MAX);
-                break;
+			// dtomlo, ddmixer 3
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 8, MIDI_VELOCITY_MAX);
+			break;
 
-            } // switch
-        } // if
+		} // switch
+	} // if
 
-        dmixer.Process(sigL, sigR);
 
 }
 
+
+
+// main
+
+int main()
+{
+	bool retval = true;
+
+	std::cout << "INFO init synths\n";
+	retval = InitSynths();
+	dout_ = &dmixer;
+
+	std::cout << "INFO init audio\n";
+	retval = InitRtAudio();
+
+	if (retval)
+	{
+		// run until interrupt with CTRL+C
+		done_ = false;
+		(void)signal(SIGINT, finish);
+		std::cout << "\nPlaying - quit with Ctrl-C.\n";
+
+		// application
+
+		// main application loop
+		while (!done_ && rt_dac_.isStreamRunning())
+		{
+			ProcessControl();
+			SLEEP(10); // 10 ms
+		}
+	}
+
+	// rtAudio cleanup
+	if (rt_dac_.isStreamRunning())
+	{
+		rt_dac_.stopStream();
+	}
+	if (rt_dac_.isStreamOpen())
+	{
+		rt_dac_.closeStream();
+	}
+
+	if (rt_data_ != NULL)
+		free(rt_data_);
+
+	return 0;
+}

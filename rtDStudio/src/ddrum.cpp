@@ -3,9 +3,23 @@
 #include "ddrum.h"
 #include "tdrum.h"
 
-void DDrum::Init(const Config& config)
+
+
+void DDrum::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// analog
+    o_tdrum_.Init(sample_rate_);
+
+    SetType(PERCUSSION);
+}
+
+
+
+void DDrum::Set(const Config& config)
+{
+    // sample_rate_ = config.sample_rate;
 	
 	// common
     vol_ = config.vol;
@@ -13,19 +27,7 @@ void DDrum::Init(const Config& config)
     amp_ = config.amp;
     decay_ = config.decay;
     min_ = config.min;
-	
-	// analog
-    o_tdrum_.Init(sample_rate_);
 
-	Setup();
-
-    SetType(PERCUSSION);
-}
-
-
-
-void DDrum::Setup()
-{
     o_tdrum_.SetFreq(freq_);
     o_tdrum_.SetAmp(amp_);
     o_tdrum_.SetDecay(decay_);

@@ -92,7 +92,8 @@ class DSynth : public DSound
         DSYNTH_PARAM_LAST
     };
 
-	virtual void Init(const Config&);
+	virtual void Init();
+	virtual void Set(const Config&);
 	virtual float Process();
     virtual void Process(float *, float *);
     virtual void MidiIn(uint8_t, uint8_t, uint8_t);

@@ -2,7 +2,11 @@
 #include "dstudio.h"
 #include "dseqmidi.h"
 
-void DSeqMidi::Init(const Config& config)
+void DSeqMidi::Init()
+{
+}
+
+void DSeqMidi::Set(const Config& config)
 {
     bpm_ = config.bpm;
     rep_ = config.rep;

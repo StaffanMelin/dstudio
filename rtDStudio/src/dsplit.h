@@ -26,7 +26,8 @@ class DSplit : public DSound
 		DSplitInfo *split;
     };
 
-	void Init(const Config&);
+	void Init();
+	void Setup(const Config&);
 	void Process(float *out_l, float *out_r);
     void MidiIn(uint8_t, uint8_t, uint8_t);
     void Silence(uint8_t);

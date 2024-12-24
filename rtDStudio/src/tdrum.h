@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dstudio.h"
+
 #include "adenv.h"
 #include "oscillator.h"
 
@@ -8,6 +10,7 @@ class TDrum
 
 public:
 	void Init(float);
+	void Set();
 	float Process(bool);
 	void Trig(void);
 	void SetFreq(float);

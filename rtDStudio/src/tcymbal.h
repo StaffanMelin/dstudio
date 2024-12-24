@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dstudio.h"
+
 #include "adenv.h"
 #include "hihat.h"
 #include "svf.h"
@@ -19,7 +21,6 @@ private:
 	float res_;
 	float drive_;
 
-
     daisysp::WhiteNoise o_whitenoise_;
     daisysp::RingModNoise o_ringnoise_;
     daisysp::Svf o_filter_;
@@ -31,6 +32,7 @@ private:
 
 public:
 	void Init(float);
+	void Set();
 	float Process(bool);
 	void Trig(void);
 	void SetFreq(float);

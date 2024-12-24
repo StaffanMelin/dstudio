@@ -1,9 +1,15 @@
 #include "tclap.h"
 
-void TClap::Init(float aSampleRate)
+void TClap::Init(float sample_rate)
 {
-	sample_rate_ = aSampleRate;
+	sample_rate_ = sample_rate;
+	o_whitenoise_.Init();
+    env_a_.Init(sample_rate_);
+	o_filter_.Init(sample_rate_);
+}
 
+void TClap::Set()
+{
 	freq_ = 1000.0f;
 	amp_ = 0.8f;
 	decay_ = 0.6f; // seconds
@@ -11,15 +17,13 @@ void TClap::Init(float aSampleRate)
 	drive_ = 0.1f;
 
 	// source
-	o_whitenoise_.Init();
 	o_whitenoise_.SetAmp(amp_);
-	o_filter_.Init(sample_rate_);
+
 	o_filter_.SetFreq(freq_);
 	o_filter_.SetRes(res_);
 	o_filter_.SetDrive(drive_);
 
 	// amp
-    env_a_.Init(sample_rate_);
     env_a_.SetTime(daisysp::ADENV_SEG_ATTACK, 0.01f);
     env_a_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
     env_a_.SetMin(0.0);

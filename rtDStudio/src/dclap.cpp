@@ -4,9 +4,23 @@
 #include "dclap.h"
 #include "whitenoise.h"
 
-void DClap::Init(const Config& config)
+
+
+void DClap::Init()
 {
-	sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// OPD
+	o_tclap_.Init(sample_rate_);
+
+    SetType(PERCUSSION);
+}
+
+
+
+void DClap::Set(const Config& config)
+{
+	// sample_rate_ = config.sample_rate;
 	vol_ = config.vol;
 		
 	// common
@@ -16,18 +30,8 @@ void DClap::Init(const Config& config)
 	amp_ = config.amp;
 	decay_ = config.decay;
 	
-	// OPD
-	o_tclap_.Init(sample_rate_);
-
-	Setup();
-
-    SetType(PERCUSSION);
-}
-
-
-
-void DClap::Setup()
-{	o_tclap_.SetFreq(freq_);
+    o_tclap_.Set();
+	o_tclap_.SetFreq(freq_);
 	o_tclap_.SetRes(res_);
 	o_tclap_.SetDrive(drive_);
 	o_tclap_.SetAmp(amp_);

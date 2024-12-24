@@ -500,14 +500,14 @@ int main()
 	retval = InitSynths();
 	dout_ = &dmixer;
 
-	std::cout << "INFO init audo\n";
+	std::cout << "INFO init audio\n";
 	retval = InitRtAudio();
 
 	// std::cout << "INFO init haxo\n";
 	// retval = InitHaxo();
 
 	std::cout << "INFO init ctrl and window\n";
-	dwindow.Setup();
+	dwindow.Init();
 	retval = InitWin();
 
 	if (retval)

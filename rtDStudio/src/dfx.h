@@ -28,7 +28,8 @@ class DFXOverdrive : public DSound
         DSound *child;
 	};
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -96,7 +97,8 @@ class DFXTremolo : public DSound
         DSound *child;
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -157,7 +159,8 @@ class DFXDelay : public DSound
         DSound *child;
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -215,7 +218,8 @@ class DFXFlanger : public DSound
         DSound *child;
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -273,7 +277,8 @@ class DFXDecimator : public DSound
         DSound *child;
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -340,7 +345,8 @@ public:
         DSound *child;
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -397,7 +403,8 @@ public:
         bool trig_mode; // if true, record mode and playback mode is started with Trig()
     };
 
-    void Init(const Config& config);
+    void Init();
+    void Set(const Config& config);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -483,7 +490,8 @@ public:
 
     };
 
-    void Init(const Config& config);
+    void Init();
+    void Set(const Config& config);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);

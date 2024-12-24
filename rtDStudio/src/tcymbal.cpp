@@ -1,8 +1,17 @@
 #include "tcymbal.h"
 
-void TCymbal::Init(float aSampleRate)
+void TCymbal::Init(float sample_rate)
 {
-	sample_rate_ = aSampleRate;
+	sample_rate_ = sample_rate;
+
+	o_whitenoise_.Init();
+	o_filter_.Init(sample_rate_);
+    env_a_.Init(sample_rate_);
+    env_f_.Init(sample_rate_);
+}
+
+void TCymbal::Set()
+{
 
 	freq_ = 150.0f;
 	amp_ = 0.8f;
@@ -14,16 +23,13 @@ void TCymbal::Init(float aSampleRate)
 	drive_ = 0.3f;
 
 	// source
-	o_whitenoise_.Init();
 	o_whitenoise_.SetAmp(amp_);
-    o_ringnoise_.Init(sample_rate_);
-	o_filter_.Init(sample_rate_);
+
 	o_filter_.SetFreq(freq_);
 	o_filter_.SetRes(res_);
 	o_filter_.SetDrive(drive_);
 
 	// amp
-    env_a_.Init(sample_rate_);
     env_a_.SetTime(daisysp::ADENV_SEG_ATTACK, .01);
     env_a_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
     env_a_.SetMin(0.0);
@@ -31,7 +37,6 @@ void TCymbal::Init(float aSampleRate)
     env_a_.SetCurve(0); // linear
 
 	// filter
-    env_f_.Init(sample_rate_);
     env_f_.SetTime(daisysp::ADENV_SEG_ATTACK, 0.3f);
     env_f_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
     env_f_.SetMin(min_);

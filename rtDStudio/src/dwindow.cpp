@@ -30,7 +30,7 @@ DWindow::~DWindow()
     SDL_Quit();
 }
 
-void DWindow::Setup()
+void DWindow::Init()
 {
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) == 0)

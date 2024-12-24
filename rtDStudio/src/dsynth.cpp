@@ -4,7 +4,13 @@
 #include <stdio.h>
 
 
-void DSynth::Init(const Config& config)
+
+void DSynth::Init()
+{}
+
+
+
+void DSynth::Set(const Config& config)
 {
 	sample_rate_ = config.sample_rate;
 	voices_ = config.voices;

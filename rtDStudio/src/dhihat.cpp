@@ -3,9 +3,31 @@
 #include "tdrum.h"
 #include "dhihat.h"
 
-void DHihat::Init(const Config& config)
+
+
+void DHihat::Init()
 {
-	sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// analog (squarenoise)
+	o_hihat_analog_.Init(sample_rate_);
+	
+	// synthetic (ringmodnoise)
+	o_hihat_synthetic_.Init(sample_rate_);
+	
+	// opd
+	o_whitenoise_.Init();
+	o_filter_.Init(sample_rate_);
+    o_env_a_.Init(sample_rate_);
+
+    SetType(PERCUSSION);
+}
+
+
+
+void DHihat::Set(const Config& config)
+{
+	//sample_rate_ = config.sample_rate;
 	type_ = config.type;
 	vol_ = config.vol;
 	
@@ -23,25 +45,6 @@ void DHihat::Init(const Config& config)
 	res_ = config.res;
 	drive_ = config.drive;
 	
-	// analog (squarenoise)
-	o_hihat_analog_.Init(sample_rate_);
-	
-	// synthetic (ringmodnoise)
-	o_hihat_synthetic_.Init(sample_rate_);
-	
-	// opd
-	o_whitenoise_.Init();
-	o_filter_.Init(sample_rate_);
-    o_env_a_.Init(sample_rate_);
-
-
-	Setup();
-
-    SetType(PERCUSSION);
-}
-
-void DHihat::Setup()
-{
 	o_hihat_analog_.SetFreq(freq_);
 	o_hihat_analog_.SetTone(tone_);
 	o_hihat_analog_.SetDecay(decay_);
@@ -78,7 +81,6 @@ void DHihat::Setup()
         o_env_a_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
         break;
     }
-
 
 }
 

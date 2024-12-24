@@ -1,22 +1,19 @@
-# haxo-cs
+# dstudio
 
-Prerelease, More to come -- soon! Check the issues for what will happen.
+Code for making sounds with my DSound software synth library (based on Daisy SP)
 
-Code for making sounds with the [Haxophone](https://www.crowdsupply.com/cardona-bits/haxophone).
-
-Combining my DSound software synth library (based on Daisy SP) with the [Haxophone hardware](https://github.com/cardonabits/haxo-hw).
-
-Audio: [demo0.ogg](https://github.com/StaffanMelin/haxo-cs/blob/master/demo0.ogg) (All sounds from example-12-haxo demo project, incuding fx, running on the RPi.)
-
-Code is running on an Raspberry Pi 4B using the current Lite (headless) Raspian OS.
-
-As for now, the magic happens mainly in [dhaxo.cpp](https://github.com/StaffanMelin/haxo-cs/blob/master/rtDStudio/src/dhaxo.cpp).
+New:
+* support for the [Haxophone hardware](https://github.com/cardonabits/haxo-hw),  [Haxophone](https://www.crowdsupply.com/cardona-bits/haxophone).
 
 License: GPL3
 
 Contact: staffan.melin@oscillator.se
 
-## Setting up
+## Setting up on the Raspberry Pi
+
+TODO
+
+## Setting up on the Raspberry Pi with Haxophone
 
 Install raspi lite
 
@@ -33,7 +30,7 @@ edit /boot/firmware/config.txt
 dtoverlay=max98357a
 ```
 
-### I2C
+Add I2C support
 
 `sudo apt install libi2c-dev`
 
@@ -41,7 +38,7 @@ Test:
 
 `i2cdetect -l`
 
-### GPIO
+Add GPIO support
 
 libgpiod already installed
 
@@ -51,7 +48,7 @@ Test:
 `gpiodetect`
 `gpioinfo`
 
-### RtAudio
+Add RtAudio support
 
 `sudo apt install libasound2-dev libevent-dev`
 
@@ -60,4 +57,4 @@ Needs:
 * +libevent-pthread-... *libevent-dev
 *=not already installed
 
-##
+TODO

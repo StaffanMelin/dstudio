@@ -30,8 +30,8 @@ class DClap : public DSound
 		float decay;	
 	};
 
-    void Init(const Config&);
-	void Setup();
+	void Init();
+    void Set(const Config&);
 	float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);

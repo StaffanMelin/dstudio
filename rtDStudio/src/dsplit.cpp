@@ -1,9 +1,16 @@
 #include "dstudio.h"
 #include "dsplit.h"
 
-void DSplit::Init(const Config& config)
+void DSplit::Init()
 {
-	sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+    SetType(DSound::FX); // default
+}
+
+void DSplit::Setup(const Config& config)
+{
+	//sample_rate_ = config.sample_rate;
 	channels_ = config.channels;
 
 	for (uint8_t i = 0; i < channels_; i++)
@@ -12,7 +19,6 @@ void DSplit::Init(const Config& config)
         split_[i] = config.split[i];
     }
 
-    SetType(DSound::FX); // default
 }
 
 

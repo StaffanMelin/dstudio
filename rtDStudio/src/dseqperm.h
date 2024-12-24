@@ -51,7 +51,8 @@ public:
         float strength; // permutation strengt (0 - 1, where 0 is no change)
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     void Start();
     void Stop();
     void Process();

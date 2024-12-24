@@ -64,7 +64,8 @@ public:
         DMixer *mixer; // address of mixer so sequencer can send MIDI data
     };
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     void Start();
     void Stop();
     void Process();

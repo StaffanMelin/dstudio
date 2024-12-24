@@ -42,7 +42,7 @@ public:
 
   DWindow();
   ~DWindow();
-  void Setup();
+  void Init();
   void Render();
   bool Process(const SDL_Event* event);
   void AddControl(DControl* control);

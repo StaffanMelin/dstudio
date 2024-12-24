@@ -1,9 +1,24 @@
 #include "dstudio.h"
 #include "dmixer.h"
 
-void DMixer::Init(const Config& config)
+
+
+void DMixer::Init()
 {
-	sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+    chorus_.Init(sample_rate_);
+    reverb_.Init(sample_rate_);
+
+    SetType(DSound::MIXER); // default
+
+}
+
+
+
+void DMixer::Set(const Config& config)
+{
+	//sample_rate_ = config.sample_rate;
 	channels_ = config.channels;
 
     amp_ = config.amp;
@@ -29,7 +44,6 @@ void DMixer::Init(const Config& config)
     chorus_lfo_depth_ = 0.5; // 0-1
     chorus_lfo_freq_ = 0.3f; // Hz
     chorus_pan_ = 0.5f; // 0-1
-    chorus_.Init(sample_rate_);
     chorus_.SetDelay(chorus_delay_);
     chorus_.SetFeedback(chorus_feedback_);
     chorus_.SetLfoDepth(chorus_lfo_depth_);
@@ -39,11 +53,9 @@ void DMixer::Init(const Config& config)
 	// reverb
     reverb_feedback_ = 0.4f;
 	reverb_lpffreq_ = 6000;
-    reverb_.Init(sample_rate_);
 	reverb_.SetFeedback(reverb_feedback_);
 	reverb_.SetLpFreq(reverb_lpffreq_);
 
-    SetType(DSound::MIXER); // default
 }
 
 

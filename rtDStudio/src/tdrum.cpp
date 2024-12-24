@@ -1,24 +1,29 @@
 #include "tdrum.h"
 
-#include "adenv.h"
 
-void TDrum::Init(float aSampleRate)
+void TDrum::Init(float sample_rate)
 {
-	sample_rate_ = aSampleRate;
+    sample_rate_ = sample_rate;
+    osc_.Init(sample_rate_);
+    env_a_.Init(sample_rate_);
+    env_p_.Init(sample_rate_);
 
+}
+
+
+void TDrum::Set()
+{
 	freq_ = 150.0f;
 	amp_ = 0.8f;
 	decay_ = 0.4f; // seconds
 	min_ = 0.3; // fraction of freq_ to reach
 
 	// osc
-    osc_.Init(sample_rate_);
     osc_.SetWaveform(osc_.WAVE_SIN);
     osc_.SetAmp(amp_);
     osc_.SetFreq(freq_);
 
 	// amp
-    env_a_.Init(sample_rate_);
     env_a_.SetTime(daisysp::ADENV_SEG_ATTACK, .01);
     env_a_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
     env_a_.SetMin(0.0);
@@ -26,7 +31,6 @@ void TDrum::Init(float aSampleRate)
     env_a_.SetCurve(0); // linear
 
 	// pitch
-    env_p_.Init(sample_rate_);
     env_p_.SetTime(daisysp::ADENV_SEG_ATTACK, 0.01f);
     env_p_.SetTime(daisysp::ADENV_SEG_DECAY, decay_);
     env_p_.SetMin(min_);

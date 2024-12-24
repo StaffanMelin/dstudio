@@ -42,8 +42,8 @@ class DSnare : public DSound
 		float freq_noise;
 	};
 
-    void Init(const Config&);
-	void Setup();
+	void Init();
+    void Set(const Config&);
 	float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);

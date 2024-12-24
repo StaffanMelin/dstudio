@@ -1,9 +1,29 @@
 #include "dstudio.h"
 #include "dbass.h"
 
-void DBass::Init(const Config& config)
+
+
+void DBass::Init()
 {
-    sample_rate_ = config.sample_rate;
+    sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// analog
+    o_bass_analog_.Init(sample_rate_);
+	
+	// synthetic
+    o_bass_synthetic_.Init(sample_rate_);
+	
+	// opd
+    o_tdrum_.Init(sample_rate_);
+
+    SetType(PERCUSSION);
+}
+
+
+
+void DBass::Set(const Config& config)
+{
+    // sample_rate_ = config.sample_rate;
     type_ = config.type;
 	
 	// default values
@@ -27,22 +47,6 @@ void DBass::Init(const Config& config)
 	// opd
     min_ = config.min;
 		
-	// analog
-    o_bass_analog_.Init(sample_rate_);
-	
-	// synthetic
-    o_bass_synthetic_.Init(sample_rate_);
-	
-	// opd
-    o_tdrum_.Init(sample_rate_);
-
-    Setup();
-
-    SetType(PERCUSSION);
-}
-
-void DBass::Setup()
-{
     o_bass_analog_.SetFreq(freq_);
     o_bass_analog_.SetTone(tone_);
     o_bass_analog_.SetDecay(decay_);

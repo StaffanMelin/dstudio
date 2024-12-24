@@ -12,7 +12,7 @@ CXXFLAGS      = -pipe -O2 -Wall -Wextra -fPIC $(DEFINES)
 INCPATH       = -I. -I. -I../rtDStudio/src -I../rtDaisySP/src/Control -I../rtDaisySP/src/Drums -I../rtDaisySP/src/Dynamics -I../rtDaisySP/src/Effects -I../rtDaisySP/src/Filters -I../rtDaisySP/src/Noise -I../rtDaisySP/src/PhysicalModeling -I../rtDaisySP/src/Synthesis -I../rtDaisySP/src/Utility
 LINK          = g++
 LFLAGS        = 
-LIBS          = $(SUBLIBS) -lpthread -lsndfile -lasound  
+LIBS          = $(SUBLIBS) -lpthread -lsndfile -lasound -lpthread -lgpiod -li2c
 
 ####### Files
 
@@ -25,6 +25,7 @@ SOURCES       = main.cpp \
 		../rtDStudio/src/ddrum.cpp \
 		../rtDStudio/src/dfx.cpp \
 		../rtDStudio/src/dgen.cpp \
+		../rtDStudio/src/dhaxo.cpp \
 		../rtDStudio/src/dhihat.cpp \
 		../rtDStudio/src/dmixer.cpp \
 		../rtDStudio/src/dsampler.cpp \
@@ -36,6 +37,7 @@ SOURCES       = main.cpp \
 		../rtDStudio/src/dsound.cpp \
 		../rtDStudio/src/dsplit.cpp \
 		../rtDStudio/src/dstudio.cpp \
+		../rtDStudio/src/dsynth.cpp \
 		../rtDStudio/src/dsynthfm.cpp \
 		../rtDStudio/src/dsynthsub.cpp \
 		../rtDStudio/src/dsynthvar.cpp \
@@ -109,6 +111,7 @@ OBJECTS       = main.o \
 		ddrum.o \
 		dfx.o \
 		dgen.o \
+		dhaxo.o \
 		dhihat.o \
 		dmixer.o \
 		dsampler.o \
@@ -121,6 +124,7 @@ OBJECTS       = main.o \
 		dsplit.o \
 		dstudio.o \
 		dsynthfm.o \
+		dsynth.o \
 		dsynthsub.o \
 		dsynthvar.o \
 		tclap.o \
@@ -272,6 +276,7 @@ main.o: main.cpp ../rtaudio/RtAudio.h \
 		../rtDStudio/src/ddrum.h \
 		../rtDStudio/src/dfx.h \
 		../rtDStudio/src/dgen.h \
+		../rtDStudio/src/dhaxo.h \
 		../rtDStudio/src/dhihat.h \
 		../rtDStudio/src/dmixer.h \
 		../rtDStudio/src/dsampler.h \
@@ -284,6 +289,7 @@ main.o: main.cpp ../rtaudio/RtAudio.h \
 		../rtDStudio/src/dsound.h \
 		../rtDStudio/src/dsplit.h \
 		../rtDStudio/src/dstudio.h \
+		../rtDStudio/src/dsynth.h \
 		../rtDStudio/src/dsynthfm.h \
 		../rtDStudio/src/dsynthsub.h \
 		../rtDStudio/src/dsynthvar.h \
@@ -300,6 +306,7 @@ rtApp.o: rtApp.cpp rtApp.h \
 		../rtDStudio/src/ddrum.h \
 		../rtDStudio/src/dfx.h \
 		../rtDStudio/src/dgen.h \
+		../rtDStudio/src/dhaxo.h \
 		../rtDStudio/src/dhihat.h \
 		../rtDStudio/src/dmixer.h \
 		../rtDStudio/src/dsampler.h \
@@ -312,6 +319,7 @@ rtApp.o: rtApp.cpp rtApp.h \
 		../rtDStudio/src/dsound.h \
 		../rtDStudio/src/dsplit.h \
 		../rtDStudio/src/dstudio.h \
+		../rtDStudio/src/dsynth.h \
 		../rtDStudio/src/dsynthfm.h \
 		../rtDStudio/src/dsynthsub.h \
 		../rtDStudio/src/dsynthvar.h \
@@ -478,6 +486,10 @@ dgen.o: ../rtDStudio/src/dgen.cpp ../rtDStudio/src/dstudio.h \
 		../rtDaisySP/src/Effects/reverbsc.h \
 		../rtDStudio/src/dseq.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dgen.o ../rtDStudio/src/dgen.cpp
+
+dhaxo.o: ../rtDStudio/src/dgen.cpp ../rtDStudio/src/dstudio.h \
+		../rtDStudio/src/dhaxo.h ../rtDStudio/src/dhaxo.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dhaxo.o ../rtDStudio/src/dhaxo.cpp
 
 dhihat.o: ../rtDStudio/src/dhihat.cpp ../rtDStudio/src/dstudio.h \
 		../rtDStudio/src/dsnare.h \
@@ -909,4 +921,3 @@ metro.o: ../rtDaisySP/src/Utility/metro.cpp ../rtDaisySP/src/Utility/metro.h \
 
 port.o: ../rtDaisySP/src/Utility/port.cpp ../rtDaisySP/src/Utility/port.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o port.o ../rtDaisySP/src/Utility/port.cpp
-

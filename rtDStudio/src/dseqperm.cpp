@@ -5,7 +5,10 @@
 #include <iostream>
 using namespace std;
 
-void DSeqPerm::Init(const Config& config)
+void DSeqPerm::Init()
+{}
+
+void DSeqPerm::Set(const Config& config)
 {
     bpm_ = config.bpm;
     rep_ = config.rep;

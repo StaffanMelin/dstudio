@@ -3,9 +3,32 @@
 #include "dsnare.h"
 #include "tdrum.h"
 
-void DSnare::Init(const Config& config)
+
+
+void DSnare::Init()
 {
-	sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// analog
+	o_snare_analog_.Init(sample_rate_);
+	
+	// synthetic
+	o_snare_synthetic_.Init(sample_rate_);
+	
+	// opd
+	o_whitenoise_.Init();
+	o_filter_.Init(sample_rate_);
+    o_env_a_.Init(sample_rate_);
+	o_tdrum_.Init(sample_rate_);
+	
+    SetType(PERCUSSION);
+}
+
+
+
+void DSnare::Set(const Config& config)
+{
+	// sample_rate_ = config.sample_rate;
 	type_ = config.type;
 	vol_ = config.vol;
 	
@@ -27,27 +50,6 @@ void DSnare::Init(const Config& config)
 	drive_ = config.drive;
 	min_ = config.min;
 
-	// analog
-	o_snare_analog_.Init(sample_rate_);
-	
-	// synthetic
-	o_snare_synthetic_.Init(sample_rate_);
-	
-	// opd
-	o_whitenoise_.Init();
-	o_filter_.Init(sample_rate_);
-    o_env_a_.Init(sample_rate_);
-	o_tdrum_.Init(sample_rate_);
-	
-	Setup();
-
-    SetType(PERCUSSION);
-}
-
-
-
-void DSnare::Setup()
-{
 	// analog
 	o_snare_analog_.SetFreq(freq_);
 	o_snare_analog_.SetTone(tone_);

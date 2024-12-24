@@ -8,18 +8,24 @@ DFXOverdrive
 
 */
 
-void DFXOverdrive::Init(const Config& config)
+void DFXOverdrive::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    overdrive_.Init();
+    SetType(FX);
+}
+
+
+
+void DFXOverdrive::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
 	level_ = config.level;
     gain_ = config.gain;
     drive_ = config.drive;
     child_ = config.child;
 
-    overdrive_.Init();
     overdrive_.SetDrive(drive_);
-
-    SetType(FX);
 }
 
 
@@ -98,7 +104,17 @@ DFXTremolo
 
 */
 
-void DFXTremolo::Init(const Config& config)
+void DFXTremolo::Init()
+{
+    sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    tremolo_l_.Init(sample_rate_);
+    tremolo_r_.Init(sample_rate_);
+    SetType(FX);
+}
+
+
+
+void DFXTremolo::Set(const Config& config)
 {
     sample_rate_ = config.sample_rate;
     level_ = config.level;
@@ -107,17 +123,13 @@ void DFXTremolo::Init(const Config& config)
     depth_ = config.depth;
     child_ = config.child;
 
-    tremolo_l_.Init(sample_rate_);
     tremolo_l_.SetFreq(freq_);
     tremolo_l_.SetWaveform(waveform_);
     tremolo_l_.SetDepth(depth_);
 
-    tremolo_r_.Init(sample_rate_);
     tremolo_r_.SetFreq(freq_);
     tremolo_r_.SetWaveform(waveform_);
     tremolo_r_.SetDepth(depth_);
-
-    SetType(FX);
 }
 
 
@@ -210,9 +222,19 @@ DFXDelay
 
 */
 
-void DFXDelay::Init(const Config& config)
+void DFXDelay::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    delay_l_.Init();
+    delay_r_.Init();
+    SetType(FX);
+}
+
+
+
+void DFXDelay::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     delay_delay_l_ = config.delay_delay_l;
     delay_feedback_l_ = config.delay_feedback_l;
@@ -220,12 +242,8 @@ void DFXDelay::Init(const Config& config)
     delay_feedback_r_ = config.delay_feedback_r;
     child_ = config.child;
 
-    delay_l_.Init();
     delay_l_.SetDelay(sample_rate_ * delay_delay_l_);
-    delay_r_.Init();
     delay_r_.SetDelay(sample_rate_ * delay_delay_r_);
-
-    SetType(FX);
 }
 
 
@@ -312,9 +330,19 @@ DFXFlanger
 
 */
 
-void DFXFlanger::Init(const Config& config)
+void DFXFlanger::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    flanger_l_.Init(sample_rate_);
+    flanger_r_.Init(sample_rate_);
+    SetType(FX);
+}
+
+
+
+void DFXFlanger::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     feedback_ = config.feedback;
     lfo_depth_ = config.lfo_depth;
@@ -322,19 +350,15 @@ void DFXFlanger::Init(const Config& config)
     delay_ = config.delay; // 0.0 - 1.0, maps to .1 to 7 ms
     child_ = config.child;
 
-    flanger_l_.Init(sample_rate_);
     flanger_l_.SetFeedback(feedback_);
     flanger_l_.SetLfoDepth(lfo_depth_);
     flanger_l_.SetLfoFreq(lfo_freq_);
     flanger_l_.SetDelay(delay_);
 
-    flanger_r_.Init(sample_rate_);
     flanger_r_.SetFeedback(feedback_);
     flanger_r_.SetLfoDepth(lfo_depth_);
     flanger_r_.SetLfoFreq(lfo_freq_);
     flanger_r_.SetDelay(delay_);
-
-    SetType(FX);
 }
 
 
@@ -438,26 +462,31 @@ DFXDecimator
 
 */
 
-void DFXDecimator::Init(const Config& config)
+void DFXDecimator::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    decimator_l_.Init();
+    decimator_r_.Init();
+    SetType(FX);
+}
+
+
+void DFXDecimator::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     downsample_factor_ = config.downsample_factor;
     bitcrush_factor_ = config.bitcrush_factor;
     bits_to_crush_ = config.bits_to_crush;
     child_ = config.child;
 
-    decimator_l_.Init();
     decimator_l_.SetDownsampleFactor(downsample_factor_);
     decimator_l_.SetBitcrushFactor(bitcrush_factor_);
     decimator_l_.SetBitsToCrush(bits_to_crush_);
 
-    decimator_r_.Init();
     decimator_r_.SetDownsampleFactor(downsample_factor_);
     decimator_r_.SetBitcrushFactor(bitcrush_factor_);
     decimator_r_.SetBitsToCrush(bits_to_crush_);
-
-    SetType(FX);
 }
 
 
@@ -550,27 +579,31 @@ void DFXDecimator::SetBitsToCrush(uint8_t bits_to_crush)
 DFXFilter
 
 */
-
-void DFXFilter::Init(const Config& config)
+void DFXFilter::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    svf_l_.Init(sample_rate_);
+    svf_r_.Init(sample_rate_);
+    SetType(FX);
+}
+
+
+void DFXFilter::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     filter_type_ = config.filter_type;
     filter_res_ = config.filter_res;
     filter_cutoff_ = config.filter_cutoff;
     child_ = config.child;
 
-    svf_l_.Init(sample_rate_);
     svf_l_.SetFreq(filter_cutoff_);
     svf_l_.SetRes(filter_res_);
     svf_l_.SetDrive(0.0f);
 
-    svf_r_.Init(sample_rate_);
     svf_r_.SetFreq(filter_cutoff_);
     svf_r_.SetRes(filter_res_);
     svf_r_.SetDrive(0.0f);
-
-    SetType(FX);
 }
 
 
@@ -691,10 +724,15 @@ DFXSlicer
 Records a random amount of time and plays it back a random amount of times. Can also be triggered.
 
 */
-
-void DFXSlicer::Init(const Config& config)
+void DFXSlicer::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    SetType(FX);
+}
+
+void DFXSlicer::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     child_ = config.child;
     record_samples_max_ = config.record_samples_max;
@@ -710,7 +748,6 @@ void DFXSlicer::Init(const Config& config)
     playback_rep_ = 0;
     playback_rep_nr_ = 1 + ((float)rand() / (float)RAND_MAX) * (float)playback_rep_max_;
 
-    SetType(FX);
 }
 
 
@@ -896,10 +933,16 @@ void DFXSlicer::Trig(bool on)
 DFXPanner
 
 */
-
-void DFXPanner::Init(const Config& config)
+void DFXPanner::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    lfo_.Init(sample_rate_);
+    SetType(FX);
+}
+
+void DFXPanner::Set(const Config& config)
+{
+    //sample_rate_ = config.sample_rate;
     level_ = config.level;
     child_ = config.child;
     type_ = config.type;
@@ -908,15 +951,12 @@ void DFXPanner::Init(const Config& config)
     amp_ = config.amp;
     offset_ = config.offset;
 
-    lfo_.Init(sample_rate_);
     lfo_.SetWaveform(lfo_waveform_);
     lfo_.SetFreq(freq_);
     lfo_.SetAmp(amp_);
 
     prev_sig_ = 0.0f;
     random_sig_ = ((float)rand() / (float)RAND_MAX);
-
-    SetType(FX);
 }
 
 

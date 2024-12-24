@@ -2,9 +2,23 @@
 #include "tcymbal.h"
 #include "dcymbal.h"
 
-void DCymbal::Init(const Config& config)
+
+
+void DCymbal::Init()
 {
-    sample_rate_ = config.sample_rate;
+	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+
+	// analog
+    o_tcymbal_.Init(sample_rate_);
+
+    SetType(PERCUSSION);
+}
+
+
+
+void DCymbal::Set(const Config& config)
+{
+    // sample_rate_ = config.sample_rate;
     vol_ = config.vol;
 		
 	// common
@@ -16,18 +30,6 @@ void DCymbal::Init(const Config& config)
     min_ = config.min;
     mix_ = config.mix;
 	
-	// analog
-    o_tcymbal_.Init(sample_rate_);
-
-	Setup();
-
-    SetType(PERCUSSION);
-}
-
-
-
-void DCymbal::Setup()
-{
     o_tcymbal_.SetFreq(freq_);
     o_tcymbal_.SetRes(res_);
     o_tcymbal_.SetDrive(drive_);

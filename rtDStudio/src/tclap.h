@@ -10,6 +10,7 @@ class TClap {
 
 public:
     void Init(float);
+    void Set();
     float Process(bool);
     void Trig(void);
     void SetFreq(float);
