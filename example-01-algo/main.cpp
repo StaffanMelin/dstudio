@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
+#include <getopt.h>
 
 // standard
 #include "../rtaudio/RtAudio.h"
@@ -57,7 +58,7 @@ uint8_t testcount = 0;
 uint8_t testnote1 = 0;
 uint8_t testnote2 = 0;
 uint8_t testnote3 = 0;
-daisysp::Metro clocker;
+DInterval clocker;
 
 
 
@@ -104,12 +105,14 @@ int AudioCallback(
 	return 0;
 }
 
-bool InitRtAudio()
+bool InitRtAudio(bool arg_devices_list,
+				bool arg_devices_set,
+			    char* arg_device)
 {
 	bool retval = true;
 
 	float sample_rate = DSTUDIO_SAMPLE_RATE;
-	unsigned int rt_device;
+	unsigned int rt_device = 0;
 	unsigned int rt_channels = 2;
 	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
 
@@ -124,63 +127,47 @@ bool InitRtAudio()
 	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
 	if (deviceIds.size() < 1)
 	{
-		std::cout << "ERROR: No audio devices found!\n";
+		std::cout << "RTAUDIO: ERROR - No audio devices found!\n";
 		retval = false;
 	}
 
 	if (retval)
 	{
-		// list device information
-		// and set our device id
-		rt_device = 0;
-		std::cout << "\nFound " << deviceIds.size() << " device(s).\n";
-		std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << std::endl;
+		std::cout << "RTAUDIO: Found " << deviceIds.size() << " device(s).\n";
+		std::cout << "RTAUDIO: API: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << "\n";
 
 		for (unsigned int i = 0; i < deviceIds.size(); i++)
 		{
 			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
 
-/*
-			if (rt_info.name.rfind("MAX98357A", 0) == 0)
+			if (arg_devices_set)
 			{
-				rt_device = deviceIds[i];
-				std::cout << "Device it set to: " << rt_device << "\n";
+				if (rt_info.name.find(arg_device) != std::string::npos)
+				{
+					rt_device = deviceIds[i];
+				}
 			}
-*/
-			std::cout << "Device Name = " << rt_info.name << "\n";
-			std::cout << "Device ID = " << deviceIds[i] << "\n";
+			// list device information
+			if (arg_devices_list)
+			{
+				std::cout << "RTAUDIO: Device Name " << rt_info.name << "\n";
+				std::cout << "RTAUDIO: Device ID " << deviceIds[i] << "\n";
+			}
 		}
-
-		// select device
-		// Device Name = hw:MAX98357A,0
-
-		// setup output
-		/*
-		RtAudio::StreamParameters rt_params;
+		// set output device
 		if (rt_device == 0)
 		{
-			rt_params.deviceId = rt_dac.getDefaultOutputDevice();
+			rt_device = rt_dac_.getDefaultOutputDevice();
+			std::cout << "RTAUDIO: Get Device " << rt_device << "\n";
 		}
-		else
-		{
-			rt_params.deviceId = rt_device;
-		}
+		std::cout << "RTAUDIO: Device set to " << rt_device << "\n";
+		rt_params.deviceId = rt_device;
 		rt_params.nChannels = rt_channels;
-		rt_params.firstChannel = rt_offset;
-	*/
-
-		//	rt_params.deviceId = rt_device; //rt_dac.getDefaultOutputDevice();
-		rt_params.deviceId = rt_dac_.getDefaultOutputDevice();
-		rt_params.nChannels = rt_channels;
+		//rt_params.firstChannel = rt_offset;
 		rt_params.firstChannel = 0;
-
 		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
 		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
 		rt_options.priority = 1;
-
-		std::cout << "Device id:" << rt_params.deviceId << std::endl;
-
-		// data storage
 		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
 		/*
 		Found 7 device(s).
@@ -414,10 +401,11 @@ bool InitSynths()
     DSynthFm::Config dsynthfm_config;
     dsynthfm_config.sample_rate = DSTUDIO_SAMPLE_RATE;
     dsynthfm_config.voices = 1;
-    dsynthfm_config.ratio = 2.0f;
-    dsynthfm_config.index = 1.0f;
+    dsynthfm_config.ratio = 1.0f;
+    dsynthfm_config.index = 0.5f;
     dsynthfm_config.tune = 0.0f;
     dsynthfm_config.transpose = 0;
+    dsynthfm_config.osc0_level = 0.5f;
     dsynthfm_config.noise_level = 0.0f;
     dsynthfm_config.filter_type = DSynthFm::BAND;
     dsynthfm_config.filter_cutoff = 700.0f;
@@ -427,7 +415,7 @@ bool InitSynths()
     dsynthfm_config.eg_p_decay = 0.0f;
     dsynthfm_config.eg_p_sustain = 0.0f;
     dsynthfm_config.eg_p_release = 0.0f;
-    dsynthfm_config.eg_f_level = 0.0f;
+    dsynthfm_config.eg_f_level = 1.0f;
     dsynthfm_config.eg_f_attack = 0.0f;
     dsynthfm_config.eg_f_decay = 0.0f;
     dsynthfm_config.eg_f_sustain = 1.0f;
@@ -439,9 +427,9 @@ bool InitSynths()
     dsynthfm_config.lfo_waveform = DSynthFm::WAVE_TRI;
     dsynthfm_config.lfo_freq = 0.6f;
     dsynthfm_config.lfo_amp = 0.8f;
-    dsynth_config.lfo_p_level = 0.0f;
-    dsynth_config.lfo_f_level = 1.0f;
-    dsynth_config.lfo_a_level = 0.0f;
+    dsynthfm_config.lfo_p_level = 0.0f;
+    dsynthfm_config.lfo_f_level = 1.0f;
+    dsynthfm_config.lfo_a_level = 0.0f;
     dsynthfm_config.portamento = 0.0f;
     dsynthfm_config.delay_delay = 0.5f;
     dsynthfm_config.delay_feedback = 0.6f;
@@ -499,7 +487,7 @@ bool InitSynths()
     DHihat::Config dhihat_config;
     dhihat_config.sample_rate = DSTUDIO_SAMPLE_RATE;
     dhihat_config.type = DTYPE_OPD;
-    dhihat_config.vol = 1.0f;
+    dhihat_config.vol = 0.5f;
     // common
     dhihat_config.freq = 5000.0f;
     dhihat_config.tone = 0.8f;
@@ -519,7 +507,7 @@ bool InitSynths()
     dhihat_config.type = DTYPE_OPD;
     dhihat_config.vol = 1.0f;
     // common
-    dhihat_config.freq = 5000.0f;
+    dhihat_config.freq = 3000.0f;
     dhihat_config.tone = 0.8f;
     dhihat_config.decay = 0.3f;
     // analog
@@ -604,69 +592,79 @@ bool InitSynths()
     bool ddmix_mono[MIXER_CHANNELS_MAX];
     uint8_t ddmix_group[MIXER_CHANNELS_MAX];
     DMixer::Config ddmix_config;
+
     ddmix_synth[0] = &dbass;
-    ddmix_synth[1] = &dsnare;
-    ddmix_synth[2] = &dhihatc;
-    ddmix_synth[3] = &dhihato;
-    ddmix_synth[4] = &dclap;
-    ddmix_synth[5] = &dride;
-    ddmix_synth[6] = &dcrash;
-    ddmix_synth[7] = &dtomhi;
-    ddmix_synth[8] = &dtomlo;
-    ddmix_pan[0] = 0.5f;
-    ddmix_pan[1] = 0.6f;
-    ddmix_pan[2] = 0.3f;
-    ddmix_pan[3] = 0.3f;
-    ddmix_pan[4] = 0.7f;
-    ddmix_pan[5] = 0.8f;
-    ddmix_pan[6] = 0.4f;
-    ddmix_pan[7] = 0.75f;
-    ddmix_pan[8] = 0.9f;
     ddmix_level[0] = 0.9;
-    ddmix_level[1] = 0.7;
-    ddmix_level[2] = 0.15;
-    ddmix_level[3] = 0.15;
-    ddmix_level[4] = 0.35;
-    ddmix_level[5] = 0.2;
-    ddmix_level[6] = 0.2;
-    ddmix_level[7] = 0.5;
-    ddmix_level[8] = 0.6;
+    ddmix_pan[0] = 0.5f;
     ddmix_chorus_level[0] = 0.0f;
-    ddmix_chorus_level[1] = 0.0f;
-    ddmix_chorus_level[2] = 0.0f;
-    ddmix_chorus_level[3] = 0.0f;
-    ddmix_chorus_level[4] = 0.4f;
-    ddmix_chorus_level[5] = 0.0f;
-    ddmix_chorus_level[6] = 0.0f;
-    ddmix_chorus_level[7] = 0.0f;
-    ddmix_chorus_level[8] = 0.0f;
     ddmix_reverb_level[0] = 0.1f;
-    ddmix_reverb_level[1] = 0.4f;
-    ddmix_reverb_level[2] = 0.5f;
-    ddmix_reverb_level[3] = 0.5f;
-    ddmix_reverb_level[4] = 0.6f;
-    ddmix_reverb_level[5] = 0.6f;
-    ddmix_reverb_level[6] = 0.6f;
-    ddmix_reverb_level[7] = 0.3f;
-    ddmix_reverb_level[8] = 0.3f;
     ddmix_mono[0] = true;
-    ddmix_mono[1] = true;
-    ddmix_mono[2] = true;
-    ddmix_mono[3] = true;
-    ddmix_mono[4] = true;
-    ddmix_mono[5] = true;
-    ddmix_mono[6] = true;
-    ddmix_mono[7] = true;
-    ddmix_mono[8] = true;
     ddmix_group[0] = 0;
+
+    ddmix_synth[1] = &dsnare;
+    ddmix_level[1] = 0.7;
+    ddmix_pan[1] = 0.6f;
+    ddmix_chorus_level[1] = 0.0f;
+    ddmix_reverb_level[1] = 0.4f;
+    ddmix_mono[1] = true;
     ddmix_group[1] = 1;
-    ddmix_group[2] = 2; // hihats share group
-    ddmix_group[3] = 2; // as sound is produced with same cymbal
+
+    ddmix_synth[2] = &dhihatc;
+    ddmix_level[2] = 0.15;
+    ddmix_pan[2] = 0.3f;
+    ddmix_chorus_level[2] = 0.0f;
+    ddmix_reverb_level[2] = 0.5f;
+    ddmix_mono[2] = true;
+    ddmix_group[2] = 2; // hihats share group as sound is produced with same cymbal
+
+    ddmix_synth[3] = &dhihato;
+    ddmix_level[3] = 0.15;
+    ddmix_pan[3] = 0.3f;
+    ddmix_chorus_level[3] = 0.0f;
+    ddmix_reverb_level[3] = 0.5f;
+    ddmix_mono[3] = true;
+    ddmix_group[3] = 2; // shared with dhihatc
+
+    ddmix_synth[4] = &dclap;
+    ddmix_level[4] = 0.35;
+    ddmix_pan[4] = 0.7f;
+    ddmix_chorus_level[4] = 0.4f;
+    ddmix_reverb_level[4] = 0.6f;
+    ddmix_mono[4] = true;
     ddmix_group[4] = 4;
+
+    ddmix_synth[5] = &dride;
+    ddmix_level[5] = 0.2;
+    ddmix_pan[5] = 0.8f;
+    ddmix_chorus_level[5] = 0.0f;
+    ddmix_reverb_level[5] = 0.6f;
+    ddmix_mono[5] = true;
     ddmix_group[5] = 5;
+
+    ddmix_synth[6] = &dcrash;
+    ddmix_level[6] = 0.2;
+    ddmix_pan[6] = 0.4f;
+    ddmix_chorus_level[6] = 0.0f;
+    ddmix_reverb_level[6] = 0.6f;
+    ddmix_mono[6] = true;
     ddmix_group[6] = 6;
+
+    ddmix_synth[7] = &dtomhi;
+    ddmix_level[7] = 0.5;
+    ddmix_pan[7] = 0.75f;
+    ddmix_chorus_level[7] = 0.0f;
+    ddmix_reverb_level[7] = 0.3f;
+    ddmix_mono[7] = true;
     ddmix_group[7] = 7;
+
+    ddmix_synth[8] = &dtomlo;
+    ddmix_level[8] = 0.6;
+    ddmix_pan[8] = 0.9f;
+    ddmix_chorus_level[8] = 0.0f;
+    ddmix_reverb_level[8] = 0.3f;
+    ddmix_mono[8] = true;
     ddmix_group[8] = 8;
+
     ddmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
     ddmix_config.channels = 9;
     ddmix_config.amp = 1.0f;
@@ -693,51 +691,58 @@ bool InitSynths()
     bool dmix_mono[MIXER_CHANNELS_MAX];
     uint8_t dmix_group[MIXER_CHANNELS_MAX];
     DMixer::Config dmix_config;
+
     dmix_synth[0] = &dsynth0;
-    dmix_synth[1] = &dsynth1;
-    dmix_synth[2] = &dsynth2;
-    dmix_synth[3] = &dsynthfm;
-    dmix_synth[4] = &dsynthb;
-    dmix_synth[5] = &ddmixer;
-    dmix_pan[0] = 0.1f;
-    dmix_pan[1] = 0.9f;
-    dmix_pan[2] = 0.5f;
-    dmix_pan[3] = 0.6f;
-    dmix_pan[4] = 0.5f;
-    dmix_pan[5] = 0.5f;
     dmix_level[0] = 0.2;
-    dmix_level[1] = 0.4;
-    dmix_level[2] = 0.1;
-    dmix_level[3] = 0.4;
-    dmix_level[4] = 0.5;
-    dmix_level[5] = 1.0;
+    dmix_pan[0] = 0.1f;
     dmix_chorus_level[0] = 0.1f;
-    dmix_chorus_level[1] = 0.1f;
-    dmix_chorus_level[2] = 0.6f;
-    dmix_chorus_level[3] = 0.3f;
-    dmix_chorus_level[4] = 0.1f;
-    dmix_chorus_level[5] = 0.0f;
     dmix_reverb_level[0] = 0.6f;
-    dmix_reverb_level[1] = 0.6f;
-    dmix_reverb_level[2] = 0.4f;
-    dmix_reverb_level[3] = 0.6f;
-    dmix_reverb_level[4] = 0.3f;
-    dmix_reverb_level[5] = 0.0f;
     dmix_mono[0] = true;
-    dmix_mono[1] = true;
-    dmix_mono[2] = true;
-    dmix_mono[3] = true;
-    dmix_mono[4] = true;
-    dmix_mono[5] = false;
     dmix_group[0] = 0;
+
+    dmix_synth[1] = &dsynth1;
+    dmix_level[1] = 0.4;
+    dmix_pan[1] = 0.9f;
+    dmix_chorus_level[1] = 0.1f;
+    dmix_reverb_level[1] = 0.6f;
+    dmix_mono[1] = true;
     dmix_group[1] = 1;
+
+    dmix_synth[2] = &dsynth2;
+    dmix_level[2] = 0.1;
+    dmix_pan[2] = 0.5f;
+    dmix_chorus_level[2] = 0.6f;
+    dmix_reverb_level[2] = 0.4f;
+    dmix_mono[2] = true;
     dmix_group[2] = 2;
+
+    dmix_synth[3] = &dsynthfm;
+    dmix_level[3] = 0.4;
+    dmix_pan[3] = 0.6f;
+    dmix_chorus_level[3] = 0.3f;
+    dmix_reverb_level[3] = 0.6f;
+    dmix_mono[3] = true;
     dmix_group[3] = 3;
+
+    dmix_synth[4] = &dsynthb;
+    dmix_level[4] = 0.5;
+    dmix_pan[4] = 0.5f;
+    dmix_chorus_level[4] = 0.1f;
+    dmix_reverb_level[4] = 0.3f;
+    dmix_mono[4] = true;
     dmix_group[4] = 4;
+
+    dmix_synth[5] = &ddmixer;
+    dmix_level[5] = 1.0;
+    dmix_pan[5] = 0.5f;
+    dmix_chorus_level[5] = 0.0f;
+    dmix_reverb_level[5] = 0.0f;
+    dmix_mono[5] = false;
     dmix_group[5] = 5;
+
     dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
     dmix_config.channels = 6;
-    dmix_config.amp = 1.0f;
+    dmix_config.amp = 0.5f;
     dmix_config.synth = dmix_synth;
     dmix_config.pan = dmix_pan;
     dmix_config.level = dmix_level;
@@ -752,9 +757,9 @@ bool InitSynths()
     dmixer.Set(dmix_config);
 
     // demo start
-	dsynth0.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1, MIDI_VELOCITY_MAX);
-    testcount = 8;
-    clocker.Init(2, DSTUDIO_SAMPLE_RATE);
+    testcount = 7;
+    clocker.Init(500000);
+
 	return retval;
 }
 
@@ -766,12 +771,12 @@ bool InitSynths()
 
 void ProcessControl()
 {
-
 	if (clocker.Process()) {
 		testcount++;
 		if (testcount >= 8) {
 			testcount = 0;
 		}
+		std::cout << "RUN testcount:" << (int)testcount << "\n";
 		switch (testcount)
 		{
 		case 0:
@@ -783,8 +788,8 @@ void ProcessControl()
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, testnote1 + 10, MIDI_VELOCITY_MAX);
 
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2, MIDI_VELOCITY_MAX);
-			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
 
 			testnote3 = rand() % 20 + 60;
@@ -802,22 +807,20 @@ void ProcessControl()
 			break;
 
 		case 2:
-			// dhihato, ddmixer 3
-			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
-
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
 
+			// dhihato, ddmixer 3
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 3, MIDI_VELOCITY_MAX);
 			// dride, ddmixer 5
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 5, MIDI_VELOCITY_MAX);
 			break;
 
 		case 3:
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 4, testnote1 - 12, MIDI_VELOCITY_MAX);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
 
 			// dhihatc, ddmixer 2
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, MIDI_PERCUSSION_START + 2, MIDI_VELOCITY_MAX);
-
-			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 3, testnote3 + 7, MIDI_VELOCITY_MAX);
 			break;
 
 		case 4:
@@ -831,6 +834,7 @@ void ProcessControl()
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 3, MIDI_VELOCITY_MAX);
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 7, MIDI_VELOCITY_MAX);
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, testnote2 + 10, MIDI_VELOCITY_MAX);
+
 			dsnare.NoteOn(MIDI_VELOCITY_MAX);
 			break;
 
@@ -875,8 +879,31 @@ void ProcessControl()
 
 // main
 
-int main()
+// -l - list audio devices
+// -d <dev> - use given audio device
+int main(int argc, char* argv[])
 {
+	int c;
+	bool arg_devices_set = false;
+	bool arg_devices_list = false;
+    char* arg_device = nullptr;
+
+	opterr = 0;
+
+	while ((c = getopt(argc, argv, "d:l")) != -1)
+	{
+		switch (c)
+		{
+			case 'd':
+				arg_devices_set = true;
+				arg_device = optarg;
+				break;
+			case 'l':
+				arg_devices_list = true;
+				break;
+		}
+	}
+
 	bool retval = true;
 
 	std::cout << "INFO init synths\n";
@@ -884,7 +911,7 @@ int main()
 	dout_ = &dmixer;
 
 	std::cout << "INFO init audio\n";
-	retval = InitRtAudio();
+	retval = InitRtAudio(arg_devices_list, arg_devices_set, arg_device);
 
 	if (retval)
 	{
@@ -894,12 +921,14 @@ int main()
 		std::cout << "\nPlaying - quit with Ctrl-C.\n";
 
 		// application
+		SLEEP(1000);
 
 		// main application loop
 		while (!done_ && rt_dac_.isStreamRunning())
 		{
 			ProcessControl();
 			SLEEP(10); // 10 ms
+
 		}
 	}
 
