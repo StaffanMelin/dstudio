@@ -5,6 +5,7 @@
     <index>0.500000000</index>
     <tune>0.000000000</tune>
     <transpose>0</transpose>
+    <osc0_level>1.000000000</osc0_level>
     <noise_level>0.000000000</noise_level>
     <filter_type>2</filter_type>
     <filter_cutoff>1000.000000000</filter_cutoff>

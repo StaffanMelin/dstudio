@@ -10,7 +10,13 @@ using namespace std;
 
 
 // DGen
-void DGen::Init(const Config& config)
+void DGen::Init()
+{
+}
+
+
+
+void DGen::Set(const Config& config)
 {
     bpm_ = config.bpm;
     channels_ = config.channels;
@@ -594,7 +600,14 @@ void DGen::NoteQueue(uint8_t c, uint64_t tick, uint8_t pitch, uint8_t velocity, 
 
 // DGenDrone
 
-void DGenDrone::Init(const DGenDrone::Config& config)
+void DGenDrone::Init()
+{
+    DGen::Init();
+}
+
+
+
+void DGenDrone::Set(const DGenDrone::Config& config)
 {
     DGen::Config dgen_config;
 
@@ -607,7 +620,7 @@ void DGenDrone::Init(const DGenDrone::Config& config)
     dgen_config.note_arp = config.note_arp;
     dgen_config.note_melody = config.note_melody;
 
-    DGen::Init(dgen_config);
+    DGen::Set(dgen_config);
 
     for (uint8_t i = 0; i < DGen::channels_; i++)
     {

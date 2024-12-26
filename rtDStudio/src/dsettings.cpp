@@ -254,6 +254,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
             settings.setValue("settings:index", p->index);
             settings.setValue("settings:tune", p->tune);
             settings.setValue("settings:transpose", p->transpose);
+            settings.setValue("settings:osc0_level", p->osc0_level);
             settings.setValue("settings:noise_level", p->noise_level);
             settings.setValue("settings:filter_type", p->filter_type);
             settings.setValue("settings:filter_cutoff", p->filter_cutoff);
@@ -383,6 +384,8 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
             settings.setValue("settings:voices", p->voices);
             settings.setValue("settings:tune", p->tune);
             settings.setValue("settings:transpose", p->transpose);
+            settings.setValue("settings:osc0_level", p->osc0_level);
+            settings.setValue("settings:noise_level", p->noise_level);
             settings.setValue("settings:filter_type", p->filter_type);
             settings.setValue("settings:filter_cutoff", p->filter_cutoff);
             settings.setValue("settings:filter_res", p->filter_res);
@@ -602,6 +605,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
             p->tune = settings.getValue("settings:tune", 0.0f);
             p->transpose = settings.getValue("settings:transpose", 0);
 
+            p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
             p->noise_level = settings.getValue("settings:noise_level", 0.0f);
             p->filter_type = static_cast<DSynthFm::FilterType>(settings.getValue("settings:filter_type", DSynthFm::LOW));
             p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
@@ -733,6 +737,9 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
             p->tune = settings.getValue("settings:tune", 0.0f);
             p->transpose = settings.getValue("settings:transpose", 0);
 
+            p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
+            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
             p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));
             p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
             p->filter_res = settings.getValue("settings:filter_res", 0.0f);

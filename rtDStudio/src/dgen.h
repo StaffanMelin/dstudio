@@ -53,7 +53,8 @@ class DGen
         dgen_note_t note_melody;
 	};
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     void Start(DramaType);
     void Stop();
     void Process();
@@ -118,7 +119,8 @@ class DGenDrone  : public DGen
         dgen_note_t note_melody;
 	};
 
-    void Init(const Config&);
+    void Init();
+    void Set(const Config&);
     void Start(DramaType);
     void Process();
 
