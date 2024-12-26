@@ -15,7 +15,7 @@ INCPATH       = -I. -I. \
 				-I../rtDaisySP/src/Synthesis \
 				-I../rtDaisySP/src/Utility
 LINK          = g++
-LIBS          = -lpthread -lsndfile -lasound
+LIBS          = -lpthread -lsndfile -lasound -lpthread -lgpiod -li2c -lserial
 
 # files
 
@@ -39,11 +39,13 @@ OBJECTS = bin/main.o \
 		bin/ddrum.o \
 		bin/dfx.o \
 		bin/dgen.o \
+		bin/dhaxo.o \
 		bin/dhihat.o \
 		bin/dmixer.o \
 		bin/dsampler.o \
 		bin/dseqmidi.o \
 		bin/dseqperm.o \
+		bin/dsettings.o \
 		bin/dsm.o \
 		bin/dsnare.o \
 		bin/dsound.o \
@@ -110,7 +112,10 @@ OBJECTS = bin/main.o \
 		bin/dcblock.o \
 		bin/jitter.o \
 		bin/metro.o \
-		bin/port.o
+		bin/port.o \
+		bin/tinyxml.o \
+		bin/tinyxmlerror.o \
+		bin/tinyxmlparser.o
 TARGET = dstudio
 
 # link
