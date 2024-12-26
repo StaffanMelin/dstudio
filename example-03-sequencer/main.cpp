@@ -1,239 +1,744 @@
-#include "../rtaudio/RtAudio.h"
-#include "../rtDaisySP/src/daisysp.h"
-#include "../rtDStudio/src/dstudio.h"
+#include "main.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
+#include <getopt.h>
 
-#include "main.h"
+// standard
+#include "../rtaudio/RtAudio.h"
+#include "../rtDaisySP/src/daisysp.h"
+#include "../rtDStudio/src/dstudio.h"
 
-#include "rtApp.h"
+// application - DStudio
+#include "../rtDStudio/src/dmixer.h"
+#include "../rtDStudio/src/dsynthsub.h"
+#include "../rtDStudio/src/dsynthfm.h"
+#include "../rtDStudio/src/dbass.h"
+#include "../rtDStudio/src/dsnare.h"
+#include "../rtDStudio/src/dfx.h"
+#include "../rtDStudio/src/dseqmidi.h"
 
 
 
-// RtAudio
-rtApp rt_app;
+//////////////////////////////////////////////////
+// global variables
+//////////////////////////////////////////////////
+
+// standard
+bool done_;
+DSound *dout_;
+
+// rtAudio data buffer
+double *rt_data_ = NULL;
+// DAC
+RtAudio rt_dac_(RtAudio::LINUX_ALSA);
+
+// application - DStudio
+DSynthSub dsynthbass;
+DSynthSub dsyntharp;
+DSynthFm dsynthsolo;
+DSynthSub dsynthlead;
+DBass dbass;
+DSnare dsnare;
+
+DFXFlanger dfxflanger;
+DFXDelay dfxdelay;
+DFXDecimator dfxdecimator;
+DFXFilter dfxfilter;
+
+DMixer dmixer;
+DSeqMidi dseqmidi;
 
 
+
+//////////////////////////////////////////////////
+// util
+//////////////////////////////////////////////////
 
 // Interrupt handler function
-bool done;
-static void finish( int /*ignore*/ )
+static void finish(int /*ignore*/)
 {
-    done = true;
+	done_ = true;
 }
 
 
 
-// error handler
-void errorCallback(RtAudioErrorType /*type*/, const std::string &errorText)
+//////////////////////////////////////////////////
+// Audio
+//////////////////////////////////////////////////
+
+// Audio callback, interleaved
+int AudioCallback(
+	void *output_buffer,
+	void * /*inputBuffer*/,
+	unsigned int frame_count,
+	double stream_time,
+	RtAudioStreamStatus status,
+	void *data_)
 {
-	std::cerr << "\nerrorCallback: " << errorText << "\n\n";
-}
-
-
-
-// ACB interleaved
-int audioCallback(void *output_buffer,
-				  void * /*inputBuffer*/, 
-				  unsigned int frame_count,
-         		  double stream_time,
-         		  RtAudioStreamStatus status,
-         		  void *data)
-{
-
-	// audio rate
-
 	MY_TYPE *buffer = (MY_TYPE *)output_buffer;
 
 	if (status)
 		std::cout << "Stream underflow detected!" << std::endl;
 
-    for(size_t i = 0; i < frame_count; i++)
+	for (size_t i = 0; i < frame_count; i++)
 	{
-        MY_TYPE sigL, sigR;
-        rt_app.Process(&sigL, &sigR);
-        *buffer = sigL;
-        buffer++;
-        *buffer = sigR;
-        buffer++;
-    }
+		MY_TYPE sigL, sigR;
+		dout_->Process(&sigL, &sigR);
+		*buffer = sigL;
+		buffer++;
+		*buffer = sigR;
+		buffer++;
+	}
 
-    return 0;
+	return 0;
+}
+
+bool InitRtAudio(bool arg_devices_list,
+				bool arg_devices_set,
+			    char* arg_device)
+{
+	bool retval = true;
+
+	float sample_rate = DSTUDIO_SAMPLE_RATE;
+	unsigned int rt_device = 0;
+	unsigned int rt_channels = 2;
+	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
+
+	RtAudio::StreamParameters rt_params;
+	RtAudio::StreamOptions rt_options;
+	RtAudio::DeviceInfo rt_info;
+
+	// output all messages
+	rt_dac_.showWarnings(true);
+
+	// setup device
+	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
+	if (deviceIds.size() < 1)
+	{
+		std::cout << "RTAUDIO: ERROR - No audio devices found!\n";
+		retval = false;
+	}
+
+	if (retval)
+	{
+		std::cout << "RTAUDIO: Found " << deviceIds.size() << " device(s).\n";
+		std::cout << "RTAUDIO: API: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << "\n";
+
+		for (unsigned int i = 0; i < deviceIds.size(); i++)
+		{
+			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
+
+			if (arg_devices_set)
+			{
+				if (rt_info.name.find(arg_device) != std::string::npos)
+				{
+					rt_device = deviceIds[i];
+				}
+			}
+			// list device information
+			if (arg_devices_list)
+			{
+				std::cout << "RTAUDIO: Device Name " << rt_info.name << "\n";
+				std::cout << "RTAUDIO: Device ID " << deviceIds[i] << "\n";
+			}
+		}
+		// set output device
+		if (rt_device == 0)
+		{
+			rt_device = rt_dac_.getDefaultOutputDevice();
+			std::cout << "RTAUDIO: Get Device " << rt_device << "\n";
+		}
+		std::cout << "RTAUDIO: Device set to " << rt_device << "\n";
+		rt_params.deviceId = rt_device;
+		rt_params.nChannels = rt_channels;
+		//rt_params.firstChannel = rt_offset;
+		rt_params.firstChannel = 0;
+		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
+		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
+		rt_options.priority = 1;
+		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
+		// open stream
+		if (rt_dac_.openStream(&rt_params, // output
+							   NULL,	   // input
+							   FORMAT,	   // sample data format
+							   sample_rate,
+							   &rt_buffer_frames, // buffer size in frames
+							   &AudioCallback,
+							   (void *)rt_data_,
+							   &rt_options)) // flags and number of buffers
+		{
+			retval = false;
+		}
+
+		std::cout << "Stream open." << std::endl;
+		std::cout << "Stream latency = " << rt_dac_.getStreamLatency() << "\n";
+
+		// start stream
+		if (rt_dac_.startStream())
+		{
+			retval = false;
+		}
+	}
+	return (retval);
+}
+
+
+
+//////////////////////////////////////////////////
+// DStudio
+//////////////////////////////////////////////////
+
+// init synths
+bool InitSynths()
+{
+	bool retval = true;
+
+    // synths subtractive
+    DSynthSub::Config dsynth_config;
+
+    // synth bass > pad
+    dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dsynth_config.voices = 6;
+    dsynth_config.waveform0 = DSynthSub::WAVE_SAW;
+    dsynth_config.waveform1 = DSynthSub::WAVE_TRI;
+    dsynth_config.tune = 0.0f;
+    dsynth_config.detune = 12.1f;
+    dsynth_config.transpose = 24;
+    dsynth_config.osc0_level = 0.5f;
+    dsynth_config.osc1_level = 0.5f;
+    dsynth_config.noise_level = 0.3f;
+    dsynth_config.filter_type = DSynthSub::LOW;
+    dsynth_config.filter_cutoff = 1200.0f;
+    dsynth_config.filter_res = 0.1f;
+    dsynth_config.eg_p_level = 0.0f;
+    dsynth_config.eg_p_attack = 0.0f;
+    dsynth_config.eg_p_decay = 0.0f;
+    dsynth_config.eg_p_sustain = 0.0f;
+    dsynth_config.eg_p_release = 0.0f;
+    dsynth_config.eg_f_level = 1.0f;
+    dsynth_config.eg_f_attack = 0.5f;
+    dsynth_config.eg_f_decay = 0.0f;
+    dsynth_config.eg_f_sustain = 1.f;
+    dsynth_config.eg_f_release = 1.0f;
+    dsynth_config.eg_a_attack = 2.0f;
+    dsynth_config.eg_a_decay = 0.0f;
+    dsynth_config.eg_a_sustain = 1.f;
+    dsynth_config.eg_a_release = 1.0f;
+    dsynth_config.lfo_waveform = DSynthSub::WAVE_TRI;
+    dsynth_config.lfo_freq = 10.0f;
+    dsynth_config.lfo_amp = 1.0f;
+    dsynth_config.lfo_p_level = 0.0f;
+    dsynth_config.lfo_f_level = 0.0f;
+    dsynth_config.lfo_a_level = 0.0f;
+    dsynth_config.portamento = 0.0f;
+    dsynth_config.delay_delay = 0.8f;
+    dsynth_config.delay_feedback = 0.3f;
+    dsynth_config.overdrive_gain = 0.0f;
+    dsynth_config.overdrive_drive = 0.0f;
+    dsynthbass.Init();
+    dsynthbass.Set(dsynth_config);
+
+    // synth arp
+    dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dsynth_config.voices = 3;
+    dsynth_config.waveform0 = DSynthSub::WAVE_POLYBLEP_SQUARE;
+    dsynth_config.waveform1 = DSynthSub::WAVE_TRI;
+    dsynth_config.tune = 0.0f;
+    dsynth_config.detune = 6.0f;
+    dsynth_config.transpose = 12;
+    dsynth_config.osc0_level = 0.5f;
+    dsynth_config.osc1_level = 0.5f;
+    dsynth_config.noise_level = 0.0f;
+    dsynth_config.filter_type = DSynthSub::LOW;
+    dsynth_config.filter_cutoff = 700.0f;
+    dsynth_config.filter_res = 0.0f;
+    dsynth_config.eg_p_level = 0.0f;
+    dsynth_config.eg_p_attack = 0.0f;
+    dsynth_config.eg_p_decay = 0.0f;
+    dsynth_config.eg_p_sustain = 0.0f;
+    dsynth_config.eg_p_release = 0.0f;
+    dsynth_config.eg_f_level = 1.0f;
+    dsynth_config.eg_f_attack = 0.0f;
+    dsynth_config.eg_f_decay = 0.0f;
+    dsynth_config.eg_f_sustain = 1.0f;
+    dsynth_config.eg_f_release = 0.0f;
+    dsynth_config.eg_a_attack = 0.01f;
+    dsynth_config.eg_a_decay = 0.05f;
+    dsynth_config.eg_a_sustain = 0.0f;
+    dsynth_config.eg_a_release = 0.00f;
+    dsynth_config.lfo_waveform = DSynthSub::WAVE_TRI;
+    dsynth_config.lfo_freq = 1.0f;
+    dsynth_config.lfo_amp = 0.9f;
+    dsynth_config.lfo_p_level = 0.0f;
+    dsynth_config.lfo_f_level = 0.0f;
+    dsynth_config.lfo_a_level = 0.0f;
+    dsynth_config.portamento = 0.0f;
+    dsynth_config.delay_delay = 0.5f;
+    dsynth_config.delay_feedback = 0.1f;
+    dsynth_config.overdrive_gain = 0.0f;
+    dsynth_config.overdrive_drive = 0.0f;
+    dsyntharp.Init();
+    dsyntharp.Set(dsynth_config);
+
+    // synth fm
+    DSynthFm::Config dsynthfm_config;
+    dsynthfm_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dsynthfm_config.voices = 2;
+    dsynthfm_config.ratio = 2.0f;
+    dsynthfm_config.index = 1.0f;
+    dsynthfm_config.tune = 0.0f;
+    dsynthfm_config.transpose = 0;
+    dsynthfm_config.osc0_level = 0.5f;
+    dsynthfm_config.noise_level = 0.0f;
+    dsynthfm_config.filter_type = DSynthFm::PASSTHROUGH;
+    dsynthfm_config.filter_cutoff = 700.0f;
+    dsynthfm_config.filter_res = 0.1f;
+    dsynthfm_config.eg_p_level = 0.0f;
+    dsynthfm_config.eg_p_attack = 0.0f;
+    dsynthfm_config.eg_p_decay = 0.0f;
+    dsynthfm_config.eg_p_sustain = 0.0f;
+    dsynthfm_config.eg_p_release = 0.0f;
+    dsynthfm_config.eg_f_level = 1.0f;
+    dsynthfm_config.eg_f_attack = 0.0f;
+    dsynthfm_config.eg_f_decay = 0.0f;
+    dsynthfm_config.eg_f_sustain = 1.0f;
+    dsynthfm_config.eg_f_release = 0.0f;
+    dsynthfm_config.eg_a_attack = 0.01f;
+    dsynthfm_config.eg_a_decay = 0.01f;
+    dsynthfm_config.eg_a_sustain = 0.3f;
+    dsynthfm_config.eg_a_release = 0.2f;
+    dsynthfm_config.lfo_waveform = DSynthFm::WAVE_TRI;
+    dsynthfm_config.lfo_freq = 0.6f;
+    dsynthfm_config.lfo_amp = 0.8f;
+    dsynthfm_config.lfo_p_level = 0.0f;
+    dsynthfm_config.lfo_f_level = 0.0f;
+    dsynthfm_config.lfo_a_level = 0.0f;
+    dsynthfm_config.portamento = 0.0f;
+    dsynthfm_config.delay_delay = 0.8f;
+    dsynthfm_config.delay_feedback = 0.3f;
+    dsynthfm_config.overdrive_gain = 0.0f;
+    dsynthfm_config.overdrive_drive = 0.0f;
+    dsynthsolo.Init();
+    dsynthsolo.Set(dsynthfm_config);
+
+    // lead
+    dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dsynth_config.voices = 1;
+    dsynth_config.waveform0 = DSynthSub::WAVE_SAW;
+    dsynth_config.waveform1 = DSynthSub::WAVE_TRI;
+    dsynth_config.tune = 0.0f;
+    dsynth_config.detune = 2.0f;
+    dsynth_config.transpose = 12;
+    dsynth_config.osc0_level = 0.5f;
+    dsynth_config.osc1_level = 0.5f;
+    dsynth_config.noise_level = 0.1f;
+    dsynth_config.filter_type = DSynthSub::LOW;
+    dsynth_config.filter_cutoff = 800.0f;
+    dsynth_config.filter_res = 0.1f;
+    dsynth_config.eg_p_level = 0.0f;
+    dsynth_config.eg_p_attack = 0.0f;
+    dsynth_config.eg_p_decay = 0.0f;
+    dsynth_config.eg_p_sustain = 0.0f;
+    dsynth_config.eg_p_release = 0.0f;
+    dsynth_config.eg_f_level = 0.0f;
+    dsynth_config.eg_f_attack = 0.5f;
+    dsynth_config.eg_f_decay = 0.0f;
+    dsynth_config.eg_f_sustain = 1.f;
+    dsynth_config.eg_f_release = 1.0f;
+    dsynth_config.eg_a_attack = 2.0f;
+    dsynth_config.eg_a_decay = 0.0f;
+    dsynth_config.eg_a_sustain = 1.f;
+    dsynth_config.eg_a_release = 1.0f;
+    dsynth_config.lfo_waveform = DSynthSub::WAVE_TRI;
+    dsynth_config.lfo_freq = 10.0f;
+    dsynth_config.lfo_amp = 1.0f;
+    dsynth_config.lfo_p_level = 0.0f;
+    dsynth_config.lfo_f_level = 0.0f;
+    dsynth_config.lfo_a_level = 0.0f;
+    dsynth_config.portamento = 0.3f;
+    dsynth_config.delay_delay = 0.8f;
+    dsynth_config.delay_feedback = 0.0f;
+    dsynth_config.overdrive_gain = 0.0f;
+    dsynth_config.overdrive_drive = 0.0f;
+    dsynthlead.Init();
+    dsynthlead.Set(dsynth_config);
+
+    // drum bass
+    DBass::Config dbass_config;
+    dbass_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dbass_config.type = DTYPE_SYNTHETIC;
+    dbass_config.vol = 1.0f;
+    dbass_config.freq = 70.0f;
+    dbass_config.tone = 0.4f;
+    dbass_config.decay = 0.8f;
+    // analog
+    dbass_config.fm_attack = 0.8f;
+    dbass_config.fm_self = 0.8f;
+    // synthetic
+    dbass_config.dirtiness = 0.5f;
+    dbass_config.fm_env_amount = 0.5f;
+    dbass_config.fm_env_decay = 0.5f;
+    // opd
+    dbass_config.min = 0.5;
+    dbass.Init();
+    dbass.Set(dbass_config);
+
+    // drums snare
+    DSnare::Config dsnare_config;
+    dsnare_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dsnare_config.type = DTYPE_SYNTHETIC;
+    dsnare_config.vol = 1.0f;
+    // common
+    if (dsnare_config.type == DTYPE_OPD)
+        dsnare_config.freq = 200.0f;
+    else
+        dsnare_config.freq = 60.0f;
+    dsnare_config.tone = 0.5f;
+    dsnare_config.decay = 0.8f;
+    // analog
+    dsnare_config.snappy = 0.3f;
+    // synthetic
+    dsnare_config.fm_amount = 0.5f;
+    // opd
+    dsnare_config.freq_noise = 1000.0f; // highpass
+    dsnare_config.amp = 0.5f;
+    dsnare_config.res = 0.3f;
+    dsnare_config.drive = 0.3f;
+    dsnare_config.min = 0.3f;
+    dsnare.Init();
+    dsnare.Set(dsnare_config);
+
+    // fx
+
+    // flanger on bass pad
+    DFXFlanger::Config dfxflanger_config;
+    dfxflanger_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dfxflanger_config.level = 0.8f;
+    dfxflanger_config.feedback = 0.7f;
+    dfxflanger_config.lfo_depth = 0.8f;
+    dfxflanger_config.lfo_freq = 0.3f;
+    dfxflanger_config.delay = 0.8f;
+    dfxflanger_config.child = &dsynthbass;
+    dfxflanger.Init();
+    dfxflanger.Set(dfxflanger_config);
+
+    // delay on snare
+    DFXDelay::Config dfxdelay_config;
+    dfxdelay_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dfxdelay_config.level = 1.0f;
+    dfxdelay_config.delay_delay_l = 0.7f;
+    dfxdelay_config.delay_feedback_l = 0.5f;
+    dfxdelay_config.delay_delay_r = 0.6f;
+    dfxdelay_config.delay_feedback_r = 0.5f;
+    dfxdelay_config.child = &dsnare;
+    dfxdelay.Init();
+    dfxdelay.Set(dfxdelay_config);
+
+    // decimator on dsynthsolo
+    DFXDecimator::Config dfxdecimator_config;
+    dfxdecimator_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dfxdecimator_config.level = 1.0f;
+    dfxdecimator_config.downsample_factor = 0.5f;
+    dfxdecimator_config.bitcrush_factor = 0.8f;
+    dfxdecimator_config.bits_to_crush = 6;
+    dfxdecimator_config.child = &dsyntharp;
+    dfxdecimator.Init();
+    dfxdecimator.Set(dfxdecimator_config);
+
+    // filter on bass drum
+    DFXFilter::Config dfxfilter_config;
+    dfxfilter_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dfxfilter_config.level = 1.0f;
+    dfxfilter_config.filter_type = DFXFilter::BAND;
+    dfxfilter_config.filter_cutoff = 100.0f;
+    dfxfilter_config.filter_res = 0.8f;
+    dfxfilter_config.child = &dbass;
+    dfxfilter.Init();
+    dfxfilter.Set(dfxfilter_config);
+
+    // mixer
+    DSound *dmix_synth[MIXER_CHANNELS_MAX];
+    float dmix_pan[MIXER_CHANNELS_MAX];
+    float dmix_level[MIXER_CHANNELS_MAX];
+    float dmix_chorus_level[MIXER_CHANNELS_MAX];
+    float dmix_reverb_level[MIXER_CHANNELS_MAX];
+    bool dmix_mono[MIXER_CHANNELS_MAX];
+    uint8_t dmix_group[MIXER_CHANNELS_MAX];
+    DMixer::Config dmix_config;
+
+    dmix_synth[0] = &dfxflanger;
+    dmix_level[0] = 0.4;
+    dmix_pan[0] = 0.4f;
+    dmix_chorus_level[0] = 0.5f;
+    dmix_reverb_level[0] = 0.7f;
+    dmix_mono[0] = false;
+    dmix_group[0] = 0;
+
+    dmix_synth[1] = &dfxdecimator;
+    dmix_level[1] = 0.5;
+    dmix_pan[1] = 0.8f;
+    dmix_chorus_level[1] = 0.2f;
+    dmix_reverb_level[1] = 0.7f;
+    dmix_mono[1] = false;
+    dmix_group[1] = 1;
+
+    dmix_synth[2] = &dsynthsolo;
+    dmix_level[2] = 0.2;
+    dmix_pan[2] = 0.3f;
+    dmix_chorus_level[2] = 0.1f;
+    dmix_reverb_level[2] = 0.6f;
+    dmix_mono[2] = true;
+    dmix_group[2] = 2;
+
+    dmix_synth[3] = &dfxfilter;
+    dmix_level[3] = 0.6;
+    dmix_pan[3] = 0.5f;
+    dmix_chorus_level[3] = 0.0f;
+    dmix_reverb_level[3] = 0.5f;
+    dmix_mono[3] = false;
+    dmix_group[3] = 3;
+
+    dmix_synth[4] = &dfxdelay;
+    dmix_level[4] = 0.8;
+    dmix_pan[4] = 0.6f;
+    dmix_chorus_level[4] = 0.0f;
+    dmix_reverb_level[4] = 0.7f;
+    dmix_mono[4] = false;
+    dmix_group[4] = 4;
+
+    dmix_synth[5] = &dsynthlead;
+    dmix_level[5] = 0.1;
+    dmix_pan[5] = 0.5f;
+    dmix_chorus_level[5] = 0.2f;
+    dmix_reverb_level[5] = 0.6f;
+    dmix_mono[5] = true;
+    dmix_group[5] = 5;
+
+    dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dmix_config.channels = 6;
+    dmix_config.amp = 1.0f;
+    dmix_config.synth = dmix_synth;
+    dmix_config.pan = dmix_pan;
+    dmix_config.level = dmix_level;
+    dmix_config.chorus_level = dmix_chorus_level;
+    dmix_config.reverb_level = dmix_reverb_level;
+    dmix_config.mono = dmix_mono;
+    dmix_config.group = dmix_group;
+    dmix_config.chorus_return = 0.5;
+    dmix_config.reverb_return = 0.5f;
+    dmix_config.mix_dry = 0.5;
+    dmixer.Init();
+    dmixer.Set(dmix_config);
+
+    // seq
+    dmidisong_t dsong
+    {
+        {{0, DT1 * 8}, {5, DT1}, {5, DT1 * 8}, {3, DT1}, {5, DT1}, {6, DT1 * 2}},
+        {{0, DT1 * 8}, {1, DT1}, {5, DT1 * 8}, {3, DT1}, {5, DT1}, {6, DT1 * 2}},
+        {{0, DT1 * 8}, {1, DT1}, {2, DT1 * 8}, {3, DT1}, {4, DT1}, {6, DT1 * 2}},
+        {{5, DT1 * 8}, {5, DT1}, {2, DT1 * 8}, {3, DT1}, {5, DT1}, {6, DT1 * 2}}
+    };
+    dmidiseq_t dseq
+    {
+        {
+            {0, DEN, 31, DV7}, {0, DEN, 38, DV7}, {0, DEN, 43, DV7},
+            {DT1*4, DEN, 38, DVOFF}, {DT1*4, DEN, 39, DV7}, {DT1*4, DEN, 36, DV7},
+            {DT1*5, DEN, 39, DVOFF}, {DT1*5, DEN, 41, DV7},
+            {DT1*6, DEN, 31, DVOFF}, {DT1*6, DEN, 43, DVOFF}, {DT1*6, DEN, 38, DVOFF}, {DT1*6, DEN, 39, DV7}, {DT1*6, DEN, 34, DV7},
+            {DT1*7, DEN, 39, DVOFF}, {DT1*7, DEN, 34, DVOFF}, {DT1*7, DEN, 38, DV7}, {DT1*7, DEN, 33, DV7},
+            {DT1*8-1, DEN, 38, DVOFF}, {DT1*8-1, DEN, 33, DVOFF}, {DT1*8-1, DEN, 41, DVOFF}
+        }
+        ,
+        {
+            {0, DEN, 62, DV7}, {DT16, DEN, 62, DVOFF},
+            {DT16, DEN, 63, DV7}, {DT16*2, DEN, 63, DVOFF},
+            {DT16*2, DEN, 67, DV7}, {DT16*3, DEN, 67, DVOFF},
+            {DT4, DEN, 62, DV7}, {DT4+DT16, DEN, 62, DVOFF},
+            {DT4+DT16, DEN, 63, DV7}, {DT4+DT16*2, DEN, 63, DVOFF},
+            {DT4+DT16*2, DEN, 67, DV7}, {DT4+DT16*3, DEN, 67, DVOFF},
+            {DT2, DEN, 62, DV7}, {DT2+DT16, DEN, 62, DVOFF},
+            {DT2+DT16, DEN, 63, DV7}, {DT2+DT16*2, DEN, 63, DVOFF},
+            {DT2+DT16*2, DEN, 67, DV7}, {DT2+DT16*3, DEN, 67, DVOFF},
+            {DT4+DT2, DEN, 62, DV7}, {DT4+DT2+DT16, DEN, 62, DVOFF},
+            {DT4+DT2+DT16, DEN, 63, DV7}, {DT4+DT2+DT16*2, DEN, 63, DVOFF},
+            {DT4+DT2+DT16*2, DEN, 67, DV7}, {DT4+DT2+DT16*3, DEN, 67, DVOFF},
+        }
+        ,
+        {
+            {0, DEN, 62, DV7}, {DT16, DEN, 62, DVOFF},
+            {DT4, DEN, 62, DV7}, {DT4+DT16, DEN, 62, DVOFF},
+            {DT4+DT8, DEN, 67, DV7}, {DT4+DT8, DEN, 67, DVOFF},
+            {DT2, DEN, 70, DV7}, {DT2+DT16, DEN, 70, DVOFF},
+            {DT2+DT4, DEN, 70, DV7}, {DT2+DT4+DT16, DEN, 70, DVOFF},
+            {DT1, DEN, 70, DV7}, {DT1+DT16, DEN, 70, DVOFF},
+            {DT1+DT8, DEN, 69, DV7}, {DT1+DT8+DT16, DEN, 69, DVOFF},
+            {DT1+DT4, DEN, 70, DV7}, {DT1+DT4+DT16, DEN, 70, DVOFF},
+            {DT1+DT4+DT8, DEN, 69, DV7}, {DT1+DT4+DT8+DT16, DEN, 69, DVOFF},
+            {DT1+DT2, DEN, 70, DV7}, {DT1+DT2+DT16, DEN, 70, DVOFF},
+            {DT1+DT2+DT4, DEN, 69, DV7}, {DT1+DT2+DT4+DT16, DEN, 69, DVOFF},
+
+            {DT1*2+0, DEN, 62, DV7}, {DT1*2+DT16, DEN, 62, DVOFF},
+            {DT1*2+DT4, DEN, 62, DV7}, {DT1*2+DT4+DT16, DEN, 62, DVOFF},
+            {DT1*2+DT4+DT8, DEN, 67, DV7}, {DT1*2+DT4+DT8, DEN, 67, DVOFF},
+            {DT1*2+DT2, DEN, 70, DV7}, {DT1*2+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*2+DT2+DT4, DEN, 70, DV7}, {DT1*2+DT2+DT4+DT16, DEN, 70, DVOFF},
+            {DT1*2+DT1, DEN, 70, DV7}, {DT1*2+DT1+DT16, DEN, 70, DVOFF},
+            {DT1*2+DT1+DT8, DEN, 69, DV7}, {DT1*2+DT1+DT8+DT16, DEN, 69, DVOFF},
+            {DT1*2+DT1+DT4, DEN, 70, DV7}, {DT1*2+DT1+DT4+DT16, DEN, 70, DVOFF},
+            {DT1*2+DT1+DT4+DT8, DEN, 69, DV7}, {DT1*2+DT1+DT4+DT8+DT16, DEN, 69, DVOFF},
+            {DT1*2+DT1+DT2, DEN, 70, DV7}, {DT1*2+DT1+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*2+DT1+DT2+DT4, DEN, 69, DV7}, {DT1*2+DT1+DT2+DT4+DT16, DEN, 69, DVOFF},
+
+            {DT1*4+0, DEN, 60, DV7}, {DT1*4+DT16, DEN, 60, DVOFF},
+            {DT1*4+DT4, DEN, 60, DV7}, {DT1*4+DT4+DT16, DEN, 60, DVOFF},
+            {DT1*4+DT4+DT8, DEN, 67, DV7}, {DT1*4+DT4+DT8, DEN, 67, DVOFF},
+            {DT1*4+DT2, DEN, 70, DV7}, {DT1*4+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*4+DT2+DT4, DEN, 70, DV7}, {DT1*4+DT2+DT4+DT16, DEN, 70, DVOFF},
+            {DT1*4+DT1, DEN, 70, DV7}, {DT1*4+DT1+DT16, DEN, 70, DVOFF},
+            {DT1*4+DT1+DT8, DEN, 69, DV7}, {DT1*4+DT1+DT8+DT16, DEN, 69, DVOFF},
+            {DT1*4+DT1+DT4, DEN, 70, DV7}, {DT1*4+DT1+DT4+DT16, DEN, 70, DVOFF},
+            {DT1*4+DT1+DT4+DT8, DEN, 69, DV7}, {DT1*4+DT1+DT4+DT8+DT16, DEN, 69, DVOFF},
+            {DT1*4+DT1+DT2, DEN, 70, DV7}, {DT1*4+DT1+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*4+DT1+DT2+DT4, DEN, 69, DV7}, {DT1*4+DT1+DT2+DT4+DT16, DEN, 69, DVOFF},
+
+            {DT1*6+0, DEN, 58, DV7}, {DT1*6+DT16, DEN, 58, DVOFF},
+            {DT1*6+DT4, DEN, 58, DV7}, {DT1*6+DT4+DT16, DEN, 58, DVOFF},
+            {DT1*6+DT4+DT8, DEN, 67, DV7}, {DT1*6+DT4+DT8, DEN, 67, DVOFF},
+            {DT1*6+DT2, DEN, 70, DV7}, {DT1*6+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*6+DT2+DT4, DEN, 70, DV7}, {DT1*6+DT2+DT4+DT16, DEN, 70, DVOFF},
+
+            {DT1*7+0, DEN, 57, DV7}, {DT1*7+DT16, DEN, 57, DVOFF},
+            {DT1*7+DT4, DEN, 57, DV7}, {DT1*7+DT4+DT16, DEN, 57, DVOFF},
+            {DT1*7+DT4+DT8, DEN, 67, DV7}, {DT1*7+DT4+DT8, DEN, 67, DVOFF},
+            {DT1*7+DT2, DEN, 70, DV7}, {DT1*7+DT2+DT16, DEN, 70, DVOFF},
+            {DT1*7+DT2+DT4, DEN, 70, DV7}, {DT1*7+DT2+DT4+DT16, DEN, 70, DVOFF},
+
+
+        }
+        ,
+        // dbass
+        {
+            {0, DEN, 0, DV10},
+            {DT4, DEN, 0, DV10}
+        }
+        ,
+        // dsnare
+        {
+            {DT2, DEN, 0, DV10},
+            {DT2+DT4+DT8, DEN, 0, DV10}
+        }
+        ,
+        // empty bar
+        {
+            // {0, DEN, 0, DVOFF}
+        },
+        // dsynthsolo
+        {
+            {0, DEN, 62, DV10},
+            {DT2+DT4, DEN, 74, DV10}
+        }
+    };
+    DSeqMidi::Config dmidiseq_config;
+    dmidiseq_config.bpm = 120;
+    dmidiseq_config.rep = 1;
+    dmidiseq_config.silence = true;
+    dmidiseq_config.dmidisong = dsong;
+    dmidiseq_config.dmidiseq = dseq;
+    dmidiseq_config.channels = dmix_config.channels;
+    dmidiseq_config.mixer = &dmixer;
+    dseqmidi.Init();
+    dseqmidi.Set(dmidiseq_config);
+
+    // demo start
+    dmixer.SetReverb(0.8f, 8000.0f);
+
+	return retval;
+}
+
+
+
+//////////////////////////////////////////////////
+// Application logic
+//////////////////////////////////////////////////
+
+void ProcessControl()
+{
+    dseqmidi.Process();
 }
 
 
 
 // main
 
-int main()
+// -l - list audio devices
+// -d <dev> - use given audio device
+int main(int argc, char* argv[])
 {
-	// DStudio setup
+	int c;
+	bool arg_devices_set = false;
+	bool arg_devices_list = false;
+    char* arg_device = nullptr;
 
-    rt_app.Setup();
+	opterr = 0;
 
-	// RtAudio setup
-	float sample_rate = DSTUDIO_SAMPLE_RATE;
-    unsigned int rt_device;
-	unsigned int rt_channels = 2;
-    unsigned int rt_offset = 0; // channel count offset
-    unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
-	unsigned int rt_frames = 0;
-
-    // Rtaudio init
-    RtAudio rt_dac(RtAudio::LINUX_ALSA, &errorCallback);
-	/*
-	enum Api {
-		UNSPECIFIED,
-		LINUX_ALSA,
-		LINUX_PULSE
-		LINUX_OSS,
-		UNIX_JACK,
-		MACOSX_CORE,
-		WINDOWS_WASAPI,
-		WINDOWS_ASIO,
-		WINDOWS_DS,
-		RTAUDIO_DUMMY,
-		NUM_APIS
-	};
-	*/
-	
-    // output all messages
-    rt_dac.showWarnings(true);
-
-    // setup device
-    if (rt_dac.getDeviceCount() < 1)
-    {
-		std::cout << "\nNo audio devices found!\n";
-        exit(1);
-	}
-	
-	// list device information
-	/*
-	RtAudio::DeviceInfo rt_info;
-	std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac.getCurrentApi()) << std::endl;
-	unsigned int device_count = rt_dac.getDeviceCount();
-	std::cout << "\nFound " << device_count << " device(s).\n";
-
-	for (unsigned int i = 0; i < device_count; i++)
+	while ((c = getopt(argc, argv, "d:l")) != -1)
 	{
-		rt_info = rt_dac.getDeviceInfo(i);
-
-		std::cout << "\nDevice Name = " << rt_info.name << "\n";
-		std::cout << "Device ID = " << i << "\n";
-		if (rt_info.probed == false)
-			std::cout << "Probe Status = UNsuccessful\n";
-		else {
-			std::cout << "Output Channels = " << rt_info.outputChannels << "\n";
-			std::cout << "Input Channels = " << rt_info.inputChannels << "\n";
-			std::cout << "Duplex Channels = " << rt_info.duplexChannels << "\n";
-			if (rt_info.isDefaultOutput)
-				std::cout << "Default output device.\n";
-			else
-				std::cout << "NOT default output device.\n";
-			if (rt_info.isDefaultInput)
-				std::cout << "Default input device.\n";
-			else
-				std::cout << "NOT default input device.\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT8)
-				std::cout << "  8-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT16)
-				std::cout << "  16-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT24)
-				std::cout << "  24-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT32)
-				std::cout << "  32-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_FLOAT32)
-				std::cout << "  32-bit float\n";
-			if (rt_info.nativeFormats & RTAUDIO_FLOAT64)
-				std::cout << "  64-bit float\n";
+		switch (c)
+		{
+			case 'd':
+				arg_devices_set = true;
+				arg_device = optarg;
+				break;
+			case 'l':
+				arg_devices_list = true;
+				break;
 		}
-		if (rt_info.sampleRates.size() < 1) {
-			std::cout << "No supported sample rates found!";
-		} else {
-			std::cout << "Supported sample rates = ";
-			for (unsigned int j = 0; j < rt_info.sampleRates.size(); j++)
-				std::cout << rt_info.sampleRates[j] << " ";
-		}
-		std::cout << std::endl;
-		if (rt_info.preferredSampleRate == 0)
-			std::cout << "No preferred sample rate found!" << std::endl;
-		else
-			std::cout << "Preferred sample rate = " << rt_info.preferredSampleRate << std::endl;
 	}
-	*/
-	
-	// select device
-	rt_device = 0;
 
-    // setup output
-	RtAudio::StreamParameters rt_params;
-    if (rt_device == 0)
-    {
-        rt_params.deviceId = rt_dac.getDefaultOutputDevice();
-    } else {
-        rt_params.deviceId = rt_device;
-    }
-    rt_params.nChannels = rt_channels;
-	rt_params.firstChannel = rt_offset;
-	
-    RtAudio::StreamOptions rt_options;
-    rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
-    rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
-    rt_options.priority = 1;
+	bool retval = true;
 
-    // data storage
-    double *data = (double *)calloc(rt_channels, sizeof(double));
+	std::cout << "INFO init synths\n";
+	retval = InitSynths();
+	dout_ = &dmixer;
 
-    // open stream
-    if (rt_dac.openStream(&rt_params, // output
-                       NULL, // input
-                       FORMAT, // sample data format
-                       sample_rate,
-                       &rt_buffer_frames, // buffer size in frames
-                       &audioCallback,
-                       (void *)data,
-                       &rt_options)) // flags and number of buffers
-    {
-        goto cleanup;
-    }
+	std::cout << "INFO init audio\n";
+	retval = InitRtAudio(arg_devices_list, arg_devices_set, arg_device);
 
-	if (rt_dac.isStreamOpen() == false)
-    {
-        goto cleanup;
-    }
+    dseqmidi.Start();
 
-	std::cout << "Stream latency = " << rt_dac.getStreamLatency() << "\n" << std::endl;
-  
-    // start stream
-	if (rt_dac.startStream())
-    {
-		goto cleanup;
-    }
+	if (retval)
+	{
+		// run until interrupt with CTRL+C
+		done_ = false;
+		(void)signal(SIGINT, finish);
+		std::cout << "\nPlaying - quit with Ctrl-C.\n";
 
-    std::cout << "\nPlaying - quit with Ctrl-C.\n";
+		// application
+		SLEEP(1000);
 
-    // run until interrupt with CTRL+C
-    done = false;
-    (void) signal(SIGINT, finish);
+		// main application loop
+		while (!done_ && rt_dac_.isStreamRunning())
+		{
+			ProcessControl();
+			SLEEP(10); // 10 ms
 
-    while (!done && rt_dac.isStreamRunning())
-    {
-        SLEEP(100);
-    }
+		}
+	}
 
-    // stop stream
-    if (rt_dac.isStreamRunning())
-    {
-        rt_dac.stopStream();
-    }
+	// rtAudio cleanup
+	if (rt_dac_.isStreamRunning())
+	{
+		rt_dac_.stopStream();
+	}
+	if (rt_dac_.isStreamOpen())
+	{
+		rt_dac_.closeStream();
+	}
 
-cleanup:
-    if (rt_dac.isStreamOpen())
-    {
-        rt_dac.closeStream();
-    }
-    free(data);
+	if (rt_data_ != NULL)
+		free(rt_data_);
 
 	return 0;
 }

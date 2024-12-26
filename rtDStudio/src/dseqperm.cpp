@@ -59,7 +59,7 @@ void DSeqPerm::Start()
         FillVector(c, s);
     }
 
-    now_us_ = ofGetElapsedTimeMicros();
+    now_us_ = dGetElapsedTimeMicros();
     prev_us_ = now_us_;
     running_ = true;
 }
@@ -80,7 +80,7 @@ void DSeqPerm::Process()
 
     if (running_)
     {
-        now_us_ = ofGetElapsedTimeMicros();
+        now_us_ = dGetElapsedTimeMicros();
 
         uint64_t ticks_inc = now_us_ - prev_us_;
 
@@ -166,7 +166,7 @@ void DSeqPerm::Process()
                     // go through each seq and add to queue
                     Permutate(s);
                     // silence some channels
-                    if (ofRandom(1) > ((strength_ * strength_) / 2.0f))
+                    if (dRandom(1) > ((strength_ * strength_) / 2.0f))
                     {
                         FillVector(c, s);
                     } else {
@@ -223,9 +223,9 @@ void DSeqPerm::CalcTempo()
 void DSeqPerm::Permutate(uint16_t seq)
 {
 
-    PermutateType permutation = static_cast<PermutateType>((int)ofRandom(100) % PERMUTATE_LAST);
+    PermutateType permutation = static_cast<PermutateType>((int)dRandom(100) % PERMUTATE_LAST);
 
-    if (ofRandom(1) < strength_)
+    if (dRandom(1) < strength_)
     {
         switch (permutation)
         {
@@ -283,7 +283,7 @@ void DSeqPerm::Permutate(uint16_t seq)
             {
                 if ((dmidiseq_[seq][note].status & MIDI_MESSAGE_MASK) == MIDI_MESSAGE_NOTEON)
                 {
-                    if (ofRandom(1) < strength_)
+                    if (dRandom(1) < strength_)
                     {
                         // TODO: remove note
                         dmidiseq_[seq][note].status = MIDI_MESSAGE_NOTEOFF;
@@ -359,7 +359,7 @@ void DSeqPerm::Permutate(uint16_t seq)
             uint16_t psize = pnotes1.size();// * strength_;
             if (psize > 1)
             {
-                if (ofRandom(1) > 0.5f)
+                if (dRandom(1) > 0.5f)
                 {
                     // borrow pitch from left (before)
                     uint8_t saved_pitch = dmidiseq_[seq][pnotes1[psize - 1]].data0;
@@ -404,7 +404,7 @@ void DSeqPerm::Permutate(uint16_t seq)
                 {
                     if ((dmidiseq_[seq][note].status & MIDI_MESSAGE_MASK) == MIDI_MESSAGE_NOTEON)
                     {
-                        uint16_t note2 = (uint16_t)ofRandom(psize);
+                        uint16_t note2 = (uint16_t)dRandom(psize);
                         dmidiseq_[seq][note].data0 = pnotes1[note2];
                     }
                 }

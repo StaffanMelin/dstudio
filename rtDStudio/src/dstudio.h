@@ -50,5 +50,17 @@
 #define DETOMLO 44
 
 #include <chrono>
-uint64_t ofGetElapsedTimeMicros();
-float ofRandom(float max);
+uint64_t dGetElapsedTimeMicros();
+float dRandom(float max);
+
+
+class DInterval
+{
+    public:
+        void Init(uint64_t interval_us);
+        bool Process();
+
+    private:
+        uint64_t start_;
+        uint64_t interval_us_;
+};

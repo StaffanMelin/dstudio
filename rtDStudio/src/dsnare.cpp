@@ -16,10 +16,10 @@ void DSnare::Init()
 	o_snare_synthetic_.Init(sample_rate_);
 	
 	// opd
+	o_tdrum_.Init(sample_rate_);
 	o_whitenoise_.Init();
 	o_filter_.Init(sample_rate_);
     o_env_a_.Init(sample_rate_);
-	o_tdrum_.Init(sample_rate_);
 	
     SetType(PERCUSSION);
 }
@@ -63,8 +63,8 @@ void DSnare::Set(const Config& config)
 	o_snare_synthetic_.SetFmAmount(fm_amount_);
 	
 	// opd
+	o_tdrum_.Set();
 	o_whitenoise_.SetAmp(amp_);
-	
 	o_filter_.SetFreq(freq_noise_);
 	o_filter_.SetRes(res_);
 	o_filter_.SetDrive(drive_);

@@ -46,7 +46,7 @@ void DSeqMidi::Start()
         channel_max_len_.push_back(max_len_channel);
     }
 
-    now_us_ = ofGetElapsedTimeMicros();
+    now_us_ = dGetElapsedTimeMicros();
     prev_us_ = now_us_;
     running_ = true;
 }
@@ -71,7 +71,7 @@ void DSeqMidi::Process()
 
     if (running_)
     {
-        now_us_ = ofGetElapsedTimeMicros();
+        now_us_ = dGetElapsedTimeMicros();
 
         uint64_t ticks_inc = now_us_ - prev_us_;
         if (ticks_inc > DSEQRESOLUTION)

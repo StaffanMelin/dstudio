@@ -89,6 +89,7 @@ class DSynth : public DSound
         DSYNTH_PARAM_DELAY_FREQ,
         DSYNTH_PARAM_OVERDRIVE,
         DSYNTH_PARAM_FREQ,
+        DSYNTH_PARAM_PAN,
         DSYNTH_PARAM_LAST
     };
 

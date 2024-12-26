@@ -776,7 +776,6 @@ void ProcessControl()
 		if (testcount >= 8) {
 			testcount = 0;
 		}
-		std::cout << "RUN testcount:" << (int)testcount << "\n";
 		switch (testcount)
 		{
 		case 0:

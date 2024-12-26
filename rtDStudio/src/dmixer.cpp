@@ -11,7 +11,6 @@ void DMixer::Init()
     reverb_.Init(sample_rate_);
 
     SetType(DSound::MIXER); // default
-
 }
 
 
@@ -26,8 +25,8 @@ void DMixer::Set(const Config& config)
 	for (uint8_t i = 0; i < channels_; i++)
 	{
 		synth_[i] = config.synth[i];
-		pan_[i] = config.pan[i];
         level_[i] = config.level[i];
+		pan_[i] = config.pan[i];
         chorus_level_[i] = config.chorus_level[i];
         reverb_level_[i] = config.reverb_level[i];
         mono_[i] = config.mono[i];

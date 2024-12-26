@@ -1,239 +1,390 @@
-#include "../rtaudio/RtAudio.h"
-#include "../rtDaisySP/src/daisysp.h"
-#include "../rtDStudio/src/dstudio.h"
+#include "main.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
+#include <getopt.h>
 
-#include "main.h"
+// standard
+#include "../rtaudio/RtAudio.h"
+#include "../rtDaisySP/src/daisysp.h"
+#include "../rtDStudio/src/dstudio.h"
 
-#include "rtApp.h"
+// application - DStudio
+#include "../rtDStudio/src/dmixer.h"
+#include "../rtDStudio/src/dsynthsub.h"
 
 
 
-// RtAudio
-rtApp rt_app;
+//////////////////////////////////////////////////
+// global variables
+//////////////////////////////////////////////////
+
+// standard
+bool done_;
+DSound *dout_;
+
+// rtAudio data buffer
+double *rt_data_ = NULL;
+// DAC
+RtAudio rt_dac_(RtAudio::LINUX_ALSA);
+
+// application - DStudio
+#define DRONES 5
+DSynthSub ddrone[DRONES];
+float tune[DRONES];
+float detune[DRONES];
+float cutoff[DRONES];
+
+DMixer dmixer;
+DInterval clocker;
 
 
+
+
+//////////////////////////////////////////////////
+// util
+//////////////////////////////////////////////////
 
 // Interrupt handler function
-bool done;
-static void finish( int /*ignore*/ )
+static void finish(int /*ignore*/)
 {
-    done = true;
+	done_ = true;
 }
 
 
 
-// error handler
-void errorCallback(RtAudioErrorType /*type*/, const std::string &errorText)
+//////////////////////////////////////////////////
+// Audio
+//////////////////////////////////////////////////
+
+// Audio callback, interleaved
+int AudioCallback(
+	void *output_buffer,
+	void * /*inputBuffer*/,
+	unsigned int frame_count,
+	double stream_time,
+	RtAudioStreamStatus status,
+	void *data_)
 {
-	std::cerr << "\nerrorCallback: " << errorText << "\n\n";
-}
-
-
-
-// ACB interleaved
-int audioCallback(void *output_buffer,
-				  void * /*inputBuffer*/, 
-				  unsigned int frame_count,
-         		  double stream_time,
-         		  RtAudioStreamStatus status,
-         		  void *data)
-{
-
-	// audio rate
-
 	MY_TYPE *buffer = (MY_TYPE *)output_buffer;
 
 	if (status)
 		std::cout << "Stream underflow detected!" << std::endl;
 
-    for(size_t i = 0; i < frame_count; i++)
+	for (size_t i = 0; i < frame_count; i++)
 	{
-        MY_TYPE sigL, sigR;
-        rt_app.Process(&sigL, &sigR);
-        *buffer = sigL;
-        buffer++;
-        *buffer = sigR;
-        buffer++;
+		MY_TYPE sigL, sigR;
+		dout_->Process(&sigL, &sigR);
+		*buffer = sigL;
+		buffer++;
+		*buffer = sigR;
+		buffer++;
+	}
+
+	return 0;
+}
+
+bool InitRtAudio(bool arg_devices_list,
+				bool arg_devices_set,
+			    char* arg_device)
+{
+	bool retval = true;
+
+	float sample_rate = DSTUDIO_SAMPLE_RATE;
+	unsigned int rt_device = 0;
+	unsigned int rt_channels = 2;
+	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
+
+	RtAudio::StreamParameters rt_params;
+	RtAudio::StreamOptions rt_options;
+	RtAudio::DeviceInfo rt_info;
+
+	// output all messages
+	rt_dac_.showWarnings(true);
+
+	// setup device
+	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
+	if (deviceIds.size() < 1)
+	{
+		std::cout << "RTAUDIO: ERROR - No audio devices found!\n";
+		retval = false;
+	}
+
+	if (retval)
+	{
+		std::cout << "RTAUDIO: Found " << deviceIds.size() << " device(s).\n";
+		std::cout << "RTAUDIO: API: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << "\n";
+
+		for (unsigned int i = 0; i < deviceIds.size(); i++)
+		{
+			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
+
+			if (arg_devices_set)
+			{
+				if (rt_info.name.find(arg_device) != std::string::npos)
+				{
+					rt_device = deviceIds[i];
+				}
+			}
+			// list device information
+			if (arg_devices_list)
+			{
+				std::cout << "RTAUDIO: Device Name " << rt_info.name << "\n";
+				std::cout << "RTAUDIO: Device ID " << deviceIds[i] << "\n";
+			}
+		}
+		// set output device
+		if (rt_device == 0)
+		{
+			rt_device = rt_dac_.getDefaultOutputDevice();
+			std::cout << "RTAUDIO: Get Device " << rt_device << "\n";
+		}
+		std::cout << "RTAUDIO: Device set to " << rt_device << "\n";
+		rt_params.deviceId = rt_device;
+		rt_params.nChannels = rt_channels;
+		//rt_params.firstChannel = rt_offset;
+		rt_params.firstChannel = 0;
+		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
+		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
+		rt_options.priority = 1;
+		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
+		// open stream
+		if (rt_dac_.openStream(&rt_params, // output
+							   NULL,	   // input
+							   FORMAT,	   // sample data format
+							   sample_rate,
+							   &rt_buffer_frames, // buffer size in frames
+							   &AudioCallback,
+							   (void *)rt_data_,
+							   &rt_options)) // flags and number of buffers
+		{
+			retval = false;
+		}
+
+		std::cout << "Stream open." << std::endl;
+		std::cout << "Stream latency = " << rt_dac_.getStreamLatency() << "\n";
+
+		// start stream
+		if (rt_dac_.startStream())
+		{
+			retval = false;
+		}
+	}
+	return (retval);
+}
+
+
+
+//////////////////////////////////////////////////
+// DStudio
+//////////////////////////////////////////////////
+
+// init synths
+bool InitSynths()
+{
+	bool retval = true;
+
+    // synths subtractive
+    DSynthSub::Config dsynth_config;
+
+    // synths
+    for (uint8_t d = 0; d < DRONES; d++)
+    {
+        dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+        dsynth_config.voices = 1;
+        dsynth_config.waveform0 = DSynthSub::WAVE_SAW;
+        dsynth_config.waveform1 = DSynthSub::WAVE_TRI;
+        tune[d] = dRandom(5.0f);
+        dsynth_config.tune = tune[d];
+        detune[d] = dRandom(10.0f);
+        dsynth_config.detune = detune[d];
+        dsynth_config.transpose = 0;
+        dsynth_config.osc0_level = 0.5f;
+        dsynth_config.osc1_level = 0.5f;
+        dsynth_config.noise_level = 0.0f;
+        dsynth_config.filter_type = DSynthSub::LOW;
+        cutoff[d] = 400.0f + dRandom(400.0f);
+        dsynth_config.filter_cutoff = cutoff[d];
+        dsynth_config.filter_res = 0.1f;
+        dsynth_config.eg_p_level = 0.0f;
+        dsynth_config.eg_p_attack = 0.0f;
+        dsynth_config.eg_p_decay = 0.0f;
+        dsynth_config.eg_p_sustain = 0.0f;
+        dsynth_config.eg_p_release = 0.0f;
+        dsynth_config.eg_f_level = 1.0f;
+        dsynth_config.eg_f_attack = 0.0f;
+        dsynth_config.eg_f_decay = 0.0f;
+        dsynth_config.eg_f_sustain = 1.0f;
+        dsynth_config.eg_f_release = 0.2f;
+        dsynth_config.eg_a_attack = 0.3f;
+        dsynth_config.eg_a_decay = 0.01f;
+        dsynth_config.eg_a_sustain = 1.0f;
+        dsynth_config.eg_a_release = 0.4f;
+        dsynth_config.lfo_waveform = DSynthSub::WAVE_TRI;
+        dsynth_config.lfo_freq = 0;//dRandom(0.5f);
+        dsynth_config.lfo_amp = 0;//dRandom(1.0f);
+        dsynth_config.lfo_p_level = 0.0f;
+        dsynth_config.lfo_f_level = 0.0f;
+        dsynth_config.lfo_a_level = 0.0f;
+        dsynth_config.portamento = 3.0f;
+        dsynth_config.delay_delay = dRandom(1.0f);
+        dsynth_config.delay_feedback = dRandom(1.0f);
+        dsynth_config.overdrive_gain = 0.0f;
+        dsynth_config.overdrive_drive = 0.0f; //dRandom(0.2f);
+        ddrone[d].Init();
+        ddrone[d].Set(dsynth_config);
     }
 
-    return 0;
+    // main mixer
+    DSound *dmix_synth[MIXER_CHANNELS_MAX];
+    float dmix_pan[MIXER_CHANNELS_MAX];
+    float dmix_level[MIXER_CHANNELS_MAX];
+    float dmix_chorus_level[MIXER_CHANNELS_MAX];
+    float dmix_reverb_level[MIXER_CHANNELS_MAX];
+    bool dmix_mono[MIXER_CHANNELS_MAX];
+    uint8_t dmix_group[MIXER_CHANNELS_MAX];
+    DMixer::Config dmix_config;
+
+    for (uint8_t d = 0; d < DRONES; d++)
+    {
+        dmix_synth[d] = &ddrone[d];
+        dmix_pan[d] = dRandom(1.0f);
+        dmix_level[d] = 0.95f / (float)DRONES;
+        dmix_chorus_level[d] = dRandom(0.8f);
+        dmix_reverb_level[d] = 0.5f + dRandom(0.5f);
+        dmix_mono[d] = true;
+        dmix_group[d] = d;
+    }
+    dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dmix_config.channels = DRONES;
+    dmix_config.amp = 1.2f;
+    dmix_config.synth = dmix_synth;
+    dmix_config.pan = dmix_pan;
+    dmix_config.level = dmix_level;
+    dmix_config.chorus_level = dmix_chorus_level;
+    dmix_config.reverb_level = dmix_reverb_level;
+    dmix_config.mono = dmix_mono;
+    dmix_config.group = dmix_group;
+    dmix_config.chorus_return = 0.5;
+    dmix_config.reverb_return = 0.8f;
+    dmix_config.mix_dry = 0.2;
+    dmixer.Init();
+    dmixer.Set(dmix_config);
+
+    // demo start
+    dmixer.SetReverb(0.4f, 6000.0f);
+    for (uint8_t d = 0; d < DRONES; d++)
+    {
+        ddrone[d].NoteOn(18 + 6 * (int)(dRandom(10.0f)));
+    }
+
+    clocker.Init(1000000);
+
+	return retval;
+}
+
+
+
+//////////////////////////////////////////////////
+// Application logic
+//////////////////////////////////////////////////
+
+void ProcessControl()
+{
+	if (clocker.Process())
+    {
+		for (uint8_t d = 0; d < DRONES; d++)
+		{
+			// make tuning of synths slowly drift
+			if (dRandom(1.0f) < 0.02)
+			{
+				tune[d] = dRandom(15.0f); // 5.0f
+				ddrone[d].SetTuning(tune[d], detune[d]);
+			}
+			// make cutoff of synths drift
+			if (dRandom(1.0f) < 0.01)
+			{
+				cutoff[d] = 100.0f + dRandom(2500.0f); // 500.0f
+				ddrone[d].SetFilter(DSynthSub::LOW, cutoff[d], 0.1f);
+			}
+			// pitch drift w portamento
+			if (dRandom(1.0f) < 0.002)
+			{
+				ddrone[d].NoteOn(18 + 10 * (int)(dRandom(10.0f)));
+			}
+		}
+	}
 }
 
 
 
 // main
 
-int main()
+// -l - list audio devices
+// -d <dev> - use given audio device
+int main(int argc, char* argv[])
 {
-	// DStudio setup
+	int c;
+	bool arg_devices_set = false;
+	bool arg_devices_list = false;
+    char* arg_device = nullptr;
 
-    rt_app.Setup();
+	opterr = 0;
 
-	// RtAudio setup
-	float sample_rate = DSTUDIO_SAMPLE_RATE;
-    unsigned int rt_device;
-	unsigned int rt_channels = 2;
-    unsigned int rt_offset = 0; // channel count offset
-    unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
-	unsigned int rt_frames = 0;
-
-    // Rtaudio init
-    RtAudio rt_dac(RtAudio::LINUX_ALSA, &errorCallback);
-	/*
-	enum Api {
-		UNSPECIFIED,
-		LINUX_ALSA,
-		LINUX_PULSE
-		LINUX_OSS,
-		UNIX_JACK,
-		MACOSX_CORE,
-		WINDOWS_WASAPI,
-		WINDOWS_ASIO,
-		WINDOWS_DS,
-		RTAUDIO_DUMMY,
-		NUM_APIS
-	};
-	*/
-	
-    // output all messages
-    rt_dac.showWarnings(true);
-
-    // setup device
-    if (rt_dac.getDeviceCount() < 1)
-    {
-		std::cout << "\nNo audio devices found!\n";
-        exit(1);
-	}
-	
-	// list device information
-	/*
-	RtAudio::DeviceInfo rt_info;
-	std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac.getCurrentApi()) << std::endl;
-	unsigned int device_count = rt_dac.getDeviceCount();
-	std::cout << "\nFound " << device_count << " device(s).\n";
-
-	for (unsigned int i = 0; i < device_count; i++)
+	while ((c = getopt(argc, argv, "d:l")) != -1)
 	{
-		rt_info = rt_dac.getDeviceInfo(i);
-
-		std::cout << "\nDevice Name = " << rt_info.name << "\n";
-		std::cout << "Device ID = " << i << "\n";
-		if (rt_info.probed == false)
-			std::cout << "Probe Status = UNsuccessful\n";
-		else {
-			std::cout << "Output Channels = " << rt_info.outputChannels << "\n";
-			std::cout << "Input Channels = " << rt_info.inputChannels << "\n";
-			std::cout << "Duplex Channels = " << rt_info.duplexChannels << "\n";
-			if (rt_info.isDefaultOutput)
-				std::cout << "Default output device.\n";
-			else
-				std::cout << "NOT default output device.\n";
-			if (rt_info.isDefaultInput)
-				std::cout << "Default input device.\n";
-			else
-				std::cout << "NOT default input device.\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT8)
-				std::cout << "  8-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT16)
-				std::cout << "  16-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT24)
-				std::cout << "  24-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_SINT32)
-				std::cout << "  32-bit int\n";
-			if (rt_info.nativeFormats & RTAUDIO_FLOAT32)
-				std::cout << "  32-bit float\n";
-			if (rt_info.nativeFormats & RTAUDIO_FLOAT64)
-				std::cout << "  64-bit float\n";
+		switch (c)
+		{
+			case 'd':
+				arg_devices_set = true;
+				arg_device = optarg;
+				break;
+			case 'l':
+				arg_devices_list = true;
+				break;
 		}
-		if (rt_info.sampleRates.size() < 1) {
-			std::cout << "No supported sample rates found!";
-		} else {
-			std::cout << "Supported sample rates = ";
-			for (unsigned int j = 0; j < rt_info.sampleRates.size(); j++)
-				std::cout << rt_info.sampleRates[j] << " ";
-		}
-		std::cout << std::endl;
-		if (rt_info.preferredSampleRate == 0)
-			std::cout << "No preferred sample rate found!" << std::endl;
-		else
-			std::cout << "Preferred sample rate = " << rt_info.preferredSampleRate << std::endl;
 	}
-	*/
-	
-	// select device
-	rt_device = 0;
 
-    // setup output
-	RtAudio::StreamParameters rt_params;
-    if (rt_device == 0)
-    {
-        rt_params.deviceId = rt_dac.getDefaultOutputDevice();
-    } else {
-        rt_params.deviceId = rt_device;
-    }
-    rt_params.nChannels = rt_channels;
-	rt_params.firstChannel = rt_offset;
-	
-    RtAudio::StreamOptions rt_options;
-    rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
-    rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
-    rt_options.priority = 1;
+	bool retval = true;
 
-    // data storage
-    double *data = (double *)calloc(rt_channels, sizeof(double));
+	std::cout << "INFO init synths\n";
+	retval = InitSynths();
+	dout_ = &dmixer;
 
-    // open stream
-    if (rt_dac.openStream(&rt_params, // output
-                       NULL, // input
-                       FORMAT, // sample data format
-                       sample_rate,
-                       &rt_buffer_frames, // buffer size in frames
-                       &audioCallback,
-                       (void *)data,
-                       &rt_options)) // flags and number of buffers
-    {
-        goto cleanup;
-    }
+	std::cout << "INFO init audio\n";
+	retval = InitRtAudio(arg_devices_list, arg_devices_set, arg_device);
 
-	if (rt_dac.isStreamOpen() == false)
-    {
-        goto cleanup;
-    }
+	if (retval)
+	{
+		// run until interrupt with CTRL+C
+		done_ = false;
+		(void)signal(SIGINT, finish);
+		std::cout << "\nPlaying - quit with Ctrl-C.\n";
 
-	std::cout << "Stream latency = " << rt_dac.getStreamLatency() << "\n" << std::endl;
-  
-    // start stream
-	if (rt_dac.startStream())
-    {
-		goto cleanup;
-    }
+		// application
+		SLEEP(1000);
 
-    std::cout << "\nPlaying - quit with Ctrl-C.\n";
+		// main application loop
+		while (!done_ && rt_dac_.isStreamRunning())
+		{
+			ProcessControl();
+			SLEEP(10); // 10 ms
+		}
+	}
 
-    // run until interrupt with CTRL+C
-    done = false;
-    (void) signal(SIGINT, finish);
+	// rtAudio cleanup
+	if (rt_dac_.isStreamRunning())
+	{
+		rt_dac_.stopStream();
+	}
+	if (rt_dac_.isStreamOpen())
+	{
+		rt_dac_.closeStream();
+	}
 
-    while (!done && rt_dac.isStreamRunning())
-    {
-        SLEEP(100);
-    }
-
-    // stop stream
-    if (rt_dac.isStreamRunning())
-    {
-        rt_dac.stopStream();
-    }
-
-cleanup:
-    if (rt_dac.isStreamOpen())
-    {
-        rt_dac.closeStream();
-    }
-    free(data);
+	if (rt_data_ != NULL)
+		free(rt_data_);
 
 	return 0;
 }

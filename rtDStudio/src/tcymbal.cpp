@@ -4,6 +4,7 @@ void TCymbal::Init(float sample_rate)
 {
 	sample_rate_ = sample_rate;
 
+    o_ringnoise_.Init(sample_rate_);
 	o_whitenoise_.Init();
 	o_filter_.Init(sample_rate_);
     env_a_.Init(sample_rate_);

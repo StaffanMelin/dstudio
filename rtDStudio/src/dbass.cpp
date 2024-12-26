@@ -63,6 +63,7 @@ void DBass::Set(const Config& config)
     o_bass_synthetic_.SetFmEnvelopeDecay(fm_env_decay_);
 	
 	// opd
+    o_tdrum_.Set();
     o_tdrum_.SetFreq(freq_);
 	//o_tdrum_.SetAmp(amp_);
     o_tdrum_.SetDecay(decay_);

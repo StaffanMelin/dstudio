@@ -29,7 +29,8 @@ void DCymbal::Set(const Config& config)
     decay_ = config.decay;
     min_ = config.min;
     mix_ = config.mix;
-	
+
+    o_tcymbal_.Set();
     o_tcymbal_.SetFreq(freq_);
     o_tcymbal_.SetRes(res_);
     o_tcymbal_.SetDrive(drive_);

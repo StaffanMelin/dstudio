@@ -38,7 +38,7 @@ void DGen::Init(const Config& config)
 void DGen::Start(DramaType drama_first)
 {
     drama_ = drama_first;
-    now_us_ = ofGetElapsedTimeMicros();
+    now_us_ = dGetElapsedTimeMicros();
     prev_us_ = now_us_;
 
     running_ = true;
@@ -67,7 +67,7 @@ void DGen::Process()
 {
     if (running_)
     {
-        now_us_ = ofGetElapsedTimeMicros();
+        now_us_ = dGetElapsedTimeMicros();
 
         uint64_t ticks_inc = now_us_ - prev_us_;
 
@@ -185,9 +185,9 @@ void DGen::NoteCreate(uint8_t c)
                 {
                     // always on; long
                     // base note or 3rd or 5th
-                    float dice = ofRandom(1);
-                    uint64_t length = ofRandom(10) * DT1 * upt_;
-                    uint8_t velocity = 60 + ofRandom(40);
+                    float dice = dRandom(1);
+                    uint64_t length = dRandom(10) * DT1 * upt_;
+                    uint8_t velocity = 60 + dRandom(40);
                     if (dice < .6f)
                     {
                         NoteQueue(c, ticks_[c], note_base_[c], velocity, length);
@@ -225,12 +225,12 @@ void DGen::NoteCreate(uint8_t c)
             {
                 case DGen::INTRO:
                 {
-                    float dice = ofRandom(1);
-                    uint64_t length = ofRandom(1) * 10 *  DT4 * upt_;
+                    float dice = dRandom(1);
+                    uint64_t length = dRandom(1) * 10 *  DT4 * upt_;
                     if (dice > 0.2f)
                     {
-                        uint8_t velocity = 57 + ofRandom(30);
-                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                        uint8_t velocity = 57 + dRandom(30);
+                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
 
                     } else {
                         // queue a pause
@@ -240,19 +240,19 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::VERSE:
                 {
-                    float dice = ofRandom(1);
-                    uint64_t length = ofRandom(1) * 10 *  DT4 * upt_;
+                    float dice = dRandom(1);
+                    uint64_t length = dRandom(1) * 10 *  DT4 * upt_;
                     if (dice > 0.4f)
                     {
-                        uint8_t velocity = 57 + ofRandom(60);
-                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                        uint8_t velocity = 57 + dRandom(60);
+                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
                         // sometimes add 2nd note
-                        dice = ofRandom(1);
+                        dice = dRandom(1);
                         if (dice > 0.9f)
                         {
-                            // uint64_t length = ofRandom(1) * 10 *  DT4 * upt_;
-                            uint8_t velocity = 57 + ofRandom(70);
-                            NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                            // uint64_t length = dRandom(1) * 10 *  DT4 * upt_;
+                            uint8_t velocity = 57 + dRandom(70);
+                            NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
                         }
                         // queue a pause
                         // NoteQueue(c, ticks_[c]+length, DREST, 0, length*2);
@@ -264,19 +264,19 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::CHORUS:
                 {
-                    float dice = ofRandom(1);
-                    uint64_t length = ofRandom(1) * 6 *  DT4 * upt_;
+                    float dice = dRandom(1);
+                    uint64_t length = dRandom(1) * 6 *  DT4 * upt_;
                     if (dice > 0.2f)
                     {
-                        uint8_t velocity = 57 + ofRandom(60);
-                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                        uint8_t velocity = 57 + dRandom(60);
+                        NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
                         // sometimes add 2nd note
-                        dice = ofRandom(1);
+                        dice = dRandom(1);
                         if (dice > 0.3f)
                         {
-                            // uint64_t length = ofRandom(1) * 10 *  DT4 * upt_;
-                            uint8_t velocity = 57 + ofRandom(70);
-                            NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                            // uint64_t length = dRandom(1) * 10 *  DT4 * upt_;
+                            uint8_t velocity = 57 + dRandom(70);
+                            NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
                         }
                         // queue a pause
                         // NoteQueue(c, ticks_[c]+length, DREST, 0, length*2);
@@ -292,9 +292,9 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::OUTRO:
                 {
-                    uint64_t length = ofRandom(1) * 10 *  DT4 * upt_;
-                    uint8_t velocity = 57 + ofRandom(30);
-                    NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(ofRandom(4))], velocity, length);
+                    uint64_t length = dRandom(1) * 10 *  DT4 * upt_;
+                    uint8_t velocity = 57 + dRandom(30);
+                    NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[int(dRandom(4))], velocity, length);
                     break;
                 }
             } // switch (DRAMA)
@@ -315,11 +315,11 @@ void DGen::NoteCreate(uint8_t c)
                     uint64_t length;
                     for (int n = 0; n < note_pad_len_; n++)
                     {
-                        dice = ofRandom(1);
-                        length = ofRandom(1) * 10 *  DT4 * upt_;
+                        dice = dRandom(1);
+                        length = dRandom(1) * 10 *  DT4 * upt_;
                         if (dice > 0.3f)
                         {
-                            uint8_t velocity = 57 + ofRandom(40);
+                            uint8_t velocity = 57 + dRandom(40);
                             NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[n], velocity, length);
                         } else {
                             // queue a rest
@@ -334,11 +334,11 @@ void DGen::NoteCreate(uint8_t c)
                     uint64_t length;
                     for (int n = 0; n < note_pad_len_; n++)
                     {
-                        dice = ofRandom(1);
-                        length = ofRandom(1) * 10 *  DT4 * upt_;
+                        dice = dRandom(1);
+                        length = dRandom(1) * 10 *  DT4 * upt_;
                         if (dice > 0.1f)
                         {
-                            uint8_t velocity = 57 + ofRandom(70);
+                            uint8_t velocity = 57 + dRandom(70);
                             NoteQueue(c, ticks_[c], note_base_[c] + 12 + note_pad_[n], velocity, length);
                         } else {
                             // queue a rest
@@ -357,11 +357,11 @@ void DGen::NoteCreate(uint8_t c)
                     uint64_t length;
                     for (int n = 0; n < note_pad_len_; n++)
                     {
-                        dice = ofRandom(1);
-                        length = ofRandom(1) * 10 *  DT4 * upt_;
+                        dice = dRandom(1);
+                        length = dRandom(1) * 10 *  DT4 * upt_;
                         if (dice > 0.1f)
                         {
-                            uint8_t velocity = 57 + ofRandom(40);
+                            uint8_t velocity = 57 + dRandom(40);
                             NoteQueue(c, ticks_[c], note_base_[c] + note_pad_[n], velocity, length);
                         } else {
                             // queue a rest
@@ -384,15 +384,15 @@ void DGen::NoteCreate(uint8_t c)
                 case DGen::INTRO:
                 {
                     // sometimes 1-3 slow notes from melody
-                    dice = ofRandom(1);
-                    length = (1 + ofRandom(1)) * 5 * DT4 * upt_;
+                    dice = dRandom(1);
+                    length = (1 + dRandom(1)) * 5 * DT4 * upt_;
                     if (dice > 0.8f)
                     {
-                        dice = 1 + ofRandom(5);
-                        uint8_t velocity = 57 + ofRandom(70);
+                        dice = 1 + dRandom(5);
+                        uint8_t velocity = 57 + dRandom(70);
                         for (uint8_t n = 0; n < dice; n++)
                         {
-                            uint8_t m = int(ofRandom(note_melody_len_));
+                            uint8_t m = int(dRandom(note_melody_len_));
                             NoteQueue(c, ticks_[c], note_base_[c] + note_melody_[m], velocity, length);
                         }
 
@@ -404,16 +404,16 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::VERSE:
                 {
-                    dice = ofRandom(1);
-                    length = (1 + ofRandom(1)) * 4 *  DT4 * upt_;
+                    dice = dRandom(1);
+                    length = (1 + dRandom(1)) * 4 *  DT4 * upt_;
                     if (dice > 0.2f)
                     {
-                        dice = 2 + ofRandom(note_melody_len_);
+                        dice = 2 + dRandom(note_melody_len_);
                         if (dice > note_melody_len_)
                         {
                             dice = note_melody_len_;
                         }
-                        uint8_t velocity = 57 + ofRandom(70);
+                        uint8_t velocity = 57 + dRandom(70);
                         for (uint8_t n = 0; n < dice; n++)
                         {
                             NoteQueue(c, ticks_[c] + n * length, note_base_[c] + note_melody_[n], velocity, length);
@@ -426,12 +426,12 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::CHORUS:
                 {
-                    dice = ofRandom(1);
-                    length = (1 + ofRandom(1)) * 2 *  DT4 * upt_;
+                    dice = dRandom(1);
+                    length = (1 + dRandom(1)) * 2 *  DT4 * upt_;
                     if (dice > 0.1f)
                     {
                         dice = note_melody_len_;
-                        uint8_t velocity = 57 + ofRandom(70);
+                        uint8_t velocity = 57 + dRandom(70);
                         for (uint8_t n = 0; n < dice; n++)
                         {
                             NoteQueue(c, ticks_[c], note_base_[c] + 12 + note_melody_[n], velocity, length);
@@ -444,12 +444,12 @@ void DGen::NoteCreate(uint8_t c)
                 }
                 case DGen::BREAK:
                 {
-                    dice = ofRandom(1);
-                    length = (2 + ofRandom(1)) * 2 *  DT4 * upt_;
+                    dice = dRandom(1);
+                    length = (2 + dRandom(1)) * 2 *  DT4 * upt_;
                     if (dice > 0.5f)
                     {
                         dice = note_melody_len_;
-                        uint8_t velocity = 57 + ofRandom(40);
+                        uint8_t velocity = 57 + dRandom(40);
                         for (uint8_t n = 0; n < dice; n++)
                         {
                             NoteQueue(c, ticks_[c], note_base_[c] + 12 + note_melody_[n], velocity, length);
@@ -526,18 +526,18 @@ void DGen::NoteCreate(uint8_t c)
                 case DGen::OUTRO:
                 {
                     uint8_t m = 0;
-                    if (ofRandom(1) > 0.3f)
+                    if (dRandom(1) > 0.3f)
                     {
                         // pling of random length from melody
                         float dice;
                         uint64_t length = DT16 * upt_;
-                        dice = ofRandom(1) * note_melody_len_ / 2;
+                        dice = dRandom(1) * note_melody_len_ / 2;
                         uint8_t velocity = 80;
                         for (uint8_t n = 0; n < dice; n++)
                         {
                             NoteQueue(c, ticks_[c] + length * m, note_base_[c] + note_melody_[n], velocity, length);
                             m++;
-                            if (ofRandom(1) > 0.7)
+                            if (dRandom(1) > 0.7)
                             {
                                 NoteQueue(c, ticks_[c] + length * m, DREST, velocity, length);
                                 m++;
@@ -545,7 +545,7 @@ void DGen::NoteCreate(uint8_t c)
                         }
                     }
                     // queue a pause
-                    uint64_t length = DT1 * upt_ * ofRandom(3);
+                    uint64_t length = DT1 * upt_ * dRandom(3);
                     NoteQueue(c, ticks_[c] + length * m , DREST, 0, length);
                     break;
                 }
@@ -624,7 +624,7 @@ void DGenDrone::Start(DramaType drama_first)
     DGen::Start(drama_first);
 
     drama_start_ = ticks_[0];
-    drama_end_ = ticks_[0] + (DGEN_DRAMA_MIN_LEN + ofRandom(DGEN_DRAMA_MAX_LEN - DGEN_DRAMA_MIN_LEN)) * DT1 * upt_;
+    drama_end_ = ticks_[0] + (DGEN_DRAMA_MIN_LEN + dRandom(DGEN_DRAMA_MAX_LEN - DGEN_DRAMA_MIN_LEN)) * DT1 * upt_;
     drama_ticks_ = ticks_[0];
 
 }
@@ -635,7 +635,7 @@ void DGenDrone::Process()
 {
     if (running_)
     {
-        now_us_ = ofGetElapsedTimeMicros();
+        now_us_ = dGetElapsedTimeMicros();
 
         uint64_t ticks_inc = now_us_ - prev_us_;
 
@@ -652,7 +652,7 @@ void DGenDrone::Process()
 
                 // what new drama state should we move to
                 // 60 30 10
-                float dice = ofRandom(1);
+                float dice = dRandom(1);
                 if (dice < 0.6f)
                 {
                     DGen::drama_ = drama_order_[drama_][0];
@@ -662,7 +662,7 @@ void DGenDrone::Process()
                     DGen::drama_ = drama_order_[drama_][2];
                 }
 
-                uint64_t drama_add = (DGEN_DRAMA_MIN_LEN + ofRandom(DGEN_DRAMA_MAX_LEN - DGEN_DRAMA_MIN_LEN)) * DT1 * upt_;
+                uint64_t drama_add = (DGEN_DRAMA_MIN_LEN + dRandom(DGEN_DRAMA_MAX_LEN - DGEN_DRAMA_MIN_LEN)) * DT1 * upt_;
                 drama_end_ += drama_add;
 
                 cout << "DRAMA " << unsigned(DGen::drama_) << " length: " << (drama_add / upt_ / DT1) << endl;

@@ -170,6 +170,8 @@ bool InitRtAudio()
 		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
 		rt_options.priority = 1;
 
+		std::cout << "Device id:" << rt_params.deviceId << std::endl;
+
 		// data storage
 		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
 
@@ -299,7 +301,8 @@ bool InitSynths()
 	dmix_config.chorus_return = 0.5;
 	dmix_config.reverb_return = 0.5f;
 	dmix_config.mix_dry = 0.3;
-	dmixer.Init(dmix_config);
+	dmixer.Init();
+	dmixer.Set(dmix_config);
 
 	// demo start
 	dmixer.SetReverb(0.9f, 2000.0f);
@@ -448,7 +451,7 @@ void ProcessControl()
 	}
 	if (dctrl[DCTRL_D0_PAN].GetChange(&x))
 	{
-		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_P, x / 100.0);
+		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_PAN, x / 100.0);
 	}
 	if (dctrl[DCTRL_D0_CUTOFF].GetChange(&x))
 	{
