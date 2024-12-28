@@ -27,10 +27,9 @@ bool done_;
 // application - DStudio
 #define DRONES 16
 /*
-In dstudio.h we have:
-#define MIXER_CHANNELS_MAX 16
-So if you raise DRONES > MIXER_CHANNELS_MAX
-rememeber to change MIXER_CHANNELS_MAX too
+In dstudio.h we have #define MIXER_CHANNELS_MAX 16.
+So if you raise DRONES > MIXER_CHANNELS_MAX rememeber to change MIXER_CHANNELS_MAX too.
+Note! Don't go higher than what fits in a uint8_t, ie 255!
 */
 DSynthSub ddrone[DRONES];
 float tune[DRONES];
@@ -68,7 +67,7 @@ bool InitSynths()
     DSynthSub::Config dsynth_config;
 
     // synths
-    for (uint16_t d = 0; d < DRONES; d++)
+    for (uint8_t d = 0; d < DRONES; d++)
     {
         dsynth_config.sample_rate = DSTUDIO_SAMPLE_RATE;
         dsynth_config.voices = 1;
@@ -125,7 +124,7 @@ bool InitSynths()
     uint8_t dmix_group[MIXER_CHANNELS_MAX];
     DMixer::Config dmix_config;
 
-    for (uint16_t d = 0; d < DRONES; d++)
+    for (uint8_t d = 0; d < DRONES; d++)
     {
         dmix_synth[d] = &ddrone[d];
         dmix_pan[d] = dRandom(1.0f);
@@ -153,7 +152,7 @@ bool InitSynths()
 
     // demo start
     dmixer.SetReverb(0.4f, 6000.0f);
-    for (uint16_t d = 0; d < DRONES; d++)
+    for (uint8_t d = 0; d < DRONES; d++)
     {
         ddrone[d].NoteOn(18 + 6 * (int)(dRandom(10.0f)));
     }
@@ -173,7 +172,7 @@ void ProcessControl()
 {
 	if (clocker.Process())
     {
-		for (uint16_t d = 0; d < DRONES; d++)
+		for (uint8_t d = 0; d < DRONES; d++)
 		{
 			// make tuning of synths slowly drift
 			if (dRandom(1.0f) < 0.02)
