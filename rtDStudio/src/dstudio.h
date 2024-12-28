@@ -1,6 +1,8 @@
 #pragma once
 
 // helper macros
+#include <unistd.h>
+#define SLEEP(milliseconds) usleep((unsigned long)(milliseconds * 1000.0))
 #define DMAX(x,y) ((x > y) ? (x) : (y))
 #define DMIN(x,y) ((x > y) ? (y) : (x))
 

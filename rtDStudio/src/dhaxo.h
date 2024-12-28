@@ -24,9 +24,9 @@ extern "C"
 #define DHAXO_PRESSURE_START 2048
 #define DHAXO_PRESSURE_MAX 3330
 
-#define DHAXO_TARGET_MAX 16
+#define DHAXO_CONTROLLER_TARGET_MAX 8
 #define DHAXO_DIST_OFF 100
-#define DHAXO_VALUE_MAX 16
+#define DHAXO_CONTROLLER_VALUE_MAX 8
 
 #define DHAXO_SERIAL_BUFFER_SIZE 1024
 
@@ -40,21 +40,24 @@ public:
     struct Config
     {
         DSynth *synth;
-		bool hexo_connected;
-		DSynth::Param hexo_target[DHAXO_TARGET_MAX];
+		bool controller;
+		uint8_t controller_targets;
+		DSynth::Param controller_target[DHAXO_CONTROLLER_TARGET_MAX];
     };
 
-	void Init(const Config&);
-	void ProcessControl();
+	void Init();
+	void Set(const Config&);
+	void Process();
 	void Exit();
 
 private:
 
 	// DStudio
-	uint8_t channel_;
     DSynth *synth_;
-	bool hexo_connected_;
-	DSynth::Param hexo_target_[DHAXO_TARGET_MAX];
+	uint8_t channel_;
+	bool controller_connected_;
+	uint8_t controller_targets_;
+	DSynth::Param controller_target_[DHAXO_CONTROLLER_TARGET_MAX];
 	
 	// module
 	std::map<uint32_t, uint8_t> notemap_;
@@ -70,11 +73,11 @@ private:
 	struct gpiod_line *line_r_[DHAXO_KEY_ROWS];
 	struct gpiod_line *line_c_[DHAXO_KEY_COLS];
 	
-	// Hexo foot controller - serial port
+	// optional controller - serial port
 	LibSerial::SerialPort serial_port_;
 	char serial_buffer_[DHAXO_SERIAL_BUFFER_SIZE];
 	uint16_t serial_buffer_next_;
-	float hexo_value_[DHAXO_VALUE_MAX];
+	float controller_value_[DHAXO_CONTROLLER_VALUE_MAX];
 
 	// private methods
 	float Pressure();

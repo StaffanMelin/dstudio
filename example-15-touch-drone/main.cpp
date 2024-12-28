@@ -5,7 +5,6 @@
 #include <signal.h>
 
 // standard
-#include "../rtaudio/RtAudio.h"
 #include "../rtDaisySP/src/daisysp.h"
 #include "../rtDStudio/src/dstudio.h"
 
@@ -23,6 +22,8 @@
 // application - DWindow
 #include "../rtDStudio/src/dwindow.h"
 
+#include "rt.h"
+
 
 
 //////////////////////////////////////////////////
@@ -31,12 +32,6 @@
 
 // standard
 bool done_;
-DSound *dout_;
-
-// rtAudio data buffer
-double *rt_data_ = NULL;
-// DAC
-RtAudio rt_dac_(RtAudio::LINUX_ALSA);
 
 // application - DStudio
 DSynthSub dsynthd0;
@@ -62,142 +57,6 @@ DControl dctrl[DWINDOW_CTRLS_MAX];
 static void finish(int /*ignore*/)
 {
 	done_ = true;
-}
-
-
-
-//////////////////////////////////////////////////
-// Audio
-//////////////////////////////////////////////////
-
-// Audio callback, interleaved
-int AudioCallback(
-	void *output_buffer,
-	void * /*inputBuffer*/,
-	unsigned int frame_count,
-	double stream_time,
-	RtAudioStreamStatus status,
-	void *data_)
-{
-	MY_TYPE *buffer = (MY_TYPE *)output_buffer;
-
-	if (status)
-		std::cout << "Stream underflow detected!" << std::endl;
-
-	for (size_t i = 0; i < frame_count; i++)
-	{
-		MY_TYPE sigL, sigR;
-		dout_->Process(&sigL, &sigR);
-		*buffer = sigL;
-		buffer++;
-		*buffer = sigR;
-		buffer++;
-	}
-
-	return 0;
-}
-
-bool InitRtAudio()
-{
-	bool retval = true;
-
-	float sample_rate = DSTUDIO_SAMPLE_RATE;
-	unsigned int rt_device;
-	unsigned int rt_channels = 2;
-	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
-
-	RtAudio::StreamParameters rt_params;
-	RtAudio::StreamOptions rt_options;
-	RtAudio::DeviceInfo rt_info;
-
-	// output all messages
-	rt_dac_.showWarnings(true);
-
-	// setup device
-	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
-	if (deviceIds.size() < 1)
-	{
-		std::cout << "ERROR: No audio devices found!\n";
-		retval = false;
-	}
-
-	if (retval)
-	{
-		// list device information
-		// and set our device id
-		rt_device = 0;
-		std::cout << "\nFound " << deviceIds.size() << " device(s).\n";
-		std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << std::endl;
-
-		for (unsigned int i = 0; i < deviceIds.size(); i++)
-		{
-			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
-
-			if (rt_info.name.rfind("MAX98357A", 0) == 0)
-			{
-				rt_device = deviceIds[i];
-				std::cout << "Device it set to: " << rt_device << "\n";
-			}
-
-			std::cout << "Device Name = " << rt_info.name << "\n";
-			std::cout << "Device ID = " << deviceIds[i] << "\n";
-		}
-
-		// select device
-		// Device Name = hw:MAX98357A,0
-
-		// setup output
-		/*
-		RtAudio::StreamParameters rt_params;
-		if (rt_device == 0)
-		{
-			rt_params.deviceId = rt_dac.getDefaultOutputDevice();
-		}
-		else
-		{
-			rt_params.deviceId = rt_device;
-		}
-		rt_params.nChannels = rt_channels;
-		rt_params.firstChannel = rt_offset;
-	*/
-
-		//	rt_params.deviceId = rt_device; //rt_dac.getDefaultOutputDevice();
-		rt_params.deviceId = rt_dac_.getDefaultOutputDevice();
-		rt_params.nChannels = rt_channels;
-		rt_params.firstChannel = 0;
-
-		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
-		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
-		rt_options.priority = 1;
-
-		std::cout << "Device id:" << rt_params.deviceId << std::endl;
-
-		// data storage
-		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
-
-		// open stream
-		if (rt_dac_.openStream(&rt_params, // output
-							   NULL,	   // input
-							   FORMAT,	   // sample data format
-							   sample_rate,
-							   &rt_buffer_frames, // buffer size in frames
-							   &AudioCallback,
-							   (void *)rt_data_,
-							   &rt_options)) // flags and number of buffers
-		{
-			retval = false;
-		}
-
-		std::cout << "Stream open." << std::endl;
-		std::cout << "Stream latency = " << rt_dac_.getStreamLatency() << "\n";
-
-		// start stream
-		if (rt_dac_.startStream())
-		{
-			retval = false;
-		}
-	}
-	return (retval);
 }
 
 
@@ -361,6 +220,8 @@ void InitCtrlConfig(DControl::Config* config, uint8_t id,
 	config->window = window;
 }
 
+
+
 bool InitWin()
 {
 	bool retval = true;
@@ -494,9 +355,31 @@ void ProcessControl()
 
 
 // main
-
-int main()
+// -l - list audio devices
+// -d <dev> - use given audio device
+int main(int argc, char* argv[])
 {
+	int c;
+	bool arg_devices_set = false;
+	bool arg_devices_list = false;
+    char* arg_device = nullptr;
+
+	opterr = 0;
+
+	while ((c = getopt(argc, argv, "d:l")) != -1)
+	{
+		switch (c)
+		{
+			case 'd':
+				arg_devices_set = true;
+				arg_device = optarg;
+				break;
+			case 'l':
+				arg_devices_list = true;
+				break;
+		}
+	}
+
 	bool retval = true;
 
 	std::cout << "INFO init synths\n";
@@ -504,7 +387,7 @@ int main()
 	dout_ = &dmixer;
 
 	std::cout << "INFO init audio\n";
-	retval = InitRtAudio();
+	retval = InitRtAudio(arg_devices_list, arg_devices_set, arg_device);
 
 	// std::cout << "INFO init haxo\n";
 	// retval = InitHaxo();
@@ -538,17 +421,7 @@ int main()
 	}
 
 	// rtAudio cleanup
-	if (rt_dac_.isStreamRunning())
-	{
-		rt_dac_.stopStream();
-	}
-	if (rt_dac_.isStreamOpen())
-	{
-		rt_dac_.closeStream();
-	}
-
-	if (rt_data_ != NULL)
-		free(rt_data_);
-
+	ExitRtAudio();
+	
 	return 0;
 }

@@ -1,7 +1,7 @@
 # setup
 
 CXX           = g++
-CXXFLAGS      = -pipe -O2 -Wall -Wextra -fPIC -D__LINUX_ALSA__
+CXXFLAGS      = -pipe -O2 -Wall -Wextra -D__LINUX_ALSA__
 INCPATH       = -I. -I. \
 				-I/usr/include/SDL2 \
 				-I../rtDStudio/src \

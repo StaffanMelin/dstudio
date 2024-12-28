@@ -1,45 +1,72 @@
-#include "../rtaudio/RtAudio.h"
-#include "../rtDaisySP/src/daisysp.h"
-#include "../rtDStudio/src/dstudio.h"
+#include "main.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
+#include <getopt.h>
 
-#include "main.h"
+// standard
+#include "../rtaudio/RtAudio.h"
+#include "../rtDaisySP/src/daisysp.h"
+#include "../rtDStudio/src/dstudio.h"
 
-#include "rtApp.h"
+// application - DStudio
+#include "../rtDStudio/src/dmixer.h"
+#include "../rtDStudio/src/dsynthsub.h"
+#include "../rtDStudio/src/dfx.h"
+#include "../rtDStudio/src/dhaxo.h"
 
-// RtAudio
-rtApp rt_app;
+
+
+//////////////////////////////////////////////////
+// global variables
+//////////////////////////////////////////////////
+
+// standard
+bool done_;
+DSound *dout_;
+
+// rtAudio data buffer
+double *rt_data_ = NULL;
+// DAC
+RtAudio rt_dac_(RtAudio::LINUX_ALSA);
+
+// application - DStudio
+DSynthSub dsynthmelody;
+DSynthSub dsynthpad;
+
+DFXFilter dfxfilter;
+
+DMixer dmixer;
+DHaxo dhaxo;
+
+
+
+//////////////////////////////////////////////////
+// util
+//////////////////////////////////////////////////
 
 // Interrupt handler function
-bool done;
 static void finish(int /*ignore*/)
 {
-	done = true;
+	done_ = true;
 }
 
 
 
-// error handler
-void errorCallback(RtAudioErrorType /*type*/, const std::string &errorText)
+//////////////////////////////////////////////////
+// Audio
+//////////////////////////////////////////////////
+
+// Audio callback, interleaved
+int AudioCallback(
+	void *output_buffer,
+	void * /*inputBuffer*/,
+	unsigned int frame_count,
+	double stream_time,
+	RtAudioStreamStatus status,
+	void *data_)
 {
-	std::cerr << "\nerrorCallback: " << errorText << "\n\n";
-}
-
-
-
-// ACB interleaved
-int audioCallback(void *output_buffer,
-				  void * /*inputBuffer*/,
-				  unsigned int frame_count,
-				  double stream_time,
-				  RtAudioStreamStatus status,
-				  void *data)
-{
-
-	// audio rate
-
 	MY_TYPE *buffer = (MY_TYPE *)output_buffer;
 
 	if (status)
@@ -48,7 +75,7 @@ int audioCallback(void *output_buffer,
 	for (size_t i = 0; i < frame_count; i++)
 	{
 		MY_TYPE sigL, sigR;
-		rt_app.Process(&sigL, &sigR);
+		dout_->Process(&sigL, &sigR);
 		*buffer = sigL;
 		buffer++;
 		*buffer = sigR;
@@ -58,202 +85,250 @@ int audioCallback(void *output_buffer,
 	return 0;
 }
 
-// main
-
-int main()
+bool InitRtAudio(bool arg_devices_list,
+				bool arg_devices_set,
+			    char* arg_device)
 {
-	// DStudio setup
+	bool retval = true;
 
-	rt_app.Setup();
-
-
-	// RtAudio setup
 	float sample_rate = DSTUDIO_SAMPLE_RATE;
-	unsigned int rt_device;
+	unsigned int rt_device = 0;
 	unsigned int rt_channels = 2;
 	unsigned int rt_buffer_frames = DSTUDIO_BUFFER_SIZE;
 
 	RtAudio::StreamParameters rt_params;
- 	RtAudio::StreamOptions rt_options;
-	double *data;
+	RtAudio::StreamOptions rt_options;
 	RtAudio::DeviceInfo rt_info;
-	
-	// Rtaudio init
-	RtAudio rt_dac(RtAudio::LINUX_ALSA, &errorCallback);
 
 	// output all messages
-	rt_dac.showWarnings(true);
+	rt_dac_.showWarnings(true);
 
 	// setup device
-/*
-	if (rt_dac.getDeviceCount() < 1)
+	std::vector<unsigned int> deviceIds = rt_dac_.getDeviceIds();
+	if (deviceIds.size() < 1)
 	{
-		std::cout << "\nNo audio devices found!\n";
-		exit(1);
-	}
-*/
-	std::vector<unsigned int> deviceIds = rt_dac.getDeviceIds();
-	if ( deviceIds.size() < 1 ) {
-		std::cout << "\nNo audio devices found!\n";
-		goto cleanup;
+		std::cout << "RTAUDIO: ERROR - No audio devices found!\n";
+		retval = false;
 	}
 
-
-	// list device information
-	// and set our device id
-	rt_device = 0;
-	std::cout << "\nFound " << deviceIds.size() << " device(s).\n";
-	std::cout << "\nAPI: " << RtAudio::getApiDisplayName(rt_dac.getCurrentApi()) << std::endl;
-
-	std::cout << "\n";
-
-	for (unsigned int i = 0; i < deviceIds.size(); i++)
+	if (retval)
 	{
-		rt_info = rt_dac.getDeviceInfo(deviceIds[i]);
+		std::cout << "RTAUDIO: Found " << deviceIds.size() << " device(s).\n";
+		std::cout << "RTAUDIO: API: " << RtAudio::getApiDisplayName(rt_dac_.getCurrentApi()) << "\n";
 
-		if (rt_info.name.rfind("MAX98357A", 0) == 0)
+		for (unsigned int i = 0; i < deviceIds.size(); i++)
 		{
-			rt_device = deviceIds[i];
-			std::cout << "Device it set to: " << rt_device << "\n";
+			rt_info = rt_dac_.getDeviceInfo(deviceIds[i]);
+
+			if (arg_devices_set)
+			{
+				if (rt_info.name.find(arg_device) != std::string::npos)
+				{
+					rt_device = deviceIds[i];
+				}
+			}
+			// list device information
+			if (arg_devices_list)
+			{
+				std::cout << "RTAUDIO: Device Name " << rt_info.name << "\n";
+				std::cout << "RTAUDIO: Device ID " << deviceIds[i] << "\n";
+			}
 		}
-
-		std::cout << "Device Name = " << rt_info.name << "\n";
-		std::cout << "Device ID = " << deviceIds[i] << "\n";
-		std::cout << "Output Channels = " << rt_info.outputChannels << "\n";
-		std::cout << "Input Channels = " << rt_info.inputChannels << "\n";
-		std::cout << "Duplex Channels = " << rt_info.duplexChannels << "\n";
-		if (rt_info.isDefaultOutput)
-			std::cout << "Default output device.\n";
-		else
-			std::cout << "NOT default output device.\n";
-		if (rt_info.isDefaultInput)
-			std::cout << "Default input device.\n";
-		else
-			std::cout << "NOT default input device.\n";
-		if (rt_info.nativeFormats & RTAUDIO_SINT8)
-			std::cout << "  8-bit int\n";
-		if (rt_info.nativeFormats & RTAUDIO_SINT16)
-			std::cout << "  16-bit int\n";
-		if (rt_info.nativeFormats & RTAUDIO_SINT24)
-			std::cout << "  24-bit int\n";
-		if (rt_info.nativeFormats & RTAUDIO_SINT32)
-			std::cout << "  32-bit int\n";
-		if (rt_info.nativeFormats & RTAUDIO_FLOAT32)
-			std::cout << "  32-bit float\n";
-		if (rt_info.nativeFormats & RTAUDIO_FLOAT64)
-			std::cout << "  64-bit float\n";
-
-		if (rt_info.sampleRates.size() < 1) {
-			std::cout << "No supported sample rates found!";
-		} else {
-			std::cout << "Supported sample rates = ";
-			for (unsigned int j = 0; j < rt_info.sampleRates.size(); j++)
-				std::cout << rt_info.sampleRates[j] << " ";
+		// set output device
+		if (rt_device == 0)
+		{
+			rt_device = rt_dac_.getDefaultOutputDevice();
+			std::cout << "RTAUDIO: Get Device " << rt_device << "\n";
 		}
-		std::cout << std::endl;
-		if (rt_info.preferredSampleRate == 0)
-			std::cout << "No preferred sample rate found!" << std::endl;
-		else
-			std::cout << "Preferred sample rate = " << rt_info.preferredSampleRate << std::endl;
-	}
-
-	// select device
-	// Device Name = hw:MAX98357A,0
-	std::cout << "setup A" << std::endl;
-
-	// setup output
-	/*
-	RtAudio::StreamParameters rt_params;
-	if (rt_device == 0)
-	{
-//		rt_params.deviceId = rt_dac.getDefaultOutputDevice();
-	}
-	else
-	{
+		std::cout << "RTAUDIO: Device set to " << rt_device << "\n";
 		rt_params.deviceId = rt_device;
+		rt_params.nChannels = rt_channels;
+		//rt_params.firstChannel = rt_offset;
+		rt_params.firstChannel = 0;
+		rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
+		rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
+		rt_options.priority = 1;
+		rt_data_ = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
+		// open stream
+		if (rt_dac_.openStream(&rt_params, // output
+							   NULL,	   // input
+							   FORMAT,	   // sample data format
+							   sample_rate,
+							   &rt_buffer_frames, // buffer size in frames
+							   &AudioCallback,
+							   (void *)rt_data_,
+							   &rt_options)) // flags and number of buffers
+		{
+			retval = false;
+		}
+
+		std::cout << "Stream open." << std::endl;
+		std::cout << "Stream latency = " << rt_dac_.getStreamLatency() << "\n";
+
+		// start stream
+		if (rt_dac_.startStream())
+		{
+			retval = false;
+		}
 	}
-	rt_params.nChannels = rt_channels;
-	rt_params.firstChannel = rt_offset;
-*/
+	return (retval);
+}
 
-	rt_params.deviceId = rt_device; //rt_dac.getDefaultOutputDevice();
-	rt_params.nChannels = rt_channels;
-	rt_params.firstChannel = 0;
 
-	rt_options.flags = RTAUDIO_SCHEDULE_REALTIME;
-	rt_options.numberOfBuffers = DSTUDIO_NUM_BUFFERS;
-	rt_options.priority = 1;
 
- 
-	// data storage
-	data = (double *)calloc(rt_channels * rt_buffer_frames, sizeof(double));
-//	double data[2] = {0, 0};
+//////////////////////////////////////////////////
+// DStudio
+//////////////////////////////////////////////////
 
-	std::cout << "setup B open" << std::endl;
+// init synths
+bool InitSynths()
+{
+	bool retval = true;
 
-	// open stream
-	if (rt_dac.openStream(&rt_params, // output
-						  NULL,		  // input
-						  FORMAT,	  // sample data format
-						  sample_rate,
-						  &rt_buffer_frames, // buffer size in frames
-						  &audioCallback,
-						  (void *)data,
-						  &rt_options)) // flags and number of buffers
+    // synth melody
+    DSynthSub::Config dsynthsub_config;
+    dsynthmelody.Init();
+    DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, "data/sub_melody.xml", &dsynthsub_config);
+    dsynthmelody.Set(dsynthsub_config);
+    // pad
+    dsynthpad.Init();
+    DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, "data/sub_pad.xml", &dsynthsub_config);
+    dsynthpad.Set(dsynthsub_config);
+
+    // mixer
+    DSound *dmix_synth[MIXER_CHANNELS_MAX];
+    float dmix_pan[MIXER_CHANNELS_MAX];
+    float dmix_level[MIXER_CHANNELS_MAX];
+    float dmix_chorus_level[MIXER_CHANNELS_MAX];
+    float dmix_reverb_level[MIXER_CHANNELS_MAX];
+    bool dmix_mono[MIXER_CHANNELS_MAX];
+    uint8_t dmix_group[MIXER_CHANNELS_MAX];
+    DMixer::Config dmix_config;
+
+    dmix_synth[0] = &dsynthmelody;
+    dmix_synth[1] = &dsynthpad;
+    dmix_level[0] = 0.6;
+    dmix_level[1] = 0.3;
+    dmix_pan[0] = 0.5f;
+    dmix_pan[1] = 0.2f;
+    dmix_chorus_level[0] = 0.2f;
+    dmix_chorus_level[1] = 0.0f;
+    dmix_reverb_level[0] = 0.5f;
+    dmix_reverb_level[1] = 0.6f;
+    dmix_mono[0] = true;
+    dmix_mono[1] = true;
+    dmix_group[0] = 0;
+    dmix_group[1] = 1;
+    dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+    dmix_config.channels = 2;
+    dmix_config.amp = 0.5f;
+    dmix_config.synth = dmix_synth;
+    dmix_config.pan = dmix_pan;
+    dmix_config.level = dmix_level;
+    dmix_config.chorus_level = dmix_chorus_level;
+    dmix_config.reverb_level = dmix_reverb_level;
+    dmix_config.mono = dmix_mono;
+    dmix_config.group = dmix_group;
+    dmix_config.chorus_return = 0.5;
+    dmix_config.reverb_return = 0.5f;
+    dmix_config.mix_dry = 0.3;
+    dmixer.Init();
+    dmixer.Set(dmix_config);
+
+    // example start
+    dmixer.SetReverb(0.9f, 2000.0f);
+
+    // send dmixer obj to be able to send MIDI to mixer
+    DHaxo::Config dhaxo_config;
+    dhaxo_config.channel = 0; // which channel in mixer
+    dhaxo_config.hexo_connected = true;
+    dhaxo_config.synth = &dmixer;
+    dhaxo.Init();
+    dhaxo.Set(dhaxo_config);
+
+    return retval;
+}
+
+
+
+//////////////////////////////////////////////////
+// Application logic
+//////////////////////////////////////////////////
+
+void ProcessControl()
+{
+    dhaxo.Process();
+}
+
+
+
+// main
+
+// -l - list audio devices
+// -d <dev> - use given audio device
+int main(int argc, char* argv[])
+{
+	int c;
+	bool arg_devices_set = false;
+	bool arg_devices_list = false;
+    char* arg_device = nullptr;
+
+	opterr = 0;
+
+	while ((c = getopt(argc, argv, "d:l")) != -1)
 	{
-		goto cleanup;
+		switch (c)
+		{
+			case 'd':
+				arg_devices_set = true;
+				arg_device = optarg;
+				break;
+			case 'l':
+				arg_devices_list = true;
+				break;
+		}
 	}
 
-	std::cout << "Stream open." << std::endl;
+	bool retval = true;
 
-/*
-	if (rt_dac.isStreamOpen() == false)
+	std::cout << "INFO init synths\n";
+	retval = InitSynths();
+	dout_ = &dmixer;
+
+	std::cout << "INFO init audio\n";
+	retval = InitRtAudio(arg_devices_list, arg_devices_set, arg_device);
+
+	if (retval)
 	{
-		goto cleanup;
+		// run until interrupt with CTRL+C
+		done_ = false;
+		(void)signal(SIGINT, finish);
+		std::cout << "\nPlaying - quit with Ctrl-C.\n";
+
+		// application
+		SLEEP(1000);
+
+		// main application loop
+		while (!done_ && rt_dac_.isStreamRunning())
+		{
+			ProcessControl();
+			SLEEP(10); // 10 ms
+
+		}
 	}
-*/
-	std::cout << "setup D latency" << std::endl;
 
-	std::cout << "Stream latency = " << rt_dac.getStreamLatency() << "\n"
-			  << std::endl;
-
-	std::cout << "setup E start stream" << std::endl;
-
-	// start stream
-	if (rt_dac.startStream())
+	// rtAudio cleanup
+	if (rt_dac_.isStreamRunning())
 	{
-		goto cleanup;
+		rt_dac_.stopStream();
 	}
-
-	std::cout << "\nPlaying - quit with Ctrl-C.\n";
-
-	// run until interrupt with CTRL+C
-	done = false;
-	(void)signal(SIGINT, finish);
-
-	std::cout << "setup F loop" << std::endl;
-
-	while (!done && rt_dac.isStreamRunning())
+	if (rt_dac_.isStreamOpen())
 	{
-		rt_app.ProcessControl();
-		//SLEEP(100);
+		rt_dac_.closeStream();
 	}
 
-	
-
-	// stop stream
-	if (rt_dac.isStreamRunning())
-	{
-		rt_dac.stopStream();
-	}
-
-cleanup:
-
-	if (rt_dac.isStreamOpen())
-	{
-		rt_dac.closeStream();
-	}
-	free(data);
+	if (rt_data_ != NULL)
+		free(rt_data_);
 
 	return 0;
 }

@@ -11,20 +11,10 @@
 
 #define DEBUG
 
-void DHaxo::Init(const Config& config)
-{
-	synth_ = config.synth;
-    channel_ = 0;
-    hexo_connected_ = config.hexo_connected;
-    for (size_t i = 0; i < DHAXO_TARGET_MAX; i++)
-    {
-        hexo_target_[i] = config.hexo_target[i];
-    }
-    for (size_t i = 0; i < DHAXO_VALUE_MAX; i++)
-    {
-        hexo_value_[i] = 0;
-    }
 
+
+void DHaxo::Init()
+{
     // read and parse dhaxo_notemap.json
     /*
     {
@@ -59,7 +49,7 @@ void DHaxo::Init(const Config& config)
     std::cout << "\n";
     #endif
 
-    // I2C
+    // I2C - pressure sensor
 	char filename[20];
   	const int adapter_nr = 1;
 	const int addr = 0x4D;
@@ -76,7 +66,7 @@ void DHaxo::Init(const Config& config)
     // TODO calibrate pressure sensor = read when not blowing (+ 10%?)
     pressure_baseline_ = 0;
 
-    // GPIO
+    // GPIO - keys
 	const int pin_r[DHAXO_KEY_ROWS] = {13, 12, 16, 17, 20, 22, 23, 24};
 	const int pin_c[DHAXO_KEY_COLS] = {25, 26, 27};
 	const char *chipname = "gpiochip0";
@@ -96,7 +86,27 @@ void DHaxo::Init(const Config& config)
         gpiod_line_request_input(line_c_[i], "example1");
     }
 
-    if (hexo_connected_)
+}
+
+
+
+void DHaxo::Set(const Config& config)
+{
+	synth_ = config.synth;
+    channel_ = 0;
+    controller_connected_ = config.controller;
+    controller_targets_ = config.controller_targets;
+    for (size_t i = 0; i < DHAXO_CONTROLLER_TARGET_MAX; i++)
+    {
+        controller_target_[i] = config.controller_target[i];
+    }
+    for (size_t i = 0; i < DHAXO_CONTROLLER_VALUE_MAX; i++)
+    {
+        controller_value_[i] = 0;
+    }
+
+
+    if (controller_connected_)
     {
         // TODO error check
         #ifdef DEBUG
@@ -104,19 +114,19 @@ void DHaxo::Init(const Config& config)
         #endif
 
         try {
-        serial_port_.Open("/dev/ttyACM0");
-        serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_38400);
-        serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
-        serial_port_.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
-        serial_port_.SetParity(LibSerial::Parity::PARITY_ODD);
-        serial_port_.SetStopBits(LibSerial::StopBits::STOP_BITS_1) ;
+            serial_port_.Open("/dev/ttyACM0");
+            serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_38400);
+            serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
+            serial_port_.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
+            serial_port_.SetParity(LibSerial::Parity::PARITY_ODD);
+            serial_port_.SetStopBits(LibSerial::StopBits::STOP_BITS_1) ;
 
-        serial_buffer_next_ = 0;
+            serial_buffer_next_ = 0;
         }
         catch (...)
         {
             std::cout << "Could not open/init serial: " << std::endl;
-            hexo_connected_ = false;
+            controller_connected_ = false;
         }
     }
 }
@@ -271,7 +281,7 @@ void DHaxo::DispatchController(DSynth::Param controller_target, float controller
 
 
 
-void DHaxo::ProcessControl()
+void DHaxo::Process()
 {
     uint32_t keys = Keys();
     float pressure = Pressure();
@@ -328,7 +338,7 @@ void DHaxo::ProcessControl()
     // TODO NOTE if target is pressure/volume/amp then
     // controller will "overwrite" pressure sensor
     // ie TARGET_AMP is stupid?
-    if (hexo_connected_)
+    if (controller_connected_)
     {
         /*
             Format of input:
@@ -347,7 +357,7 @@ void DHaxo::ProcessControl()
         //int available = serial_port_.GetNumberOfBytesAvailable() > 0;
         while (serial_port_.GetNumberOfBytesAvailable() > 0)
         {
-            uint8_t hexo_controller = 0;
+            uint8_t controller = 0;
             char c;
             serial_port_.ReadByte(c);
             serial_buffer_[serial_buffer_next_++] = c;
@@ -366,15 +376,17 @@ void DHaxo::ProcessControl()
                     float token_value = strtof(token, &token_end);
                     // std::cout << "tok val" << token_value << "\n";
 
-                    hexo_value_[hexo_controller] = token_value;
+                    controller_value_[controller] = token_value;
 
-                    hexo_controller++;
+                    controller++;
+                    if (controller >= controller_targets_)
+                        break;
                 }
                 serial_buffer_next_ = 0;
-                for (uint8_t i = 0; i < hexo_controller ; i++)
+                for (uint8_t i = 0; i < controller_targets_ ; i++)
                 {
-                    std::cout << " target: " << (int)hexo_target_[i] << " value "  << hexo_value_[i];
-                    DispatchController(hexo_target_[i], hexo_value_[i]);
+                    std::cout << " target: " << (int)controller_target_[i] << " value "  << controller_value_[i];
+                    DispatchController(controller_target_[i], controller_value_[i]);
                 }
                 std::cout << "\n";
             }
@@ -400,7 +412,7 @@ void DHaxo::Exit()
     gpiod_chip_close(chip_);
     close(i2cfile_);
 
-    if (hexo_connected_)
+    if (controller_connected_)
     {
         serial_port_.Close();
         // delete serial_buffer_;
