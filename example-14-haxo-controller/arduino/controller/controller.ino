@@ -15,7 +15,7 @@
 
 #include <HCSR04.h>
 
-// select the pin for the LED
+// select the pin for the controls
 uint8_t pin_ctrl_pitch = 1;
 uint8_t pin_ctrl_mod = 2;
 uint8_t pin_led = 13;
@@ -53,7 +53,7 @@ float ctrl_dist_norm;
 // blink
 bool blink = false;
 
- // initialisation class HCSR04 (trig pin , echo pin)
+ // initialisation class HCSR04 (trig pin, echo pin)
 HCSR04 hc(pin_trig, pin_echo);
 
 
@@ -117,7 +117,6 @@ void loop() {
   
   // write to serial port
   // 3 decimal places
-
   Serial.print(ctrl_pitch_norm, 3);
   Serial.print(",");
   Serial.print(ctrl_mod_norm, 3);
