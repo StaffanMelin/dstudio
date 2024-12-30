@@ -115,7 +115,7 @@ bool InitSynths()
 	dhaxo_config.controller_targets = 3;
 	dhaxo_config.controller_target[0] = DSynth::DSYNTH_PARAM_TUNE; 
 	dhaxo_config.controller_target[1] = DSynth::DSYNTH_PARAM_FILTER_CUTOFF; 
-	dhaxo_config.controller_target[2] = DSynth::DSYNTH_PARAM_LFO_FREQ;
+	dhaxo_config.controller_target[2] = DSynth::DSYNTH_PARAM_LFO_AMP;
 	dhaxo_config.synth = &dsynthmelody;
 	dhaxo.Init();
 	dhaxo.Set(dhaxo_config);
