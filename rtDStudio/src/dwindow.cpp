@@ -75,10 +75,13 @@ void DWindow::Init()
 void DWindow::AddControl(DControl *control)
 {
     // controls_.push_back(control);
-    uint8_t id = control->GetId();
-    if (id < DWINDOW_CTRLS_MAX)
+    if (control != NULL)
     {
-        controls_[id] = control;
+        uint8_t id = control->GetId();
+        if (id < DWINDOW_CTRLS_MAX)
+        {
+            controls_[id] = control;
+        }
     }
 }
 
@@ -100,6 +103,7 @@ void DWindow::Render()
     {
         if (controls_[i] != NULL)
         {
+            std::cout << "WRender i " << (int)i << "\n";
             controls_[i]->Draw();
         }
     }
@@ -209,14 +213,16 @@ void DControl::Init(const Config& config)
     id_ = config.id; // must be unique
     type_ = config.type;
     text_ = config.text;
-    pos_.x = config.pos->x;
-    pos_.y = config.pos->y;
-    pos_.w = config.pos->w;
-    pos_.h = config.pos->h;
+    pos_.x = config.pos.x;
+    pos_.y = config.pos.y;
+    pos_.w = config.pos.w;
+    pos_.h = config.pos.h;
     min_ = config.min;
     max_ = config.max;
     value_ = config.value;
     window_ = config.window;
+
+    std::cout << "CInit id" << (int)id_ << " value" << value_ << "\n";
 
     if (type_ == DControl::MATRIX)
     {
@@ -255,6 +261,7 @@ void DControl::Draw()
     // setup
     SDL_Rect r;
     int bar;
+
     SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
 
     // bounding box
@@ -274,7 +281,6 @@ void DControl::Draw()
       }
     }
     */
-
     // value indicator
     switch (type_)
     {
@@ -373,17 +379,21 @@ void DControl::Draw()
     // render value
     SDL_Color color = {240, 240, 240, 255};
     std::string s = std::to_string(value_);
+    std::cout << "CDraw id " << id_ << " s " << s << "\n";
     SDL_Surface *TextSurface{TTF_RenderUTF8_Solid(font_, s.c_str(), color)};
     SDL_Texture *vt_ = NULL;
     vt_ = SDL_CreateTextureFromSurface(renderer_, TextSurface);
+    std::cout << "CDraw a" << "\n";
     r.x = 0;
     r.y = 0;
     r.w = TextSurface->w;
     r.h = TextSurface->h;
+    std::cout << "CDraw b" << "\n";
     SDL_FreeSurface(TextSurface);
     RectOffset_(&r, pos_.x, pos_.y + pos_.h - 30);
     SDL_RenderCopy(renderer_, vt_, &texture_rect_, &r);
     SDL_DestroyTexture(vt_);
+
 }
 
 bool DControl::Process(const SDL_Event *event)

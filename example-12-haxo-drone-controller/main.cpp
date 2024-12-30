@@ -111,7 +111,7 @@ bool InitSynths()
 
 	// send dmixer obj to be able to send MIDI to mixer
 	DHaxo::Config dhaxo_config;
-	dhaxo_config.controller = false;
+	dhaxo_config.controller = true;
 	dhaxo_config.controller_targets = 3;
 	dhaxo_config.controller_target[0] = DSynth::DSYNTH_PARAM_TUNE; 
 	dhaxo_config.controller_target[1] = DSynth::DSYNTH_PARAM_FILTER_CUTOFF; 

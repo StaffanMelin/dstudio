@@ -81,7 +81,7 @@ public:
     uint8_t id;
     DControl::ControlType type;
     std::string text;
-    const SDL_Rect* pos;
+    SDL_Rect pos;
     int min;
     int max;
     int value;

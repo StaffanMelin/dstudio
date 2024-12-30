@@ -40,6 +40,14 @@ DSynthSub dsynthd2;
 DSynthVar dsynthd3;
 DSynthVar dsynthd4;
 DSynthVar dsynthd5;
+DSynth *synth[DRONES] = {
+	&dsynthd0,
+	&dsynthd1,
+	&dsynthd2,
+	&dsynthd3,
+	&dsynthd4,
+	&dsynthd5
+};
 DMixer dmixer;
 DSeqMidi dseqmidi;
 
@@ -201,27 +209,6 @@ bool InitHaxo()
 // Window
 //////////////////////////////////////////////////
 
-void InitCtrlConfig(DControl::Config* config, uint8_t id,
-						DControl::ControlType type,
-						std::string text,
-						const SDL_Rect* pos,
-						int min,
-						int max,
-						int value,
-						DWindow* window)
-{
-	config->id = id;
-	config->type = type;
-	config->text = text;
-	config->pos = pos;
-	config->min = min;
-	config->max = max;
-	config->value = value;
-	config->window = window;
-}
-
-
-
 bool InitWin()
 {
 	bool retval = true;
@@ -229,60 +216,86 @@ bool InitWin()
 	SDL_Rect rect;
 	DControl::Config dcontrol_config;
 
-	rect = {0, 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D0_PITCH, DControl::VERTICAL, "D0", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D0_PITCH].Init(dcontrol_config);
+	for (int i = 0; i < DCTRLS; i++)
+	{
+//			dctrl[i]);
+	}
 
-	rect = {1 * (DWINDOW_LO_HM + DWINDOW_LO_H_), 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D1_PITCH, DControl::VERTICAL, "D1", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D1_PITCH].Init(dcontrol_config);
+	for (int i = 0; i < DRONES; i++)
+	{
+		uint8_t id = i * DRONE_CTRLS;
+		dcontrol_config.id = id, 
+		dcontrol_config.type = DControl::VERTICAL;
+		dcontrol_config.text = "Pitch" + std::to_string(i);
+		dcontrol_config.pos.x = i * (DWINDOW_LO_HM + DWINDOW_LO_H_);
+		dcontrol_config.pos.y = 0;
+		dcontrol_config.pos.w = DWINDOW_LO_HM;
+		dcontrol_config.pos.h = DWINDOW_LO_VL;
+		dcontrol_config.min = 0;
+		dcontrol_config.max = 100;
+		dcontrol_config.value = 50;
+		dcontrol_config.window = &dwindow;
+		dctrl[id].Init(dcontrol_config);
+		dwindow.AddControl(&dctrl[id]);
 
-	rect = {2 * (DWINDOW_LO_HM + DWINDOW_LO_H_), 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D2_PITCH, DControl::VERTICAL, "D2", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D2_PITCH].Init(dcontrol_config);
+		// ctrl: vol
+		dcontrol_config.id = id + 1;
+		dcontrol_config.type = DControl::HORIZONTAL; 
+		dcontrol_config.text = "Vol" + std::to_string(i),
+		dcontrol_config.pos.x = i * (DWINDOW_LO_HM + DWINDOW_LO_H_);
+		dcontrol_config.pos.y = DWINDOW_LO_VL + DWINDOW_LO_V_;
+		dcontrol_config.pos.w = DWINDOW_LO_HM;
+		dcontrol_config.pos.h = DWINDOW_LO_VS;
+		dcontrol_config.min = 0;
+		dcontrol_config.max = 100;
+		dcontrol_config.value = 50;
+		dcontrol_config.window = &dwindow;
+		dctrl[id + 1].Init(dcontrol_config);
+		dwindow.AddControl(&dctrl[id + 1]);
+		
+		// ctrl: pan
+		dcontrol_config.id = id + 2; 
+		dcontrol_config.type = DControl::HORIZONTAL;
+		dcontrol_config.text = "Pan" + std::to_string(i),
+		dcontrol_config.pos.x = i * (DWINDOW_LO_HM + DWINDOW_LO_H_);
+		dcontrol_config.pos.y = DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_;
+		dcontrol_config.pos.w = DWINDOW_LO_HM;
+		dcontrol_config.pos.h = DWINDOW_LO_VS;
+		dcontrol_config.min = 0;
+		dcontrol_config.max = 100;
+		dcontrol_config.value = 50;
+		dcontrol_config.window = &dwindow;
+		dctrl[id + 2].Init(dcontrol_config);
+		dwindow.AddControl(&dctrl[id + 2]);
 
-	rect = {3 * (DWINDOW_LO_HM + DWINDOW_LO_H_), 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D3_PITCH, DControl::VERTICAL, "DVar0", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D3_PITCH].Init(dcontrol_config);
+		// ctrl: filter
+		dcontrol_config.id = id + 3, 
+		dcontrol_config.type = DControl::HORIZONTAL, 
+		dcontrol_config.text = "Cutoff" + std::to_string(i),
+		dcontrol_config.pos.x = i * (DWINDOW_LO_HM + DWINDOW_LO_H_);
+		dcontrol_config.pos.y = DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_;
+		dcontrol_config.pos.w = DWINDOW_LO_HM;
+		dcontrol_config.pos.h = DWINDOW_LO_VS;
+		dcontrol_config.min = 0;
+		dcontrol_config.max = 100;
+		dcontrol_config.value = 20;
+		dcontrol_config.window = &dwindow;
+		dctrl[id + 3].Init(dcontrol_config);
+		dwindow.AddControl(&dctrl[id + 3]);
 
-	rect = {4 * (DWINDOW_LO_HM + DWINDOW_LO_H_), 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D4_PITCH, DControl::VERTICAL, "DVar1", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D4_PITCH].Init(dcontrol_config);
+	}
 
-	rect = {5 * (DWINDOW_LO_HM + DWINDOW_LO_H_), 0, DWINDOW_LO_HM, DWINDOW_LO_VL}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D5_PITCH, DControl::VERTICAL, "DVar2", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D5_PITCH].Init(dcontrol_config);
-
-	// ctrl: vol
-	rect = {0, DWINDOW_LO_VL + DWINDOW_LO_V_, DWINDOW_LO_HM, DWINDOW_LO_VS}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D0_VOL, DControl::HORIZONTAL, "Vol0", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D0_VOL].Init(dcontrol_config);
-	
-	// ctrl: pan
-	rect = {0, DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_, DWINDOW_LO_HM, DWINDOW_LO_VS}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D0_PAN, DControl::HORIZONTAL, "Pan0", &rect, 0, 100, 50, &dwindow);
-	dctrl[DCTRL_D0_PAN].Init(dcontrol_config);
-
-	// ctrl: filter
-	rect = {0, DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_, DWINDOW_LO_HM, DWINDOW_LO_VS}; // x, y, w, h
-	InitCtrlConfig(&dcontrol_config, DCTRL_D0_CUTOFF, DControl::HORIZONTAL, "Cutf0", &rect, 0, 100, 20, &dwindow);
-	dctrl[DCTRL_D0_CUTOFF].Init(dcontrol_config);
 
 //	rect = {0, DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_, DWINDOW_LO_HM, DWINDOW_LO_VS}; // x, y, w, h
+
+/*
 	rect = {0, 
 			DWINDOW_LO_VL + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_ + DWINDOW_LO_VS + DWINDOW_LO_V_ + DWINDOW_LO_VS,
 			DWINDOW_LO_HL * 3, 
 			DWINDOW_LO_VL}; // x, y, w, h
 	InitCtrlConfig(&dcontrol_config, DCTRL_MATRIX0, DControl::MATRIX, "Matrix0", &rect, MATRIX0_LEN, MATRIX0_PITCH, 0, &dwindow);
 	dctrl[DCTRL_MATRIX0].Init(dcontrol_config);
-
-	for (int i = 0; i < DCTRLS; i++)
-	{
-		//if (dctrl[i] != NULL)
-		{
-			dwindow.AddControl(&dctrl[i]);
-		}
-	}
+*/
 
 	return retval;
 }
@@ -301,45 +314,33 @@ void ProcessControl()
 	// handle changes in DWindow controls
 
 	uint16_t x;
-
-	if (dctrl[DCTRL_D0_PITCH].GetChange(&x))
+/*
+	for (int i = 0; i < DRONES - 1; i++)
 	{
-		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
+		uint8_t id = base_id[i];
+		// pitch
+		if (dctrl[id].GetChange(&x))
+		{
+			synth[i]->ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
+		}
+		// vol
+		if (dctrl[id + 1].GetChange(&x))
+		{
+			synth[i]->ChangeParam(DSynth::DSYNTH_PARAM_AMP, x / 100.0);
+		}
+		// pan
+		if (dctrl[id + 2].GetChange(&x))
+		{
+			synth[i]->ChangeParam(DSynth::DSYNTH_PARAM_PAN, x / 100.0);
+		}
+		// cutoff
+		if (dctrl[id + 3].GetChange(&x))
+		{
+			synth[i]->ChangeParam(DSynth::DSYNTH_PARAM_FILTER_CUTOFF, x / 100.0);
+		}
 	}
-	if (dctrl[DCTRL_D0_VOL].GetChange(&x))
-	{
-		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_AMP, x / 100.0);
-	}
-	if (dctrl[DCTRL_D0_PAN].GetChange(&x))
-	{
-		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_PAN, x / 100.0);
-	}
-	if (dctrl[DCTRL_D0_CUTOFF].GetChange(&x))
-	{
-		dsynthd0.ChangeParam(DSynth::DSYNTH_PARAM_FILTER_CUTOFF, x / 100.0);
-	}
-
-	if (dctrl[DCTRL_D1_PITCH].GetChange(&x))
-	{
-		dsynthd1.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
-	}
-	if (dctrl[DCTRL_D2_PITCH].GetChange(&x))
-	{
-		dsynthd2.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
-	}
-	if (dctrl[DCTRL_D3_PITCH].GetChange(&x))
-	{
-		dsynthd3.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
-	}
-	if (dctrl[DCTRL_D4_PITCH].GetChange(&x))
-	{
-		dsynthd4.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
-	}
-	if (dctrl[DCTRL_D5_PITCH].GetChange(&x))
-	{
-		dsynthd5.ChangeParam(DSynth::DSYNTH_PARAM_FREQ, x);
-	}
-
+*/
+	/*
 	if (dctrl[DCTRL_MATRIX0].GetChange(&x))
 	{
 		// cel x has changed from on to off or the opposite
@@ -349,7 +350,7 @@ void ProcessControl()
 		// and modifiy seq data
 		// assume 
 	}
-
+	*/
 }
 
 
@@ -411,6 +412,7 @@ int main(int argc, char* argv[])
 		dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 4, 36, 100);
 		dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, 48, 100);
 
+
 		// main application loop
 		while (!done_ && rt_dac_.isStreamRunning())
 		{
@@ -418,6 +420,7 @@ int main(int argc, char* argv[])
 
 			ProcessControl();
 		}
+
 	}
 
 	// rtAudio cleanup

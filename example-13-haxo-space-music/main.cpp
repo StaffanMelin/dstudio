@@ -161,7 +161,7 @@ bool InitSynths()
     dmix_level[4] = 0.6;//.5
     dmix_level[5] = 0.3;//.3
     dmix_level[6] = 0.35;//.35
-    dmix_level[7] = 0.5;
+    dmix_level[7] = 1.0;
     dmix_chorus_level[0] = 0.0f;
     dmix_chorus_level[1] = 0.3f;
     dmix_chorus_level[2] = 0.5f;

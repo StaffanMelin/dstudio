@@ -10,8 +10,8 @@
     <osc1_level>0.5</osc1_level>
     <noise_level>0.0</noise_level>
     <filter_type>2</filter_type>
-    <filter_cutoff>1800.0</filter_cutoff>
-    <filter_res>0.0</filter_res>
+    <filter_cutoff>7000.0</filter_cutoff>
+    <filter_res>0.3</filter_res>
     <eg_p_level>0.000000000</eg_p_level>
     <eg_p_attack>0.000000000</eg_p_attack>
     <eg_p_decay>0.000000000</eg_p_decay>
