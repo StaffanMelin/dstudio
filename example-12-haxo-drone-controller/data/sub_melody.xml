@@ -6,8 +6,8 @@
     <tune>0.000000000</tune>
     <detune>0.05</detune>
     <transpose>0</transpose>
-    <osc0_level>0.3</osc0_level>
-    <osc1_level>0.5</osc1_level>
+    <osc0_level>0.7</osc0_level>
+    <osc1_level>0.8</osc1_level>
     <noise_level>0.0</noise_level>
     <filter_type>2</filter_type>
     <filter_cutoff>7000.0</filter_cutoff>

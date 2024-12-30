@@ -78,7 +78,7 @@ bool InitSynths()
 
 	dmix_synth[0] = &dsynthmelody;
 	dmix_synth[1] = &dsynthpad;
-	dmix_level[0] = 0.6;
+	dmix_level[0] = 1.0;
 	dmix_level[1] = 0.3;
 	dmix_pan[0] = 0.5f;
 	dmix_pan[1] = 0.2f;
