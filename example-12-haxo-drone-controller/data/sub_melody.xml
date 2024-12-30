@@ -27,10 +27,10 @@
     <eg_a_sustain>1.0</eg_a_sustain>
     <eg_a_release>5.0</eg_a_release>
     <lfo_waveform>1</lfo_waveform>
-    <lfo_freq>0.05</lfo_freq>
+    <lfo_freq>0.1</lfo_freq>
     <lfo_amp>1.0</lfo_amp>
     <lfo_p_level>0.0</lfo_p_level>
-    <lfo_f_level>0.5</lfo_f_level>
+    <lfo_f_level>1.0</lfo_f_level>
     <lfo_a_level>0.0</lfo_a_level>
     <portamento>0.1</portamento>
     <delay_delay>0.5</delay_delay>
