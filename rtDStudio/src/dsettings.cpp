@@ -1005,7 +1005,7 @@ std::string DSettingsD::NextFile()
     if (files_len > 0)
     {
         file_name = dir_name_ + files_.at(file_at_);
-        if (file_at_ < files_len)
+        if (file_at_ < (files_len - 1))
         {
             file_at_++;
         } else {
