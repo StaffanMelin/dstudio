@@ -194,7 +194,7 @@ float DHaxo::Pressure()
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
-    std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
+    //std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
     if (pressure < (DHAXO_PRESSURE_START * 0.75)) 
@@ -294,7 +294,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     float pressure = Pressure();
 
     #ifdef DEBUG
-    std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
+    //std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
     if (pressure >= 0)
@@ -311,7 +311,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         {
             if (note_ != note_last_)
             {
-                if (vol_ > 0.0f)
+                if (vol_ > 0.05f)
                 {
                     if (note_last_ > 0)
                     {
