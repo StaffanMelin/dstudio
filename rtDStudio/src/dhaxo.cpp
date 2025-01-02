@@ -105,6 +105,7 @@ void DHaxo::Set(const Config& config)
         controller_value_[i] = 0;
     }
 
+    std::cout << "CC1 " << (int)controller_connected_ << "\n";
 
     if (controller_connected_)
     {
@@ -129,6 +130,8 @@ void DHaxo::Set(const Config& config)
             controller_connected_ = false;
         }
     }
+    std::cout << "CC2 " << (int)controller_connected_ << "\n";
+
 }
 
 
@@ -285,6 +288,8 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
 {
     DHaxo::HaxoControl haxo_control = DHaxo::HAXOCONTROL_NONE;
 
+    std::cout << "CC3 " << (int)controller_connected_ << "\n";
+
     uint32_t keys = Keys();
     float pressure = Pressure();
 
@@ -404,6 +409,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
             }
         }
     }
+    std::cout << "CC4 " << (int)controller_connected_ << "\n";
 }
 
 
