@@ -289,7 +289,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     float pressure = Pressure();
 
     #ifdef DEBUG
-    //std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
+    std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
     vol_ = pressure;
@@ -353,6 +353,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     // ie TARGET_AMP is stupid?
     if (controller_connected_)
     {
+        std::cout << "Controller: Read\n";
         /*
             Format of input:
             <pitch>,<modwheel>,<distancesensor>\n
