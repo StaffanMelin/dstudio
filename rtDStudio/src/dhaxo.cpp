@@ -197,9 +197,9 @@ float DHaxo::Pressure()
     std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
-    if (pressure < (DHAXO_PRESSURE_START / 2)) 
+    if (pressure < (DHAXO_PRESSURE_START * 0.75)) 
     {
-        pressure_normalized = -0.1;
+        pressure_normalized = -1.0;
     } else
     { 
         if (pressure > DHAXO_PRESSURE_START)
@@ -333,27 +333,27 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         }
     } else {
         // no note, in control mode?
-        if (note_ == MIDI_NOTE_NONE)
-        {
+        //if (note_ == MIDI_NOTE_NONE)
+        //{
             #ifdef debug
             show(keys);
             #endif
             switch (keys)
             {
-            case 0:
+            case 65536: // 2^16
                 haxo_control = HAXOCONTROL_NEXTSOUND;
                 break;
-            case 1:
+            case 4194304: // 2^22
                 haxo_control = HAXOCONTROL_PREVSOUND;
                 break;
-            case 2:
+            case 524288: // 2^19
                 haxo_control = HAXOCONTROL_TURNOFF;
                 break;
             default:
                 break;
             }
 
-        }
+        //}
     }
 
     // TODO NOTE if target is pressure/volume/amp then
