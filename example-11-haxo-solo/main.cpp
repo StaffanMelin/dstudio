@@ -121,7 +121,7 @@ bool InitSynths()
 
 void ProcessControl()
 {
-    switch (dhaxo.Process())
+    switch (dhaxo.ProcessControl())
 	{
 	case DHaxo::HAXOCONTROL_PREVSOUND:
 		{
