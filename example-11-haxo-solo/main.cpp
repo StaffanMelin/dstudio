@@ -134,24 +134,24 @@ void ProcessControl()
 		case DHaxo::HAXOCONTROL_PREVSOUND:
 			{
 			std::string synth_file = dsetd.PrevFile();
-			std::cout << "Main prevsound" << synth_file << "\n";
+			std::cout << "Main prevsound " << synth_file << "\n";
 			DSynthSub::Config dsynthsub_config;
 			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
-	//		dsynthmelody.Set(dsynthsub_config);
+			dsynthmelody.Set(dsynthsub_config);
 			}
 			break;
 		case DHaxo::HAXOCONTROL_NEXTSOUND:
 			{
 			std::string synth_file = dsetd.NextFile();
-			std::cout << "Main nextsound" << synth_file << "\n";
+			std::cout << "Main nextsound " << synth_file << "\n";
 			DSynthSub::Config dsynthsub_config;
 			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
-	//		dsynthmelody.Set(dsynthsub_config);
+			dsynthmelody.Set(dsynthsub_config);
 			}
 			break;
 		case DHaxo::HAXOCONTROL_TURNOFF:
 			{
-			std::cout << "Main turnoff\n";
+			std::cout << "Main turnoff \n";
 
 			}
 			break;
