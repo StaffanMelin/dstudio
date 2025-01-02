@@ -297,7 +297,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     //std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
-    if (pressure >= 0)
+    if (pressure >= 0.05)
     {
         vol_ = pressure;
         if (vol_ != vol_last_)
