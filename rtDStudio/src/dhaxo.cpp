@@ -194,23 +194,29 @@ float DHaxo::Pressure()
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
-    // std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
+    std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
-    if (pressure > DHAXO_PRESSURE_START)
+    if (pressure < (DHAXO_PRESSURE_START / 2)) 
     {
-        pressure -= DHAXO_PRESSURE_START;
-    } else {
-        pressure = 0;
+        pressure_normalized = -0.1;
+    } else
+    { 
+        if (pressure > DHAXO_PRESSURE_START)
+        {
+            pressure -= DHAXO_PRESSURE_START;
+        } else if (pressure < DHAXO_PRESSURE_START)
+        {
+            pressure = 0;
+        }
+
+        if (pressure > DHAXO_PRESSURE_MAX)
+        {
+            pressure = DHAXO_PRESSURE_MAX;
+        }
+
+        pressure_normalized = pressure / (float)DHAXO_PRESSURE_MAX;
     }
-
-    if (pressure > DHAXO_PRESSURE_MAX)
-    {
-        pressure = DHAXO_PRESSURE_MAX;
-    }
-
-    pressure_normalized = pressure / (float)DHAXO_PRESSURE_MAX;
-
     return pressure_normalized;
 }
 
@@ -291,40 +297,43 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
-    vol_ = pressure;
-    if (vol_ != vol_last_)
+    if (pressure >= 0)
     {
-        synth_->SetLevel(vol_);
-        vol_last_ = vol_;
-    }
-
-    uint8_t note_ = map_to_midi(keys);
-    if (note_ != MIDI_NOTE_NONE)
-    {
-        if (note_ != note_last_)
+        vol_ = pressure;
+        if (vol_ != vol_last_)
         {
-            if (vol_ > 0.0f)
-            {
-                if (note_last_ > 0)
-                {
-                    // finish old note
-                    synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
-                    synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-                    // start new note
-                    synth_->SetLevel(vol_);
-                }
-                synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
-                note_last_ = note_;
-            }
+            synth_->SetLevel(vol_);
+            vol_last_ = vol_;
         }
-        if (vol_ < 0.05f && note_last_ > 0)
+
+        uint8_t note_ = map_to_midi(keys);
+        if (note_ != MIDI_NOTE_NONE)
         {
-            synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-            note_last_ = 0;
+            if (note_ != note_last_)
+            {
+                if (vol_ > 0.0f)
+                {
+                    if (note_last_ > 0)
+                    {
+                        // finish old note
+                        synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
+                        synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
+                        // start new note
+                        synth_->SetLevel(vol_);
+                    }
+                    synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
+                    note_last_ = note_;
+                }
+            }
+            if (vol_ < 0.05f && note_last_ > 0)
+            {
+                synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
+                note_last_ = 0;
+            }
         }
     } else {
         // no note, in control mode?
-        if (pressure < -0.2f)
+        if (note_ == MIDI_NOTE_NONE)
         {
             #ifdef debug
             show(keys);
