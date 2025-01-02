@@ -44,7 +44,7 @@ void DHaxo::Init()
     #ifdef DEBUG
     for(auto it = notemap_.cbegin(); it != notemap_.cend(); ++it)
     {
-        std::cout << it->first << " " << it->second << "\n";
+        std::cout << it->first << " " << (int)it->second << "\n";
     }
     std::cout << "\n";
     #endif
@@ -340,13 +340,13 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
             #endif
             switch (keys)
             {
-            case 65536: // 2^16
+            case 65536: // 2^16, right index finger
                 haxo_control = HAXOCONTROL_NEXTSOUND;
                 break;
-            case 4194304: // 2^22
+            case 4194304: // 2^22, right ring finger
                 haxo_control = HAXOCONTROL_PREVSOUND;
                 break;
-            case 524288: // 2^19
+            case 524288: // 2^19, right middle finger
                 haxo_control = HAXOCONTROL_TURNOFF;
                 break;
             default:

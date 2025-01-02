@@ -967,9 +967,9 @@ void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir
                 if (sound_type_enum == type)
                 {
                     files_.push_back(file_name);
-                    #ifdef DEBUG
+                    //#ifdef DEBUG
                     std::cout << file_name << "\n";
-                    #endif
+                    //#endif
                 }
             }
         }
@@ -998,12 +998,13 @@ DSettings::DSoundType DSettingsD::MapSoundType(std::string sound_type)
 
 std::string DSettingsD::NextFile()
 {
-    std::string retval = "";
+    std::string file_name = "";
 
+    std::cout << "NextFile " << (int)file_at_ << "\n";
     auto files_len = files_.size();
     if (files_len > 0)
     {
-        retval = dir_name_ + files_.at(file_at_);
+        file_name = dir_name_ + files_.at(file_at_);
         if (file_at_ < files_len)
         {
             file_at_++;
@@ -1012,7 +1013,7 @@ std::string DSettingsD::NextFile()
         }
     }
 
-    return retval;
+    return file_name;
 }
 
 
