@@ -125,8 +125,10 @@ void ProcessControl()
 	DHaxo::HaxoControl haxo_control = dhaxo.ProcessControl();
 
 	// half a second must pass between control key presses
-	if (dGetElapsedTimeMicros() - last_time > 500000)
+	if ((dGetElapsedTimeMicros() - last_time) > 1000000)
 	{
+		last_time = dGetElapsedTimeMicros();
+
 		switch (haxo_control)
 		{
 		case DHaxo::HAXOCONTROL_PREVSOUND:
