@@ -110,7 +110,7 @@ void DHaxo::Set(const Config& config)
     {
         // TODO error check
         #ifdef DEBUG
-            std::cout << "Open serial. "  << "\n";
+        std::cout << "Open serial. "  << "\n";
         #endif
 
         try {
@@ -281,8 +281,10 @@ void DHaxo::DispatchController(DSynth::Param controller_target, float controller
 
 
 
-void DHaxo::Process()
+DHaxo::HaxoControl DHaxo::ProcessControl()
 {
+    DHaxo::HaxoControl haxo_control = DHaxo::HAXOCONTROL_NONE;
+
     uint32_t keys = Keys();
     float pressure = Pressure();
 
@@ -294,7 +296,6 @@ void DHaxo::Process()
     if (vol_ != vol_last_)
     {
         synth_->SetLevel(vol_);
-//        synth_->SetLevel(channel_, vol_);
         vol_last_ = vol_;
     }
 
@@ -324,13 +325,25 @@ void DHaxo::Process()
         }
     } else {
         // no note, in control mode?
-        if (pressure < 0.1f)
+        if (pressure < -0.2f)
         {
-            // up
-            #ifdef DEBUG
-            //show(keys);
+            #ifdef debug
+            show(keys);
             #endif
-            // down
+            switch (keys)
+            {
+            case 0:
+                haxo_control = HAXOCONTROL_NEXTSOUND;
+                break;
+            case 1:
+                haxo_control = HAXOCONTROL_PREVSOUND;
+                break;
+            case 2:
+                haxo_control = HAXOCONTROL_TURNOFF;
+                break;
+            default:
+                break;
+            }
 
         }
     }
@@ -344,10 +357,9 @@ void DHaxo::Process()
             Format of input:
             <pitch>,<modwheel>,<distancesensor>\n
 
-            pitch = read value from analog pot, int
-            modwheel = read value from analog pot, int
-            distance sensor = distance in cm's, int
-            ie
+            pitch = read value from analog pot
+            modwheel = read value from analog pot
+            distance sensor = distance
 
             so the targets and values must match per index
             order of received value -> hexo_value_[n]
@@ -364,20 +376,15 @@ void DHaxo::Process()
             if (c == '\n')
             {
                 serial_buffer_[serial_buffer_next_] = 0;
-                // std::cout << "Serial buffer" << serial_buffer_ << "\n";
-
                 char *token;
                 char *sbuffer;
                 char *token_end;
                 sbuffer = serial_buffer_;
-                // we now have a line of values, 16bit ints separated by commas
+                // we now have a line of values, floats separated by commas
                 while ((token = strsep(&sbuffer,",")) != NULL)
                 {
                     float token_value = strtof(token, &token_end);
-                    // std::cout << "tok val" << token_value << "\n";
-
                     controller_value_[controller] = token_value;
-
                     controller++;
                     if (controller >= controller_targets_)
                         break;
@@ -385,15 +392,17 @@ void DHaxo::Process()
                 serial_buffer_next_ = 0;
                 for (uint8_t i = 0; i < controller_targets_ ; i++)
                 {
+                    #ifdef DEBUG
                     std::cout << " target: " << (int)controller_target_[i] << " value "  << controller_value_[i];
+                    #endif
                     DispatchController(controller_target_[i], controller_value_[i]);
                 }
+                #ifdef DEBUG
                 std::cout << "\n";
+                #endif
             }
         }
     }
-
-//    usleep(100); // .01ms
 }
 
 

@@ -15,6 +15,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <dirent.h>
 
 int DXMLSettings::getValue(const std::string& tag, int defaultValue)
 {
@@ -932,4 +933,105 @@ std::vector<float> DSettings::StrToVec(std::string str)
     }
 
     return (vec);
+}
+
+
+
+void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir_name)
+{
+    // https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
+
+    type_ = type;
+    subtype_ = subtype;
+    files_.clear();
+    file_at_ = 0;
+    dir_name_ = dir_name;
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(dir_name.c_str())) != NULL)
+    {
+        // read all files in directory
+        while ((ent = readdir(dir)) != NULL) {
+            // regular file?
+            if (ent->d_type == DT_REG)
+            {
+                // only add files of specified type
+                // eg <settingstype>DSynthSub</settingstype>
+                DXMLSettings settings;
+                std::string file_name = ent->d_name; // converts from c-style to c++-style string
+                settings.loadInit(dir_name_ + file_name);
+                std::string sound_type = settings.getValue("settings:settingstype", "");
+                settings.loadExit();
+                DSoundType sound_type_enum = MapSoundType(sound_type);
+                if (sound_type_enum == type)
+                {
+                    files_.push_back(file_name);
+                    #ifdef DEBUG
+                    std::cout << file_name << "\n";
+                    #endif
+                }
+            }
+        }
+        closedir (dir);
+    }
+}
+
+
+
+DSettings::DSoundType DSettingsD::MapSoundType(std::string sound_type)
+{
+    if (sound_type == "DSynthSub") {
+        return DSettings::DSYNTHSUB;
+    } else if (sound_type == "DSynthVar") {
+        return DSettings::DSYNTHVAR;
+    } else if (sound_type == "DSynthFm") {
+        return DSettings::DSYNTHFM;
+    } else if (sound_type == "DSampler") {
+        return DSettings::DSAMPLER;
+    } else {
+        return DSettings::UNKNOWN;
+    }
+}
+
+
+
+std::string DSettingsD::NextFile()
+{
+    std::string retval = "";
+
+    auto files_len = files_.size();
+    if (files_len > 0)
+    {
+        retval = dir_name_ + files_.at(file_at_);
+        if (file_at_ < files_len)
+        {
+            file_at_++;
+        } else {
+            file_at_ = 0;
+        }
+    }
+
+    return retval;
+}
+
+
+
+std::string DSettingsD::PrevFile()
+{
+    std::string retval = "";
+
+    auto files_len = files_.size();
+    if (files_len > 0)
+    {
+        retval = dir_name_ + files_.at(file_at_);
+        if (file_at_ > 0)
+        {
+            file_at_--;
+        } else {
+            file_at_ = files_len - 1;
+        }
+    }
+
+    return retval;
 }

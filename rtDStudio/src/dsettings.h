@@ -87,7 +87,8 @@ class DSettings
         DSYNTHFM,
         DSYNTHVAR,
         DSAMPLER,
-        DRUM
+        DRUM,
+        UNKNOWN
         // more to come: mixer, fx, seq etc
     };
 
@@ -114,4 +115,24 @@ private:
 
     std::string static VecToStr(std::vector<float> vec);
     std::vector<float> static StrToVec(std::string str);
+};
+
+
+
+class DSettingsD : public DSettings
+{
+
+public:
+    void InitDir(DSoundType type, DSoundSubType subtype, std::string dir_name);
+    std::string NextFile();
+    std::string PrevFile();
+
+private:
+    DSettings::DSoundType MapSoundType(std::string sound_type);
+
+    DSoundType type_; 
+    DSoundSubType subtype_; 
+    std::string dir_name_;
+    std::vector<std::string> files_;
+    int file_at_;
 };

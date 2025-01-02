@@ -34,6 +34,14 @@ class DHaxo
 {
 public:
 
+    enum HaxoControl
+    {
+        HAXOCONTROL_NONE,
+        HAXOCONTROL_PREVSOUND,
+        HAXOCONTROL_NEXTSOUND,
+        HAXOCONTROL_TURNOFF,
+    };
+
 	DHaxo() {}
 	~DHaxo() {}
 
@@ -47,7 +55,7 @@ public:
 
 	void Init();
 	void Set(const Config&);
-	void Process();
+	DHaxo::HaxoControl ProcessControl();
 	void Exit();
 
 private:
