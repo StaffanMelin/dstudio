@@ -152,7 +152,6 @@ void ProcessControl()
 		case DHaxo::HAXOCONTROL_TURNOFF:
 			{
 			std::cout << "Main turnoff \n";
-
 			}
 			break;
 		default:

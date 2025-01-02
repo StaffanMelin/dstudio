@@ -197,7 +197,7 @@ float DHaxo::Pressure()
     //std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
-    if (pressure < (DHAXO_PRESSURE_START * 0.75)) 
+    if (pressure < (DHAXO_PRESSURE_START * 0.25)) 
     {
         pressure_normalized = -1.0;
     } else
@@ -302,6 +302,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         vol_ = pressure;
         if (vol_ != vol_last_)
         {
+            std::cout << "LEVEL ON!\n";
             synth_->SetLevel(vol_);
             vol_last_ = vol_;
         }
@@ -313,6 +314,8 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
             {
                 if (vol_ > 0.05f)
                 {
+                    std::cout << "NOTE ON!\n";
+
                     if (note_last_ > 0)
                     {
                         // finish old note
@@ -335,7 +338,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         // no note, in control mode?
         //if (note_ == MIDI_NOTE_NONE)
         //{
-            #ifdef debug
+            #ifdef DEBUG
             show(keys);
             #endif
             switch (keys)
