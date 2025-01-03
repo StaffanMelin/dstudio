@@ -334,7 +334,11 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
                 synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
                 note_last_ = 0;
             }
+        } else if (vol_ < 0.05f && note_last_ > 0) {
+            synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
+            note_last_ = 0;
         }
+
     } else {
         // no note, in control mode?
         //if (note_ == MIDI_NOTE_NONE)
