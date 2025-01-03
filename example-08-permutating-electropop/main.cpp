@@ -29,7 +29,7 @@
 
 #include "../rtDStudio/src/dseqperm.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 //////////////////////////////////////////////////

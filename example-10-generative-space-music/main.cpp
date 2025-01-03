@@ -18,7 +18,7 @@
 #include "../rtDStudio/src/dgen.h"
 #include "../rtDStudio/src/dsettings.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 

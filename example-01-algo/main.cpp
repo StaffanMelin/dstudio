@@ -20,7 +20,7 @@
 #include "../rtDStudio/src/dcymbal.h"
 #include "../rtDStudio/src/ddrum.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 //////////////////////////////////////////////////

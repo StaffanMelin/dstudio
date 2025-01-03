@@ -13,7 +13,7 @@
 #include "../rtDStudio/src/dmixer.h"
 #include "../rtDStudio/src/dsynthsub.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 

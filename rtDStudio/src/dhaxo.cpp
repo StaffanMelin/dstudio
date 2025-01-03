@@ -291,7 +291,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     float pressure = Pressure();
 
     #ifdef DEBUG
-    //std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
+    std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
     if (pressure >= 0.0)
@@ -306,60 +306,50 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         uint8_t note_ = map_to_midi(keys);
         if (note_ != MIDI_NOTE_NONE)
         {
-
             if (note_ != note_last_)
             {
                 if (vol_ > DHAXO_PRESSURE_THRESHOLD)
                 {
-                    if (note_last_ > 0)
+                    if (note_last_ != MIDI_NOTE_NONE)
                     {
                         // finish old note
                         synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
                         synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "1 NOFF\n";
                         // start new note
                         synth_->SetLevel(vol_);
                     }
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
-std::cout << "2 NON " << vol_ <<"\n";
                     note_last_ = note_;
                 }
             }
-            if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ > 0)
+            if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ != MIDI_NOTE_NONE)
             {
                 synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "3 NOFF\n";
-                note_last_ = 0;
+                note_last_ = MIDI_NOTE_NONE;
             }
-        } else if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ > 0) {
+        } else if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ != MIDI_NOTE_NONE) {
             synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "4 NOFF\n";
-            note_last_ = 0;
+            note_last_ = MIDI_NOTE_NONE;
         }
 
     } else {
-        // no note, in control mode?
-        //if (note_ == MIDI_NOTE_NONE)
-        //{
-            #ifdef DEBUG
-            // show(keys);
-            #endif
-            switch (keys)
-            {
-            case 65536: // 2^16, right index finger
-                haxo_control = HAXOCONTROL_NEXTSOUND;
-                break;
-            case 4194304: // 2^22, right ring finger
-                haxo_control = HAXOCONTROL_PREVSOUND;
-                break;
-            case 524288: // 2^19, right middle finger
-                haxo_control = HAXOCONTROL_TURNOFF;
-                break;
-            default:
-                break;
-            }
-
-        //}
+        #ifdef DEBUG
+        show(keys);
+        #endif
+        switch (keys)
+        {
+        case 65536: // 2^16, right index finger
+            haxo_control = HAXOCONTROL_NEXTSOUND;
+            break;
+        case 4194304: // 2^22, right ring finger
+            haxo_control = HAXOCONTROL_PREVSOUND;
+            break;
+        case 524288: // 2^19, right middle finger
+            haxo_control = HAXOCONTROL_TURNOFF;
+            break;
+        default:
+            break;
+        }
     }
 
     // TODO NOTE if target is pressure/volume/amp then

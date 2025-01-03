@@ -15,7 +15,7 @@
 #include "../rtDStudio/src/dhaxo.h"
 #include "../rtDStudio/src/dsettings.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 
@@ -31,6 +31,7 @@ DSynthSub dsynthmelody;
 DSynthSub dsynthpad;
 DMixer dmixer;
 DHaxo dhaxo;
+DSettingsD dsetd; // sound files
 
 
 
@@ -56,9 +57,11 @@ bool InitSynths()
 	bool retval = true;
 
 	// synth melody
+	dsetd.InitDir(DSettings::DSYNTHSUB, DSettings::NONE, "data/");
+	std::string synth_file = dsetd.NextFile();
 	DSynthSub::Config dsynthsub_config;
 	dsynthmelody.Init();
-	DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, "data/sub_melody.xml", &dsynthsub_config);
+	DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
 	dsynthmelody.Set(dsynthsub_config);
 
 	// pad
@@ -134,7 +137,41 @@ bool InitSynths()
 
 void ProcessControl()
 {
-    dhaxo.Process();
+	static uint64_t last_time = dGetElapsedTimeMicros();
+	DHaxo::HaxoControl haxo_control = dhaxo.ProcessControl();
+
+	// half a second must pass between control key presses
+	if ((dGetElapsedTimeMicros() - last_time) > 1000000)
+	{
+		last_time = dGetElapsedTimeMicros();
+
+		switch (haxo_control)
+		{
+		case DHaxo::HAXOCONTROL_PREVSOUND:
+			{
+			std::string synth_file = dsetd.PrevFile();
+			DSynthSub::Config dsynthsub_config;
+			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+			dsynthmelody.Set(dsynthsub_config);
+			}
+			break;
+		case DHaxo::HAXOCONTROL_NEXTSOUND:
+			{
+			std::string synth_file = dsetd.NextFile();
+			DSynthSub::Config dsynthsub_config;
+			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+			dsynthmelody.Set(dsynthsub_config);
+			}
+			break;
+		case DHaxo::HAXOCONTROL_TURNOFF:
+			{
+			std::cout << "Main turnoff \n";
+			}
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 

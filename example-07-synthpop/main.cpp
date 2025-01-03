@@ -24,7 +24,7 @@
 #include "../rtDStudio/src/ddrum.h"
 #include "../rtDStudio/src/dseqmidi.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 

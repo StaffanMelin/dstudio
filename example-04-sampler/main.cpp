@@ -15,7 +15,7 @@
 #include "../rtDStudio/src/dsynthvar.h"
 #include "../rtDStudio/src/dfx.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 

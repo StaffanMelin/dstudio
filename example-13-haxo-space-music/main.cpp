@@ -19,7 +19,7 @@
 #include "../rtDStudio/src/dsettings.h"
 #include "../rtDStudio/src/dhaxo.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 
@@ -49,6 +49,7 @@ DGenDrone dgen;
 // haxo
 DSynthSub dsynthhaxo;
 DHaxo dhaxo;
+
 
 
 //////////////////////////////////////////////////
@@ -273,7 +274,38 @@ bool InitSynths()
 
 void ProcessControl()
 {
-    dhaxo.Process();
+	static uint64_t last_time = dGetElapsedTimeMicros();
+	DHaxo::HaxoControl haxo_control = dhaxo.ProcessControl();
+
+	// half a second must pass between control key presses
+	if ((dGetElapsedTimeMicros() - last_time) > 1000000)
+	{
+		last_time = dGetElapsedTimeMicros();
+
+		switch (haxo_control)
+		{
+		case DHaxo::HAXOCONTROL_PREVSOUND:
+			{
+				// restore
+				// dsynthhaxo.
+			}
+			break;
+		case DHaxo::HAXOCONTROL_NEXTSOUND:
+			{
+				// change sound
+				// dsynthhaxo.
+			}
+			break;
+		case DHaxo::HAXOCONTROL_TURNOFF:
+			{
+			std::cout << "Main turnoff \n";
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
     dgen.Process();
 }
 

@@ -22,7 +22,7 @@
 // application - DWindow
 #include "../rtDStudio/src/dwindow.h"
 
-#include "rt.h"
+#include "../rtDStudio/src/drt.h"
 
 
 
