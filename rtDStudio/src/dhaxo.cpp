@@ -217,7 +217,7 @@ float DHaxo::Pressure()
         }
 
         pressure_normalized = 
-            (pressure / (float)(DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
+            (pressure / (float)(DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START));
     }
     return pressure_normalized;
 }
