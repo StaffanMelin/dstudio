@@ -1000,7 +1000,6 @@ std::string DSettingsD::NextFile()
 {
     std::string file_name = "";
 
-    std::cout << "NextFile " << (int)file_at_ << "\n";
     auto files_len = files_.size();
     if (files_len > 0)
     {

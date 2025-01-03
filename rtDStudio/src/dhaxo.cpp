@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "../rtDStudio/src/dstudio.h"
 #include "dhaxo.h"
@@ -207,15 +208,16 @@ float DHaxo::Pressure()
             pressure -= DHAXO_PRESSURE_START;
         } else if (pressure < DHAXO_PRESSURE_START)
         {
-            pressure = 0;
+            pressure = 0.0;
         }
 
-        if (pressure > DHAXO_PRESSURE_MAX)
+        if (pressure > (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START)
         {
-            pressure = DHAXO_PRESSURE_MAX;
+            pressure = (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
         }
 
-        pressure_normalized = pressure / (float)DHAXO_PRESSURE_MAX;
+        pressure_normalized = 
+            (pressure / (float)(DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
     }
     return pressure_normalized;
 }
@@ -299,17 +301,18 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
 
     if (pressure >= 0.05)
     {
-        vol_ = pressure;
-        if (vol_ != vol_last_)
-        {
-            //std::cout << "LEVEL ON!\n";
-            synth_->SetLevel(vol_);
-            vol_last_ = vol_;
-        }
-
         uint8_t note_ = map_to_midi(keys);
         if (note_ != MIDI_NOTE_NONE)
         {
+
+            // moved from before the if above    
+            vol_ = pow(pressure, 0.5);
+            if (vol_ != vol_last_)
+            {
+                synth_->SetLevel(vol_);
+                vol_last_ = vol_;
+            }
+
             if (note_ != note_last_)
             {
                 if (vol_ > 0.05f)
@@ -362,7 +365,6 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     // ie TARGET_AMP is stupid?
     if (controller_connected_)
     {
-        std::cout << "Controller: Read\n";
         /*
             Format of input:
             <pitch>,<modwheel>,<distancesensor>\n
