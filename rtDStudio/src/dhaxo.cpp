@@ -211,7 +211,7 @@ float DHaxo::Pressure()
             pressure = 0.0;
         }
 
-        if (pressure > (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START)
+        if (pressure > (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START))
         {
             pressure = (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
         }
