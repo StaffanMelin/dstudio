@@ -314,31 +314,31 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
 
             if (note_ != note_last_)
             {
-                if (vol_ > 0.05f)
+                if (vol_ > DHAXO_PRESSURE_THRESHOLD)
                 {
                     if (note_last_ > 0)
                     {
                         // finish old note
                         synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
                         synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "1 NOFF";
+std::cout << "1 NOFF\n";
                         // start new note
                         synth_->SetLevel(vol_);
                     }
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
-std::cout << "2 NON";
+std::cout << "2 NON\n";
                     note_last_ = note_;
                 }
             }
-            if (vol_ < 0.05f && note_last_ > 0)
+            if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ > 0)
             {
                 synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "3 NOFF";
+std::cout << "3 NOFF\n";
                 note_last_ = 0;
             }
-        } else if (vol_ < 0.05f && note_last_ > 0) {
+        } else if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ > 0) {
             synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-std::cout << "4 NOFF";
+std::cout << "4 NOFF\n";
             note_last_ = 0;
         }
 
