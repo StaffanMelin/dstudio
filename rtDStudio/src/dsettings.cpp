@@ -16,6 +16,7 @@
 #include <sstream>
 #include <vector>
 #include <dirent.h>
+#include <algorithm>
 
 int DXMLSettings::getValue(const std::string& tag, int defaultValue)
 {
