@@ -195,7 +195,7 @@ float DHaxo::Pressure()
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
-    std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
+    // std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
     if (pressure < (DHAXO_PRESSURE_START * 0.9)) 
@@ -299,19 +299,19 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     //std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
-    if (pressure >= 0.05)
+    if (pressure >= 0.0)
     {
+
+        vol_ = pow(pressure, 0.5);
+        if (vol_ != vol_last_)
+        {
+            synth_->SetLevel(vol_);
+            vol_last_ = vol_;
+        }
+
         uint8_t note_ = map_to_midi(keys);
         if (note_ != MIDI_NOTE_NONE)
         {
-
-            // moved from before the if above    
-            vol_ = pow(pressure, 0.5);
-            if (vol_ != vol_last_)
-            {
-                synth_->SetLevel(vol_);
-                vol_last_ = vol_;
-            }
 
             if (note_ != note_last_)
             {
@@ -344,7 +344,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         //if (note_ == MIDI_NOTE_NONE)
         //{
             #ifdef DEBUG
-            show(keys);
+            // show(keys);
             #endif
             switch (keys)
             {

@@ -974,6 +974,7 @@ void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir
             }
         }
         closedir (dir);
+        std::sort(files_.begin(), files_.end());
     }
 }
 
