@@ -201,23 +201,18 @@ float DHaxo::Pressure()
     if (pressure < (DHAXO_PRESSURE_START * 0.9)) 
     {
         pressure_normalized = -1.0;
-    } else
-    { 
+    } else { 
         if (pressure > DHAXO_PRESSURE_START)
         {
-            pressure -= DHAXO_PRESSURE_START;
-        } else if (pressure < DHAXO_PRESSURE_START)
-        {
-            pressure = 0.0;
+            if (pressure > DHAXO_PRESSURE_MAX)
+            {
+                pressure = DHAXO_PRESSURE_MAX;
+            }
+            pressure_normalized = 
+                (pressure - DHAXO_PRESSURE_START) / (float)(DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
+        } else {
+            pressure_normalized = 0.0;
         }
-
-        if (pressure > (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START))
-        {
-            pressure = (DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START);
-        }
-
-        pressure_normalized = 
-            (pressure / (float)(DHAXO_PRESSURE_MAX - DHAXO_PRESSURE_START));
     }
     return pressure_normalized;
 }
@@ -326,7 +321,7 @@ std::cout << "1 NOFF\n";
                         synth_->SetLevel(vol_);
                     }
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
-std::cout << "2 NON\n";
+std::cout << "2 NON " << vol_ <<"\n";
                     note_last_ = note_;
                 }
             }
