@@ -209,7 +209,7 @@ float DSynthFm::Process()
 
         svf_[i].SetFreq(filter_cutoff_
                         * (1 + lfo_out * lfo_f_level_)
-                        * env_f_out * eg_f_level_;
+                        * env_f_out * eg_f_level_);
         svf_[i].Process(osc_out);
 		switch (filter_type_)
 		{
