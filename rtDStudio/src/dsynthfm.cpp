@@ -177,7 +177,7 @@ float DSynthFm::Process()
         // amp can be affected by:
         // lfo, eg (always)
 
-        env_a_out = eg_a_[i].Process(note_on) * (1 - lfo_out * lfo_a_level_);
+        env_a_out = eg_a_[i].Process(note_on) * (1 + lfo_out * lfo_a_level_);
 
         // osc - pitch
         // pitch can be affected by:
@@ -195,30 +195,6 @@ float DSynthFm::Process()
                      (tune_ / 1200.0 + lfo_out * lfo_p_level_ + env_p_out));
         }
 
-
-/*
-        if (eg_p_level_ == 0.0f)
-        {
-            env_out = 0.0f;
-        } else {
-            env_out = eg_p_[i].Process(note_on) * eg_p_level_ * note_velocity_[i];
-        }
-
-		if (portamento_ > 0)
-		{
-            new_freq = port_[i].Process(note_freq_[i] + tune_);
-        } else {
-            new_freq = note_freq_[i] + tune_;
-        }
-		
-		if (lfo_target_ == PITCH)
-		{
-            new_freq = new_freq * lfo_out * (1.0f + env_out);
-        } else {
-            new_freq = new_freq * (1.0f + env_out);
-        }
-*/
-//        if (new_freq != note_freq_[i] + tune_) {
         fm2_[i].SetFrequency(f);
 
         // osc
@@ -232,10 +208,8 @@ float DSynthFm::Process()
         env_f_out = eg_f_[i].Process(note_on);
 
         svf_[i].SetFreq(filter_cutoff_
-                        * (1 - lfo_out * lfo_f_level_)
-                        * env_f_out * eg_f_level_
-                        * note_velocity_[i]);
-
+                        * (1 + lfo_out * lfo_f_level_)
+                        * env_f_out * eg_f_level_;
         svf_[i].Process(osc_out);
 		switch (filter_type_)
 		{

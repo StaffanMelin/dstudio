@@ -183,7 +183,7 @@ float DSynthSub::Process()
         // amp can be affected by:
         // lfo, eg (always)
 
-        env_a_out = eg_a_[i].Process(note_on) * (1 - lfo_out * lfo_a_level_);
+        env_a_out = eg_a_[i].Process(note_on) * (1 + lfo_out * lfo_a_level_);
 
         osc0_[i].SetAmp(env_a_out);
         osc1_[i].SetAmp(env_a_out);
@@ -220,12 +220,9 @@ float DSynthSub::Process()
         // cutoff can be affected by:
         // eg, lfo
         env_f_out = eg_f_[i].Process(note_on);
-
         svf_[i].SetFreq(filter_cutoff_ 
-                        * (1 - lfo_out * lfo_f_level_) 
+                        * (1 + lfo_out * lfo_f_level_) 
                         * env_f_out * eg_f_level_); 
-                        // * note_velocity_[i]);
-
 		svf_[i].Process(osc_out);
 		switch (filter_type_)
 		{

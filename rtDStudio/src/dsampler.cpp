@@ -212,7 +212,7 @@ void DSampler::Process(float *out_l, float *out_r)
         // amp can be affected by:
         // lfo, eg (always), velocity
 
-        env_a_out = eg_a_[i].Process(note_on) * (1 - lfo_out * lfo_a_level_);
+        env_a_out = eg_a_[i].Process(note_on) * (1 + lfo_out * lfo_a_level_);
         noise_.SetAmp(env_a_out);
 
         // osc - pitch
@@ -290,10 +290,8 @@ void DSampler::Process(float *out_l, float *out_r)
         env_f_out = eg_f_[i].Process(note_on);
 
         f = filter_cutoff_
-                * (1 - lfo_out * lfo_f_level_)
-                * env_f_out *  eg_f_level_
-                * note_velocity_[i]
-                ;
+                * (1 + lfo_out * lfo_f_level_)
+                * env_f_out *  eg_f_level_;
 
         svf_l_[i].SetFreq(f);
         svf_r_[i].SetFreq(f);
