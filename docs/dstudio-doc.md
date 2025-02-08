@@ -1,5 +1,7 @@
 # Welcome to DStudio
 
+![DStudio](assets/dstudio_logo.png "DStudio")
+
 Welcome to the DStudio – make music with code!
 
 DStudio builds upon the DSP library DaisySP from Electro-smith. DStudio provides another abstraction layer where you don't focus on soundstreams and sample rates but on synthesizers, mixers, plugins and sequencers. Like a studio made with code!
@@ -16,7 +18,8 @@ Author: Staffan Melin, staffan.melin@oscillator.se
 
 License: GNU General Public License v3.0. DaisySP is licensed under the MIT license.
 
-DaisySP: Electro-smith, license and source info TODO.  Thank you Electro-smith for making this!
+TODO
+DaisySP: Electro-smith, license and source info.  Thank you Electro-smith for making this!
 
 Project site: http://oscillator.se/opensource
 
@@ -28,13 +31,11 @@ Source: https://github.com/StaffanMelin/dstudio
 - Installation
 - Program strcture
 - Basic tutorial
-- Class reference
+- Classes
 - Examples
 
 
 ## Installation
-
-### Preparations
 
 You need (at least, only tested on GNU/Linux Debian 11-12):
 
@@ -42,15 +43,18 @@ You need (at least, only tested on GNU/Linux Debian 11-12):
 - make
 - libsndfile1
 
+So:
+
+` sudo apt install build-essential make libsndfile1`
+
 Add RtAudio support:
 
-`sudo apt install libasound2 libasound2-data libasound2-dev`
+- `sudo apt install libasound2 libasound2-data libasound2-dev`
+- `sudo apt install libevent-dev`
 
-`sudo apt install libevent-dev`
+The above also installs necessary dependencies.
 
-They also installs necessary dependencies.
-
-Note. On my current Debian Trixie several of these package have a version ending as well as "t64" in their names. 
+Note. On my current Debian Trixie several of these package have a version number as well as "t64" in their names.
 
 ### Build examples
 
@@ -58,7 +62,11 @@ Install all files in a directory.
 
 In a terminal, enter an example directory and type `make` to build it.
 
+### Run
+
 Run the example: `./dstudio`
+
+start args: -d <dev> -l
 
 
 ## Program structure
@@ -85,6 +93,8 @@ The Process() method is called for each object to make do its work (produce soun
 
 control loop in main
 generate control data, such as notes, in for ex midi
+
+rt.h - dout_
 
 ### Object configuration
 
@@ -147,7 +157,7 @@ void ofApp::exit()
 Press the keys on your keyboard to make some sounds!
 
 
-## Class reference
+## Classes
 
 DStudio is a collection of classes. The majority of them create sounds and are all derived classes of the DSound class:
 
@@ -721,13 +731,91 @@ In this example we have 4 DSampler objects. The DSplitInfo array tells the DSpli
 Note that the DMixer input for DSplit must be stereo.
 
 
+### DHaxo
+
+This class provides support for the [Haxophone hardware](https://github.com/cardonabits/haxo-hw),  [Haxophone](https://www.crowdsupply.com/cardona-bits/haxophone).
+
+#### Haxophone installation
+
+Instructions for installation on a Raspberry Pi with the Haxophone HAT.
+
+Install raspi lite.
+
+Set up using `sudo raspi-config`:
+- expand file system
+- enable i2c
+- gpio is already enabled
+
+Edit `/boot/firmware/config.txt`:
+
+```
+# Enable audio (loads snd_bcm2835)
+# dtparam=audio=on
+dtoverlay=max98357a
+```
+
+Add I2C support:
+
+`sudo apt install libi2c-dev`
+
+Test with:
+
+`i2cdetect -l`
+
+Add GPIO support:
+
+- libgpiod is already installed
+- `sudo apt install libgpiod-dev`
+
+Test with:
+- `gpiodetect`
+- `gpioinfo`
+
+Now follow the normal DStudio installation instructions.
+
+For the interested there are is a test-directory in the example-11 directory.
+
+#### How to use
+
+TODO
+
+Connect.
+
+Switch sounds/presets.
+
+start args: -d <dev> -l
+
+haxophone: `dstudio -d MAX98357A`
+
+#### Foot controller
+
+TODO
+
+How to build a foot controller.
+
+
+### DWindow
+
+TODO
+
+Simple touchscreen integration based on SDL.
+
+### DControl
+
+TODO
+
+On-screen controls for DWindow.
+
+
 ## Examples
 
 A good way to learn to use DStudio is by running and studying the examples.
 
+
 ### Example 0
 
 TODO
+
 
 ### Example 1 - Algorithmic
 
@@ -736,6 +824,7 @@ Algorithmic composition.
 Demonstrates how to setup and use a bunch of different synthesizers and sounds, mix them together, and trigger them using the Metro timing class, feeding them various randomized data. A kind of algorithmic composition program.
 
 ![Example1](assets/example1.png "Example 1")
+
 
 ### Example 02 - Drone
 
@@ -749,11 +838,13 @@ Remember that the mixer handles 16 channels by default. If you create more drone
 
 ![Example2](assets/example2.png "Example 2")
 
+
 ### Example 03 - Sequencer
 
 A sequenced song that shows how to create sequences and chain them into a song.
 
 ![Example3](assets/example3.png "Example 3")
+
 
 ### Example 04 - Sampler
 
@@ -761,17 +852,20 @@ An example of using the DSampler class and the DSynthVar class.
 
 ![Example4](assets/example4.png "Example 4")
 
+
 ### Example 07 - Synthpop
 
 A sequenced synthpop song using DSeqMidi with DSampler providing vocals. 
 
 ![Example7](assets/example7.png "Example 7")
 
+
 ### Example 08 Permutating electropop
 
 An evolving electropop song using DSeqPerm and DSampler providing some electropop sounds.
 
 ![Example8](assets/example8.png "Example 8")
+
 
 ### Example 10 - Generative space music
 
@@ -803,53 +897,32 @@ Every channel can have a drama_fade_ value. This indicates how long (in specifie
 
 The example also shows how to work with presets.
 
+
 ### Example 11 - Haxophone solo voice
 
-#### Setting up on the Raspberry Pi with Haxophone
-
-Install raspi lite
-
-`sudo raspi-config`
-
-* expand file system
-* enable i2c
-* gpio is already enabled
-
-edit /boot/firmware/config.txt
-```
-# Enable audio (loads snd_bcm2835)
-# dtparam=audio=on
-dtoverlay=max98357a
-```
 TODO
 
-#### Additional preparations for the haxophone
+Solo voice.
 
-Add I2C support:
+`dhaxo_config.controller = false; // true`
 
-`sudo apt install libi2c-dev`
-
-Test:
-
-`i2cdetect -l`
-
-Add GPIO support:
-
-`sudo apt install libgpiod-dev`
-
-Test:
-
-- `gpiodetect`
-- `gpioinfo`
 
 ### Example 12 - Haxophone with drone background
 
 TODO
 
+Solo voice with single-voice drone background.
+
+Uses a foot controller.
+
 ### Example 13 - Haxophone with space music background
 
 TODO
 
+Solo voice with example 10 as background.
+
 ### Example 15 - Touch screen drone
 
 TODO
+
+Six voice drone machine with touch screen UI.
