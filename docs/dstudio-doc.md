@@ -224,6 +224,8 @@ They are all initialized using a config struct with the following common members
 - float overdrive_gain: overdrive gain (0.0 - 1.0), it is usually good to reduce the gain when applying overdrive drive.
 - float overdrive_drive: overdrive drive (0.0 - 1.0)
 
+Most parameters can be modified with corresponding Set*-functions. The synthesizers also all have a `ChangeParam()` function suitable for real-time control of the most common parameters. This is what DHaxo uses.
+
 ### Presets
 
 You can now save and load presets of all synthesizers and drums using the DSettings static class. They are stored as XML files.
@@ -360,6 +362,16 @@ Properties:
 
 This synthesizer can introduce a DC offset into the signal. It helps to insert a high pass filter before the DSynthVar. (See demo 3, 7 and 8.)
 
+
+### DSm
+
+TODO.
+
+Special modulators, currently used by the DSynthVar synthesizer.
+
+Consider them LFOs that are not linear.
+
+
 ### DSampler
 
 A sample player that uses linear interpolation for pitch changes. 
@@ -393,6 +405,7 @@ You can use an absolute path or a relative path (for the oF examples relative to
 
 Sample size is limited by the constant SAMPLE_BUFFER_MAX defined in dsampler.h
 
+
 ### Drum instruments
 
 All drum sounds have a lot of sound shaping properties. See the header files and examples.
@@ -423,6 +436,7 @@ A kind of tuned drum that can be used for things like toms.
 #### DHihat
 
 Open and closed hihat with three different sound engines like the bass and snare.
+
 
 ### DFX
 
@@ -731,6 +745,18 @@ In this example we have 4 DSampler objects. The DSplitInfo array tells the DSpli
 Note that the DMixer input for DSplit must be stereo.
 
 
+### DSettings
+
+TODO.
+
+Read and writes XML settings files.
+
+### DSettings D
+
+TODO.
+
+Builds upon DSettings to provide easy switching between presets in the same directory.
+
 ### DHaxo
 
 This class provides support for the [Haxophone hardware](https://github.com/cardonabits/haxo-hw),  [Haxophone](https://www.crowdsupply.com/cardona-bits/haxophone).
@@ -783,22 +809,25 @@ Connect.
 
 Switch sounds/presets.
 
-start args: -d <dev> -l
+start args: `-d <dev> -l`
 
 haxophone: `dstudio -d MAX98357A`
 
-#### Foot controller
+#### Controller
 
 TODO
 
-How to build a foot controller.
+How to build a (foot) controller.
 
+`DispatchController()` and constants for dispatching controllers
 
 ### DWindow
 
 TODO
 
 Simple touchscreen integration based on SDL.
+
+WIP.
 
 ### DControl
 
@@ -904,7 +933,11 @@ TODO
 
 Solo voice.
 
-`dhaxo_config.controller = false; // true`
+In the InitSynths() function in main.cpp there code for an external controller attached to the Haxophone. It is disabled in the code:
+
+`dhaxo_config.controller = false;`
+
+If you want to use a controller, change `false` to `true`.
 
 
 ### Example 12 - Haxophone with drone background

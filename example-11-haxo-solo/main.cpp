@@ -17,8 +17,6 @@
 
 #include "../rtDStudio/src/drt.h"
 
-
-
 //////////////////////////////////////////////////
 // global variables
 //////////////////////////////////////////////////
@@ -32,8 +30,6 @@ DMixer dmixer;
 DHaxo dhaxo;
 DSettingsD dsetd; // sound files
 
-
-
 //////////////////////////////////////////////////
 // util
 //////////////////////////////////////////////////
@@ -43,8 +39,6 @@ static void finish(int /*ignore*/)
 {
 	done_ = true;
 }
-
-
 
 //////////////////////////////////////////////////
 // DStudio
@@ -104,7 +98,7 @@ bool InitSynths()
 	dhaxo_config.controller = false;
 	dhaxo_config.controller_targets = 3;
 	dhaxo_config.controller_target[0] = DSynth::DSYNTH_PARAM_TUNE;
-	dhaxo_config.controller_target[1] = DSynth::DSYNTH_PARAM_FILTER_CUTOFF; 
+	dhaxo_config.controller_target[1] = DSynth::DSYNTH_PARAM_FILTER_CUTOFF;
 	dhaxo_config.controller_target[2] = DSynth::DSYNTH_PARAM_LFO_FREQ;
 	dhaxo_config.synth = &dsynthmelody;
 	dhaxo.Init();
@@ -112,8 +106,6 @@ bool InitSynths()
 
 	return retval;
 }
-
-
 
 //////////////////////////////////////////////////
 // Application logic
@@ -124,7 +116,7 @@ void ProcessControl()
 	static uint64_t last_time = dGetElapsedTimeMicros();
 	DHaxo::HaxoControl haxo_control = dhaxo.ProcessControl();
 
-	// half a second must pass between control key presses
+	// a second must pass between control key presses
 	if ((dGetElapsedTimeMicros() - last_time) > 1000000)
 	{
 		last_time = dGetElapsedTimeMicros();
@@ -132,44 +124,42 @@ void ProcessControl()
 		switch (haxo_control)
 		{
 		case DHaxo::HAXOCONTROL_PREVSOUND:
-			{
+		{
 			std::string synth_file = dsetd.PrevFile();
 			DSynthSub::Config dsynthsub_config;
 			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
 			dsynthmelody.Set(dsynthsub_config);
-			}
-			break;
+		}
+		break;
 		case DHaxo::HAXOCONTROL_NEXTSOUND:
-			{
+		{
 			std::string synth_file = dsetd.NextFile();
 			DSynthSub::Config dsynthsub_config;
 			DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
 			dsynthmelody.Set(dsynthsub_config);
-			}
-			break;
+		}
+		break;
 		case DHaxo::HAXOCONTROL_TURNOFF:
-			{
+		{
 			std::cout << "Main turnoff \n";
-			}
-			break;
+		}
+		break;
 		default:
 			break;
 		}
 	}
 }
 
-
-
 // main
 
 // -l - list audio devices
 // -d <dev> - use given audio device
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 	int c;
 	bool arg_devices_set = false;
 	bool arg_devices_list = false;
-    char* arg_device = nullptr;
+	char *arg_device = nullptr;
 
 	opterr = 0;
 
@@ -177,13 +167,13 @@ int main(int argc, char* argv[])
 	{
 		switch (c)
 		{
-			case 'd':
-				arg_devices_set = true;
-				arg_device = optarg;
-				break;
-			case 'l':
-				arg_devices_list = true;
-				break;
+		case 'd':
+			arg_devices_set = true;
+			arg_device = optarg;
+			break;
+		case 'l':
+			arg_devices_list = true;
+			break;
 		}
 	}
 
@@ -210,13 +200,12 @@ int main(int argc, char* argv[])
 		while (!done_ && rt_dac_.isStreamRunning())
 		{
 			ProcessControl();
-			//SLEEP(10); // 10 ms
-
+			// SLEEP(10); // 10 ms
 		}
 	}
 
 	// rtAudio cleanup
 	ExitRtAudio();
-	
+
 	return 0;
 }

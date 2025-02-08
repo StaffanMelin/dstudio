@@ -124,69 +124,11 @@ void DXMLSettings::loadInit(const std::string& fileName)
     root_ = doc_->RootElement();
 }
 
+
 void DXMLSettings::loadExit()
 {
     delete doc_;
 }
-
-
-/*
-void DSettings::TestWrite( )  
-{
-	TiXmlDocument doc;  
- 
-	TiXmlElement * root = new TiXmlElement( "settings" );  
-	doc.LinkEndChild( root );
-  
-	TiXmlElement * setting;
-
-
-	setting = new TiXmlElement("level0");  
-	setting->LinkEndChild( new TiXmlText(ofToString(0.5).c_str()));  
-	root->LinkEndChild(setting);  
-
-
-	setting = new TiXmlElement("level1");  
-	setting->LinkEndChild( new TiXmlText("1"));  
-	root->LinkEndChild(setting);
-
-
-	doc.SaveFile( "testwrite.xml" );  
-}
-
-
-
-void DSettings::TestRead( )  
-{
-    TiXmlDocument doc("testwrite.xml");
-    doc.LoadFile();
-
-    TiXmlElement *l_pRootElement = doc.RootElement();
-
-    if( NULL != l_pRootElement )
-    {
-			    TiXmlElement *l_pForename = l_pRootElement->FirstChildElement( "level0" );
-
-			    if ( NULL != l_pForename )
-			    {
-				    std::cout << l_pForename->GetText();
-				    float foo;
-				    foo = ofTo<float>(l_pForename->GetText());
-				    std::cout << foo * 3 << std::endl;
-			    }
-
-			    TiXmlElement *l_pSurname = l_pRootElement->FirstChildElement( "level1" );
-
-			    if ( NULL != l_pSurname )
-			    {
-				    std::cout << " " << l_pSurname->GetText();
-			    }
-
-			    std::cout << "End of settings." << std::endl;
-
-    }
-}
-*/
 
 
 void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config)

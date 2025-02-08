@@ -93,7 +93,6 @@ private:
 	uint32_t Keys();
 	void DispatchController(DSynth::Param controller_target, float controller_value);
 
-
 	// helper methods
 	bool get_bit_at(uint32_t input, uint8_t n);
 	void set_bit_at(uint32_t* output, uint8_t n);

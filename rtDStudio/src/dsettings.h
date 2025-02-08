@@ -70,7 +70,7 @@ class DXMLSettings
     private:
         std::string fileName_;
     	TiXmlDocument *doc_;  
-	TiXmlElement *setting_;
+	    TiXmlElement *setting_;
         TiXmlElement *root_;
 };
 
@@ -106,8 +106,6 @@ class DSettings
     DSettings() {}
     ~DSettings() {}
     
-    void static TestWrite();  
-    void static TestRead();    
     void static SaveSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config);
     void static LoadSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config);
 
