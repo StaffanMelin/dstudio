@@ -64,9 +64,16 @@ In a terminal, enter an example directory and type `make` to build it.
 
 ### Run
 
-Run the example: `./dstudio`
+```
+cd example-*
+mkdir bin
+make
+./dstudio
+```
 
-start args: -d <dev> -l
+Start argsuments:
+
+`-d <dev> -l`
 
 
 ## Program structure
@@ -95,6 +102,9 @@ control loop in main
 generate control data, such as notes, in for ex midi
 
 rt.h - dout_
+
+init() / set() combo: dsound, dsynth*, drums, t*, dmixer, dsplit, dseq*, dfx*
+
 
 ### Object configuration
 
@@ -226,6 +236,10 @@ They are all initialized using a config struct with the following common members
 
 Most parameters can be modified with corresponding Set*-functions. The synthesizers also all have a `ChangeParam()` function suitable for real-time control of the most common parameters. This is what DHaxo uses.
 
+TODO:
+
+Document how lfo_amp, lfo_x_level etc work together (an osc moves from -1 to 1); LFO affects signal centered on eg the cutoff freq
+
 ### Presets
 
 You can now save and load presets of all synthesizers and drums using the DSettings static class. They are stored as XML files.
@@ -255,6 +269,9 @@ Additional properties:
 
 - float ratio: ratio between modulator and carrier signal
 - float index: FM depth
+- float osc0_level: level of oscillator 0 (0.0 - 1.0)
+
+Cant do ChangeParam() DETUNE.
 
 ### DSynthVar
 
@@ -266,6 +283,8 @@ Additional properties:
 - float pulsewidth: pulsewidth when shape is square. Saw, ramp, tri otherwise
 - bool sync_enable: whether or not to sync the oscillators
 - float sync_freq: sync oscillator freq in Hz
+
+Can't do ChangeParam() DETUNE; LFO_AMP/FREQ affects only LFO0.
 
 Because this is mostly cool when you can modulate this, the DSynthVar has a more flexible modulation system.
 
@@ -392,6 +411,10 @@ Additional properties:
 - uint32_t sample_phase_loop_end_: end of loop (0)
 - uint32_t sample_phase_end_: end of sample (length of sample)
 - uint8_t sample_channels_: mono (1) or stereo (2)
+
+- float osc0_level: level of "oscillator 0" (0.0 - 1.0)
+
+DSampler can't do ChangeParam() DETUNE. 
 
 ![Sample](assets/sample.png "Sample and loop points")
 
@@ -797,6 +820,10 @@ Test with:
 - `gpiodetect`
 - `gpioinfo`
 
+If you are connecting a controller:
+
+`sudo apt install libserial1 libserial-dev`
+
 Now follow the normal DStudio installation instructions.
 
 For the interested there are is a test-directory in the example-11 directory.
@@ -805,35 +832,89 @@ For the interested there are is a test-directory in the example-11 directory.
 
 TODO
 
-Connect.
+Haxophone start:
 
-Switch sounds/presets.
+`dstudio -d MAX98357A`
 
-start args: `-d <dev> -l`
+You can swith presets by sucking in air and using keys that are not used for sound generation:
 
-haxophone: `dstudio -d MAX98357A`
+- right index finger: next sound
+- right ring finger: previous sound
+- right middle finger: shut down the Haxophone/Raspberry Pi
+
+This is coded in DHaxo()::ProcessControl():
+```
+case 65536: // 2^16, right index finger
+    haxo_control = HAXOCONTROL_NEXTSOUND;
+    break;
+case 4194304: // 2^22, right ring finger
+    haxo_control = HAXOCONTROL_PREVSOUND;
+    break;
+case 524288: // 2^19, right middle finger
+    haxo_control = HAXOCONTROL_TURNOFF;
+```
+
+The fingerings runs through the presets stored in the /data directory.
+
 
 #### Controller
 
 TODO
 
-How to build a (foot) controller.
+How to build a (foot) controller. I used a Seeeduino Xiao (SAMD21 version), but any Arduino-compatible will probably do.
+
+![Seeeduino Xiao](assets/seeeduino_xiao_pinout.jpg "Seeeduino Xiao")
+
+I also had some pieces laying about from a previous controller project so I simply put them together and connected them up to the Xiao. Well, I had to replace the two pots on the mod and pitch wheel (that I salvaged from a broken keyboard in my common garbage room).
+
+![Foot controller](assets/controller.jpg "Foot controller")
+
+1. Xiao
+2. Mod wheel, for LFO intensity etc
+3. Pitch bend wheel (with a spring so it centers)
+4. Distanse sensor (ultrasonic), it can measure the distanse from eg a foot with good precision.
+6. USB connection. In the image it is connected to my laptop for development, but this cable connects the Xiao via USB (Serial) to the Haxophone/Raspberry Pi.
+
+5. Not connected yet, but it is a 4-channel DAC with 12 bits. I am going to use it to connect my Haxophone to my analog gear (pitch, control x 3), I will also add a gate out directly from the Xiao. WIP. TODO.
+
+The mod wheel (2) and the pitch bend wheel (1) are potentiometers. The distance sensor (3) is a SR04 ultrasonic sensor.
+
+This is how they are connected to the Xiao:
+
+| Xiao | Device |
+| --- | --- |
+| A1 | ctrl0 (pot) PITCH |
+| A2 | ctrl1 (pot) MOD |
+| GND | ground |
+| 3V3 | power |
+| A8 | trig (SR04/dist) out |
+| A7 | echo (SR/dist) in |
+
+The Xiao is connected to, and gets its power, via a USB cable attached to the Haxophone/Raspberry Pi.
+
+You have to upload the Arduino code found in example 12.
+
+TODO
 
 `DispatchController()` and constants for dispatching controllers
+
 
 ### DWindow
 
 TODO
 
-Simple touchscreen integration based on SDL.
+Simple touchscreen integration based on SDL. WIP.
 
-WIP.
+To use DWindow (and DControl):
+
+`sudo apt install libsdl2-dev libsdl2-image-dev libsdl1-ttf-dev`
+
 
 ### DControl
 
 TODO
 
-On-screen controls for DWindow.
+On-screen controls for DWindow. WIP.
 
 
 ## Examples
@@ -854,6 +935,8 @@ Demonstrates how to setup and use a bunch of different synthesizers and sounds, 
 
 ![Example1](assets/example1.png "Example 1")
 
+Uses direct setup of synthesizers -- not DSettings.
+
 
 ### Example 02 - Drone
 
@@ -867,12 +950,16 @@ Remember that the mixer handles 16 channels by default. If you create more drone
 
 ![Example2](assets/example2.png "Example 2")
 
+Uses direct setup of synthesizers -- not DSettings.
+
 
 ### Example 03 - Sequencer
 
 A sequenced song that shows how to create sequences and chain them into a song.
 
 ![Example3](assets/example3.png "Example 3")
+
+Uses direct setup of synthesizers -- not DSettings.
 
 
 ### Example 04 - Sampler
@@ -881,6 +968,8 @@ An example of using the DSampler class and the DSynthVar class.
 
 ![Example4](assets/example4.png "Example 4")
 
+Uses direct setup of synthesizers -- not DSettings. Sample WAV file is stored in /data.
+
 
 ### Example 07 - Synthpop
 
@@ -888,12 +977,16 @@ A sequenced synthpop song using DSeqMidi with DSampler providing vocals.
 
 ![Example7](assets/example7.png "Example 7")
 
+Uses direct setup of synthesizers -- not DSettings. Sample WAV files are stored in /data.
+
 
 ### Example 08 Permutating electropop
 
 An evolving electropop song using DSeqPerm and DSampler providing some electropop sounds.
 
 ![Example8](assets/example8.png "Example 8")
+
+Uses direct setup of synthesizers -- not DSettings. Sample WAVs file are stored in /data.
 
 
 ### Example 10 - Generative space music
@@ -924,12 +1017,10 @@ Transitions from one drama state to another is handled by a drama_order_ vector,
 
 Every channel can have a drama_fade_ value. This indicates how long (in specified fraction of drama length) should be used for a fade in or fade out.
 
-The example also shows how to work with presets.
+The example also shows how to work with presets, stored in /data.
 
 
 ### Example 11 - Haxophone solo voice
-
-TODO
 
 Solo voice.
 
@@ -942,20 +1033,22 @@ If you want to use a controller, change `false` to `true`.
 
 ### Example 12 - Haxophone with drone background
 
-TODO
-
 Solo voice with single-voice drone background.
 
-Uses a foot controller.
+Uses a controller.
+
+Code for Arduino in `/arduino/controller".
+
+Test code for connection to controller in `/test_serial`.
+
 
 ### Example 13 - Haxophone with space music background
 
-TODO
-
 Solo voice with example 10 as background.
+
 
 ### Example 15 - Touch screen drone
 
 TODO
 
-Six voice drone machine with touch screen UI.
+Six voice drone machine with touch screen UI. WIP - for next version of DStudio.

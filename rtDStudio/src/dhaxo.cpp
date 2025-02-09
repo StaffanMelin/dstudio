@@ -97,7 +97,7 @@ void DHaxo::Set(const Config& config)
     channel_ = 0;
     controller_connected_ = config.controller;
     controller_targets_ = config.controller_targets;
-    for (size_t i = 0; i < DHAXO_CONTROLLER_TARGET_MAX; i++)
+    for (size_t i = 0; i < controller_targets_; i++)
     {
         controller_target_[i] = config.controller_target[i];
     }

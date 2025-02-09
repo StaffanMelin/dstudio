@@ -285,20 +285,27 @@ void ProcessControl()
 		switch (haxo_control)
 		{
 		case DHaxo::HAXOCONTROL_PREVSOUND:
-			{
-				// restore
-				// dsynthhaxo.
+    		{
+                std::string synth_file = dsetd.PrevFile();
+                DSynthSub::Config dsynthsub_config;
+                DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+                dsynthhaxo.Set(dsynthsub_config);    
 			}
 			break;
 		case DHaxo::HAXOCONTROL_NEXTSOUND:
 			{
-				// change sound
-				// dsynthhaxo.
+                std::string synth_file = dsetd.NextFile();
+                DSynthSub::Config dsynthsub_config;
+                DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+                dsynthhaxo.Set(dsynthsub_config);    
 			}
 			break;
 		case DHaxo::HAXOCONTROL_TURNOFF:
 			{
-			std::cout << "Main turnoff \n";
+                #ifdef DEBUG
+                std::cout << "Main turnoff \n";
+                #endif
+                done_ = true;
 			}
 			break;
 		default:

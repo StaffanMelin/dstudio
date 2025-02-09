@@ -3,7 +3,7 @@
     <voices>1</voices>
     <waveform0>1</waveform0>
     <waveform1>2</waveform1>
-    <tune>0.000000000</tune>
+    <tune>0.0</tune>
     <detune>0.05</detune>
     <transpose>0</transpose>
     <osc0_level>0.7</osc0_level>

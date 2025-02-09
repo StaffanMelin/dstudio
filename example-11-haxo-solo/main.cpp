@@ -116,7 +116,7 @@ void ProcessControl()
 	static uint64_t last_time = dGetElapsedTimeMicros();
 	DHaxo::HaxoControl haxo_control = dhaxo.ProcessControl();
 
-	// a second must pass between control key presses
+	// some time must pass between control key presses
 	if ((dGetElapsedTimeMicros() - last_time) > 1000000)
 	{
 		last_time = dGetElapsedTimeMicros();
@@ -142,6 +142,7 @@ void ProcessControl()
 		case DHaxo::HAXOCONTROL_TURNOFF:
 		{
 			std::cout << "Main turnoff \n";
+			done_ = true;
 		}
 		break;
 		default:
