@@ -300,6 +300,7 @@ void ProcessControl()
                 std::string synth_file = dsetd.NextFile();
                 DSynthSub::Config dsynthsub_config;
                 DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+                std::cout << "Change " << synth_file << "      ";
                 dsynthhaxo.Set(dsynthsub_config);    
 			}
 			break;
