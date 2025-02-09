@@ -37,7 +37,9 @@ Source: https://github.com/StaffanMelin/dstudio
 
 ## Installation
 
-You need (at least, only tested on GNU/Linux Debian 11-12):
+I am using Debian 12 Trixie.
+
+You need:
 
 - build-essential
 - make
@@ -47,7 +49,7 @@ So:
 
 ` sudo apt install build-essential make libsndfile1`
 
-Add RtAudio support:
+Add RtAudio support, as this is our audio backend:
 
 - `sudo apt install libasound2 libasound2-data libasound2-dev`
 - `sudo apt install libevent-dev`
@@ -56,13 +58,11 @@ The above also installs necessary dependencies.
 
 Note. On my current Debian Trixie several of these package have a version number as well as "t64" in their names.
 
-### Build examples
+### Build and examples
 
 Install all files in a directory.
 
-In a terminal, enter an example directory and type `make` to build it.
-
-### Run
+To build an example:
 
 ```
 cd example-*
@@ -71,12 +71,14 @@ make
 ./dstudio
 ```
 
-Start argsuments:
+Optional start argument:
 
-`-d <dev> -l`
-
+- `-l` - show a list of all audio outputs
+- `-d <dev>` - select audio output, use partial string matching (or use default)
 
 ## Program structure
+
+### Structure
 
 TODO
 
@@ -86,7 +88,8 @@ The header file dstudio.h is a global settings file that contains some common se
 
 which determines the max number of channels in the mixer, DMixer. You can run one sound object on each channel, but all channels can be a mixer so you can chain an infinite number of sounds.
 
-### Structure
+
+TODO
 
 rtaudio init
 command line arg

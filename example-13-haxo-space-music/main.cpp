@@ -49,6 +49,7 @@ DGenDrone dgen;
 // haxo
 DSynthSub dsynthhaxo;
 DHaxo dhaxo;
+DSettingsD dsetd; // sound files
 
 
 
@@ -77,8 +78,10 @@ bool InitSynths()
     DSynthSub::Config dsynth_config;
 
     // synth melody/haxo
+    dsetd.InitDir(DSettings::DSYNTHSUB, DSettings::NONE, "data/");
+	std::string synth_file = dsetd.NextFile();
     dsynthhaxo.Init();
-    DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, "data/sub_haxo.xml", &dsynth_config);
+    DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynth_config);
     dsynthhaxo.Set(dsynth_config);
 
     // synth bass
