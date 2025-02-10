@@ -10,8 +10,6 @@
 #include "dhaxo.h"
 #include "dsynth.h"
 
-#define DEBUG
-
 
 
 void DHaxo::Init()

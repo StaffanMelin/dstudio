@@ -556,7 +556,6 @@ void DSynthSub::ChangeParam(DSynth::Param param, float value)
             SetTuning(tune_, base_config_.detune * value);
             break;
         case DSynth::DSYNTH_PARAM_FILTER_CUTOFF:
-            //if (value > .1f)
             SetFilterFreq(base_config_.filter_cutoff * value);
             break;
         case DSynth::DSYNTH_PARAM_FILTER_RES:

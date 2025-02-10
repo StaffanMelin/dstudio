@@ -18,8 +18,7 @@ Author: Staffan Melin, staffan.melin@oscillator.se
 
 License: GNU General Public License v3.0. DaisySP is licensed under the MIT license.
 
-TODO
-DaisySP: Electro-smith, license and source info.  Thank you Electro-smith for making this!
+DaisySP: https://github.com/electro-smith/DaisySP. Thank you Electro-Smith for making this!
 
 Project site: http://oscillator.se/opensource
 
@@ -80,53 +79,56 @@ Optional start argument:
 
 ### Structure
 
-TODO
+The header file dstudio.h is a global settings file that contains some common settings.
 
-The header file dstudio.h is a global settings file that contains some common settings, most notably
+#### drt.h - rtAudio
 
-```#define MIXER_CHANNELS_MAX 16```
+DStudio outputs audio using the rtAudio library. In `drt.h` you will find the following functions that are used by all examples:
 
-which determines the max number of channels in the mixer, DMixer. You can run one sound object on each channel, but all channels can be a mixer so you can chain an infinite number of sounds.
+- `AudioCallback()`: This is called repeatedly, providing audio data to rtAudio. It gets the data by calling the function provided in the `dout_` pointer.
+- `InitRtAudio()`: Sets ups rtAudio and selects the output device (which can be selected using the `-d <device>` argument).
+- `ExitRtAudio()`: Cleans up before the program finishes.
 
+#### main.cpp - example
 
-TODO
+Each example has these core function:
 
-rtaudio init
-command line arg
+- `finish()`: Called when you press Ctrl + C to finish the program
+- `InitSynths()`: Sets up synths, etc.
+- `ProcessControl()`: Called repeatable, place functionality that creates notes here. Typically calls MidiIn() of sound generating objects.
+- `main()`: Calls all setup functions. Assign a sound producing object to the `dout_` pointer.
 
-functions for setup, init
-and process, called in...
+#### dsynthsub.cpp - example of sound producing class
 
-ACB
-calls sound generating object
-The Process() method is called for each object to make do its work (produce sound).
+Let's take the subtractive synth as an example of a sound generating class/object.
 
-control loop in main
-generate control data, such as notes, in for ex midi
+Methods:
 
-rt.h - dout_
-
-init() / set() combo: dsound, dsynth*, drums, t*, dmixer, dsplit, dseq*, dfx*
+- `Init()`: Initialized the object.
+- `Setup()`: Set ups the object with settings to produce a specific sound.
+- `Process()`: This is the method producing sound data. It is called either directly or indirectly by `AudioCallback()`.
+- `MidiIn()`: Can be called to make the object play a specific note.
+- `NoteOn()`: Called by `MidiIn()`.
+- `NoteOff()`: Called by `MidiIn()`.
+- `Silence()`: Silences all notes played.
+- `Set*()`: Sets parameters of the object.
+- `ChangeParam()`: Used for real-time changing of values.
 
 
 ### Object configuration
 
-TODO config, .h files
-
-All DStudio instruments are configured using a struct. They are quite similar and the easiest way to understand them is by looking a the examples and study the header files.
-
-All objects follow the same pattern. You create a configuration struct, set it up and pass it to the Init() method. TODO Setup()
+All DStudio instruments are configured using a struct, then calling the Setup() method of the object. The easiest way to understand them is by looking a the examples and study the header files.
 
 If you are using the mixer it will take care of calling all sound generating objects for you.
 
 All classes derived from DSound can be of different types and have a get and set method for working with this: GetType() and SetType():
 
-- TUNED - used and set as default for all tuned instruments, ie synths
-- PERCUSSION - used and set as default for all drum sounds
-- FX - used and set as default for all FX plugins
-- MIXER - analyses the incoming MIDI and sends it to the channel indicated by (in) the MIDI message
-- MIXER_SUB - a submixer is a mixer put on one channel of the main mixer. When a DMixer of this type receives a MIDI message it sends it to all instruments on every channel. Use this to build fat patches.
-- MIXER_PERCUSSION - looks at incoming MIDI and sends it on to the channel indicated by the NOTE value - 36 (the 36 comes from the constant MIDI_PERCUSSION_START defined in dstudio.h. This way you can create a drum set using a DMixer of type MIXER_PERCUSSION.
+- `TUNED` - used and set as default for all tuned instruments, ie synths
+- `PERCUSSION` - used and set as default for all drum sounds
+- `FX` - used and set as default for all FX plugins
+- `MIXER` - analyses the incoming MIDI and sends it to the channel indicated by (in) the MIDI message
+- `MIXER_SUB` - a submixer is a mixer put on one channel of the main mixer. When a DMixer of this type receives a MIDI message it sends it to all instruments on every channel. Use this to build fat patches.
+- `MIXER_PERCUSSION` - looks at incoming MIDI and sends it on to the channel indicated by the NOTE value - 36 (the 36 comes from the constant MIDI_PERCUSSION_START defined in dstudio.h). This way you can create a drum set using a DMixer of type `MIXER_PERCUSSION`.
 
 
 ## Basic tutorial
@@ -386,8 +388,6 @@ This synthesizer can introduce a DC offset into the signal. It helps to insert a
 
 
 ### DSm
-
-TODO.
 
 Special modulators, currently used by the DSynthVar synthesizer.
 
@@ -927,7 +927,7 @@ A good way to learn to use DStudio is by running and studying the examples.
 
 ### Example 0
 
-TODO
+A simple example that just starts a note playing on a synthesizer.
 
 
 ### Example 1 - Algorithmic

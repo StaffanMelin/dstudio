@@ -826,18 +826,17 @@ void DSynthVar::ChangeParam(DSynth::Param param, float value)
             //SetTuning(tune_, base_config_.detune * value);
             break;
         case DSynth::DSYNTH_PARAM_FILTER_CUTOFF:
-            //if (value > .1f)
             SetFilterFreq(base_config_.filter_cutoff * value);
             break;
         case DSynth::DSYNTH_PARAM_FILTER_RES:
             SetFilterRes(base_config_.filter_res * value);
             break;
         case DSynth::DSYNTH_PARAM_LFO_AMP:
-            lfo_0_amp_ = base_config_.lfo_0_amp * value;
+            lfo_0_amp_ = value; // base_config_.lfo_0_amp * value;
             lfo_[0].SetAmp(lfo_0_amp_);
             break;
         case DSynth::DSYNTH_PARAM_LFO_FREQ:
-            lfo_0_freq_ = base_config_.lfo_0_freq * value;
+            lfo_0_freq_ = base_config_.lfo_0_freq * value * 10;
             lfo_[0].SetFreq(lfo_0_freq_);
             break;
         case DSynth::DSYNTH_PARAM_OVERDRIVE:
@@ -847,7 +846,8 @@ void DSynthVar::ChangeParam(DSynth::Param param, float value)
             SetTranspose(base_config_.transpose * value);
             break;
         case DSynth::DSYNTH_PARAM_TUNE:
-            SetTuning(base_config_.tune * value, 0.0f);
+            //SetTuning(base_config_.tune * value, 0.0f);
+            SetTuning(value * 100, detune_);
         case DSynth::DSYNTH_PARAM_FREQ:
             note_freq_[0] = value;
             break;

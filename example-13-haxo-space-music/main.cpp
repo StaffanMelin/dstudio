@@ -292,6 +292,9 @@ void ProcessControl()
                 std::string synth_file = dsetd.PrevFile();
                 DSynthSub::Config dsynthsub_config;
                 DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
+                //#ifdef DEBUG
+                std::cout << "Change to " << synth_file << "\n";
+                //#endif
                 dsynthhaxo.Set(dsynthsub_config);    
 			}
 			break;
@@ -300,7 +303,9 @@ void ProcessControl()
                 std::string synth_file = dsetd.NextFile();
                 DSynthSub::Config dsynthsub_config;
                 DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, synth_file, &dsynthsub_config);
-                std::cout << "Change " << synth_file << "      ";
+                //#ifdef DEBUG
+                std::cout << "Change to " << synth_file << "\n";
+                //#endif
                 dsynthhaxo.Set(dsynthsub_config);    
 			}
 			break;
@@ -310,8 +315,8 @@ void ProcessControl()
                 std::cout << "Main turnoff \n";
                 #endif
                 done_ = true;
+                break;
 			}
-			break;
 		default:
 			break;
 		}
