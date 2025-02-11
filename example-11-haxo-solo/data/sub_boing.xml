@@ -24,7 +24,7 @@
     <eg_f_release>1.0</eg_f_release>
     <eg_a_attack>0.0</eg_a_attack>
     <eg_a_decay>0.1</eg_a_decay>
-    <eg_a_sustain>1.5</eg_a_sustain>
+    <eg_a_sustain>0.5</eg_a_sustain>
     <eg_a_release>0.5</eg_a_release>
     <lfo_waveform>0</lfo_waveform>
     <lfo_freq>0.5</lfo_freq>
