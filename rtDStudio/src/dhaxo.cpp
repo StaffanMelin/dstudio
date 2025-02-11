@@ -292,7 +292,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
-    if (pressure >= 0.0)
+    if (pressure > (DHAXO_PRESSURE_THRESHOLD, 0.5))
     {
         vol_ = pow(pressure, 0.5);
         if (note_last_ != MIDI_NOTE_NONE)
