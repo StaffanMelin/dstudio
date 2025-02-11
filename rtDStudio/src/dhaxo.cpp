@@ -180,10 +180,10 @@ float DHaxo::Pressure()
     uint8_t value[32];
 	uint32_t pressure;
  	float pressure_normalized; // 0.0 - 1.0
-    #ifdef DEBUG
+    //#ifdef DEBUG
     static uint32_t pmin = 3000;
     static uint32_t pmax = 0;
-    #endif
+    //#endif
 
     ssize_t bytes = read(i2cfile_, value, 2);
     pressure = (value[0] << 8) | (value[1]);
