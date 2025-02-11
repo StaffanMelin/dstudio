@@ -568,11 +568,11 @@ void DSynthFm::ChangeParam(DSynth::Param param, float value)
             SetOverdrive(overdrive_gain_, base_config_.overdrive_drive + value);
             break;
         case DSynth::DSYNTH_PARAM_TRANSPOSE:
-            // SetTranspose(base_config_.transpose * value);
-            SetTuning(value * 100, detune_);
+            SetTranspose(base_config_.transpose * value);
             break;
         case DSynth::DSYNTH_PARAM_TUNE:
-            SetTuning(base_config_.tune * value);
+            //SetTuning(base_config_.tune * value);
+            SetTuning(value * 100);
             break;
         case DSynth::DSYNTH_PARAM_FREQ:
             note_freq_[0] = value;

@@ -779,7 +779,7 @@ void DSampler::ChangeParam(DSynth::Param param, float value)
             SetTranspose(base_config_.transpose * value);
             break;
         case DSynth::DSYNTH_PARAM_TUNE:
-            SetTuning(base_config_.tune * value);
+            //SetTuning(base_config_.tune * value);
             SetTuning(value * 100);
             break;
         case DSynth::DSYNTH_PARAM_FREQ:
