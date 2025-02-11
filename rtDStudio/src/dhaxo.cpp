@@ -292,42 +292,35 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     std::cout << "dhaxo pressure: " << pressure  << "  keys " << keys << "\n";
     #endif
 
-    if (pressure > (DHAXO_PRESSURE_THRESHOLD, 0.5))
+    if (pressure >= 0)
     {
         vol_ = pow(pressure, 0.5);
-        if (note_last_ != MIDI_NOTE_NONE)
+        if (vol_ != vol_last_)
         {
-            if (vol_ != vol_last_)
-            {
-                synth_->SetLevel(vol_);
-                vol_last_ = vol_;
-            }
+            synth_->SetLevel(vol_);
+            vol_last_ = vol_;
         }
-        uint8_t note_ = map_to_midi(keys);
-        if (note_ != MIDI_NOTE_NONE)
+
+        if (vol_ >= DHAXO_PRESSURE_THRESHOLD)
         {
-            if (note_ != note_last_)
+            uint8_t note_ = map_to_midi(keys);
+            if (note_ != MIDI_NOTE_NONE)
             {
-                if (vol_ > DHAXO_PRESSURE_THRESHOLD)
+                if (note_last_ != MIDI_NOTE_NONE)
                 {
-                    if (note_last_ != MIDI_NOTE_NONE)
-                    {
-                        // finish old note
-                        synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
-                        synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-                        // start new note
-                        synth_->SetLevel(vol_);
-                    }
+                    // finish old note
+                    //synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
+                    synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
+                }
+                if (note_ != note_last_)
+                {
+                    // start new note
+                    //synth_->SetLevel(vol_);
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
                     note_last_ = note_;
                 }
             }
-            if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ != MIDI_NOTE_NONE)
-            {
-                synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-                note_last_ = MIDI_NOTE_NONE;
-            }
-        } else if (vol_ < DHAXO_PRESSURE_THRESHOLD && note_last_ != MIDI_NOTE_NONE) {
+        } else if (note_last_ != MIDI_NOTE_NONE) {
             synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
             note_last_ = MIDI_NOTE_NONE;
         }
