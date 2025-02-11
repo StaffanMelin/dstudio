@@ -295,12 +295,14 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
     if (pressure >= 0.0)
     {
         vol_ = pow(pressure, 0.5);
-        if (vol_ != vol_last_)
+        if (note_last_ != MIDI_NOTE_NONE)
         {
-            synth_->SetLevel(vol_);
-            vol_last_ = vol_;
+            if (vol_ != vol_last_)
+            {
+                synth_->SetLevel(vol_);
+                vol_last_ = vol_;
+            }
         }
-
         uint8_t note_ = map_to_midi(keys);
         if (note_ != MIDI_NOTE_NONE)
         {
