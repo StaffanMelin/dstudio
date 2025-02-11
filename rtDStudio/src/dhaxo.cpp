@@ -188,13 +188,13 @@ float DHaxo::Pressure()
     ssize_t bytes = read(i2cfile_, value, 2);
     pressure = (value[0] << 8) | (value[1]);
 
-    #ifdef DEBUG
+    //#ifdef DEBUG
     if (pmin > pressure)
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
         std::cout << "pressure read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
-    #endif
+    //#endif
 
     if (pressure < (DHAXO_PRESSURE_START * 0.9)) 
     {
