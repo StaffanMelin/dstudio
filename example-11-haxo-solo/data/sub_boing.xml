@@ -6,7 +6,7 @@
     <tune>0.0</tune>
     <detune>0.3</detune>
     <transpose>0</transpose>
-    <osc0_level>0.9</osc0_level>
+    <osc0_level>0.5</osc0_level>
     <osc1_level>0.5</osc1_level>
     <noise_level>0.3</noise_level>
     <filter_type>2</filter_type>
@@ -27,7 +27,7 @@
     <eg_a_sustain>0.5</eg_a_sustain>
     <eg_a_release>0.5</eg_a_release>
     <lfo_waveform>0</lfo_waveform>
-    <lfo_freq>0.5</lfo_freq>
+    <lfo_freq>10.0</lfo_freq>
     <lfo_amp>1.0</lfo_amp>
     <lfo_p_level>0.0</lfo_p_level>
     <lfo_f_level>0.0</lfo_f_level>
