@@ -863,6 +863,10 @@ TODO
 
 How to change sounds. (Example 13). Note! Sep dir for solo.
 
+TODO
+
+pressure different sensors, debug flag
+
 #### Controller
 
 TODO

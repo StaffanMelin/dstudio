@@ -193,7 +193,7 @@ float DHaxo::Pressure()
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
-    // std::cout << "read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
+        std::cout << "pressure read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
     #endif
 
     if (pressure < (DHAXO_PRESSURE_START * 0.9)) 
@@ -299,7 +299,7 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         {
             synth_->SetLevel(vol_);
             vol_last_ = vol_;
-            std::cout << "dhaxo vol: " << vol_ << "\n";
+            std::cout << "dhaxo vol: " << vol_ << " pressure " << pressure << "\n";
         }
 
         if (vol_ >= DHAXO_PRESSURE_THRESHOLD)
