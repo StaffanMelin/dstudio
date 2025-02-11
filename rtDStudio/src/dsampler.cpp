@@ -780,7 +780,7 @@ void DSampler::ChangeParam(DSynth::Param param, float value)
             break;
         case DSynth::DSYNTH_PARAM_TUNE:
             SetTuning(base_config_.tune * value);
-            SetTuning(value * 100, detune_);
+            SetTuning(value * 100);
             break;
         case DSynth::DSYNTH_PARAM_FREQ:
             note_freq_[0] = value;
