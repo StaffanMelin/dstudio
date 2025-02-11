@@ -180,21 +180,21 @@ float DHaxo::Pressure()
     uint8_t value[32];
 	uint32_t pressure;
  	float pressure_normalized; // 0.0 - 1.0
-    //#ifdef DEBUG
+    #ifdef DEBUG
     static uint32_t pmin = 3000;
     static uint32_t pmax = 0;
-    //#endif
+    #endif
 
     ssize_t bytes = read(i2cfile_, value, 2);
     pressure = (value[0] << 8) | (value[1]);
 
-    //#ifdef DEBUG
+    #ifdef DEBUG
     if (pmin > pressure)
         pmin = pressure;
     if (pmax < pressure)
         pmax = pressure;
         std::cout << "pressure read: " << pressure  << " pmin:" << pmin << " pmax:" << pmax << "\n";
-    //#endif
+    #endif
 
     if (pressure < (DHAXO_PRESSURE_START * 0.9)) 
     {
@@ -299,7 +299,6 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
         {
             synth_->SetLevel(vol_);
             vol_last_ = vol_;
-            std::cout << "dhaxo vol: " << vol_ << " pressure " << pressure << "\n";
         }
 
         if (vol_ >= DHAXO_PRESSURE_THRESHOLD)
@@ -312,7 +311,6 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
                     // finish old note
                     //synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
                     synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
-                    std::cout << "dhaxo finish old\n";
                 }
                 if (note_ != note_last_)
                 {
@@ -320,14 +318,11 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
                     //synth_->SetLevel(vol_);
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
                     note_last_ = note_;
-                    std::cout << "dhaxo start new\n";
                 }
             }
         } else if (note_last_ != MIDI_NOTE_NONE) {
             synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
             note_last_ = MIDI_NOTE_NONE;
-            std::cout << "dhaxo finish\n";
-
         }
 
     } else {
