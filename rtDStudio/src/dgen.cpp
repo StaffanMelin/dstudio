@@ -582,7 +582,6 @@ void DGen::NoteCreate(uint8_t c)
 void DGen::NoteQueue(uint8_t c, uint64_t tick, uint8_t pitch, uint8_t velocity, uint64_t length)
 {
     DMidiSeqStep step;
-    // cout << "queued " << unsigned(c) << " tick " << tick << " " << pitch << endl;
     // add NOTE ON event
     step.pos = tick;
     step.status = MIDI_MESSAGE_NOTEON + c;
@@ -677,8 +676,9 @@ void DGenDrone::Process()
 
                 uint64_t drama_add = (DGEN_DRAMA_MIN_LEN + dRandom(DGEN_DRAMA_MAX_LEN - DGEN_DRAMA_MIN_LEN)) * DT1 * upt_;
                 drama_end_ += drama_add;
-
+                #ifdef DEBUG
                 cout << "DRAMA " << unsigned(DGen::drama_) << " length: " << (drama_add / upt_ / DT1) << endl;
+                #endif
             }
 
             // process channels

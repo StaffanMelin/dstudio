@@ -859,6 +859,9 @@ case 524288: // 2^19, right middle finger
 
 The fingerings runs through the presets stored in the /data directory.
 
+TODO
+
+How to change sounds. (Example 13). Note! Sep dir for solo.
 
 #### Controller
 
