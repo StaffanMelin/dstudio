@@ -1,5 +1,5 @@
 #include "main.h"
-
+#include <curses.h>
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
@@ -91,7 +91,7 @@ bool InitSynths()
 	// demo start
 	dmixer.SetReverb(0.3f, 2000.0f);
 
-	dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 48, 100);
+	//dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 48, 100);
 
 	return retval;
 }
@@ -102,6 +102,29 @@ bool InitSynths()
 
 void ProcessControl()
 {
+	static auto key = 0;
+	uint8_t note;
+	static bool key_on = false;
+
+	key = getch();
+
+	if ((key > 30) && (key < 130))
+    {
+		if (!key_on)
+		{
+			key_on = true;
+			note = key - 30;
+			//dsynthpad.MidiIn(MIDI_MESSAGE_NOTEON, note, 70);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, note, 100);
+		}
+	} else {
+		if (key_on)
+		{
+			//dsynthpad.MidiIn(MIDI_MESSAGE_NOTEOFF, note, 0);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, note, 100);
+			key_on = false;
+		}
+	}
 }
 
 // main
@@ -153,12 +176,18 @@ int main(int argc, char *argv[])
 			// application
 			SLEEP(1000);
 
+			// init curses
+			initscr();
+
 			// main application loop
 			while (!done_ && rt_dac_.isStreamRunning())
 			{
 				ProcessControl();
 				SLEEP(10); // 10 ms
 			}
+
+			// exit curses
+			endwin();
 		}
 
 		// rtAudio cleanup

@@ -20,6 +20,9 @@ License: GNU General Public License v3.0. DaisySP is licensed under the MIT lice
 
 DaisySP: https://github.com/electro-smith/DaisySP. Thank you Electro-Smith for making this!
 
+TODO
+rtaudio: 
+
 Project site: http://oscillator.se/opensource
 
 Source: https://github.com/StaffanMelin/dstudio
@@ -133,43 +136,117 @@ All classes derived from DSound can be of different types and have a get and set
 
 ## Basic tutorial
 
-TODO: change this old example
-
 Lets create a subtractive synthesizer that you can play on the computer keyboard.
 
-Let us start with example-00.
+We will start with `example-00-test`. This basic project creates a synthesizer, loads it with a preset and starts a note.
 
-Edit the ofApp.h file. Delete the methods we don't need. Add the basic necessary includes, a DSynthSub object, the audioOut() method and a ofSoundStream object.
+Open the `main.h` file. It contains just a single definition of the `DEBUG` constant. With this defined, DStudio will print some possibly helpful information as it is running (how much depends on the example).
 
-code
+Now open the `main.cpp` file. It starts with a lot of imports:
 
-Edit the ofApp.c file. Delete the methods we don't need. Add the basic necessary includes, the soundstream configuration, the DSynthSub object configuration, start the ofSoundStream object. Add content for the audioOut() method and the keyPressed() and keyReleased() methods.
+- `#include <iostream>` : output with `cout`
+- `#include <cstdlib>`: misc useful functions
+- `#include <signal.h>`: terminate with CTRL+C
+- `#include <getopt.h>`: handle command line arguments
 
-```code for setup```
+- `#include "../rtDaisySP/src/daisysp.h"` - the Daisy signal processing library, necessary
+- `#include "../rtDStudio/src/dstudio.h"` - the DStudio library, necessary
+
+- `#include "../rtDStudio/src/dmixer.h"` - the mixer class
+- `#include "../rtDStudio/src/dsynthsub.h"` - the subtractive synthesizer class
+- `#include "../rtDStudio/src/dsettings.h"` - the settings class lets the synthesizer import a patch from an XML-file
+- `#include "../rtDStudio/src/drt.h"` - the rtAudio library for sending audio to the sound card, neccessary
+
+Next we have some global variables:
+- `bool done_;` - the application runs as long as this is `false`; Ctrl + C triggers the `finish()` function which sets it to `true`
+- `DSynthSub dsynthpad;` - this object is our instance of the DSynthSub class
+- `DMixer dmixer;` - this object is our instance of the DMixer class
+
+Let's jump to the `InitSynths()` function. It creates an instance of a configurtion for the DSynthSub, fills it with the contents of the `data/sub_pad.xml` file, finally uses this filled-in configuration to setup the DSynthSub synthesizer.
+
+Next we create a bunch of variables to hold the configuration member values for the mixer, DMixer. The Dmixer configuration is created, and the values are filled in "manually". An explanation of these can be found in the Classes reference.
+
+At the end of the function we start the synthesizer by sending it a MIDI NOTE ON event.
+
+The function `ProcessControl()` is empty right now, but we are going to change that soon, as this is where we will check if a key is pressed and play a corresponding note.
+
+Finally we have our `main()` function. It first checks whether any command line arguments were sent. Then it calls our `InitSynths()` function. It also connects our mixer with the RtAudio output, using the line:
 
 ```
+dout_ = &dmixer;
+```
 
-void ofApp::keyPressed(int key)
-{
-    if ((key > 30) && (key < 130))
-    {
-        note = key - 30;
-        dsynthsub.MidiIn(MIDI_MESSAGE_NOTEON, note, 70);
-    }
-}
+Next it calls the `InitRtAudio()` function, which connects our sound output, held in `dout_` with the sound card.
 
-void ofApp::keyReleased(int key)
-{
-    dsynthsub.MidiIn(MIDI_MESSAGE_NOTEOFF, note, 0);
-}
+We have a couple of lines that sets up the Ctrl + C functionality, next is the infinite loop:
 
-void ofApp::exit()
+```
+// main application loop
+while (!done_ && rt_dac_.isStreamRunning())
 {
-    ofSoundStreamClose();
+    ProcessControl();
+    SLEEP(10); // 10 ms
 }
 ```
 
-Press the keys on your keyboard to make some sounds!
+This calls the `ProcessControl()` function, next sleeps for 10 ms, and then repeats. This loop is run as fast as our computer can handle, which probably is faster than we need, hence the `SLEEP()` call, which lets the computer do other things for a while.
+
+All this runs until `done_` is true, at which point we exit the infinite loop, clean up, and exits the whole program.
+
+You can build and run the code using:
+
+```
+mkdir bin
+make
+./dstudio
+```
+
+If we don't give `dstudio` any arguments, it uses the default sound card as output.
+
+Let's msodify our code!
+
+Create a copy of the `example-00-test` directory and name it `example-00-tutorial`. Open `main.cpp` in a text editor.
+
+We need to use the `getch()` function from the curses/ncurses library, so add this line after `#include "main.h"` in `main.c`:
+
+```
+#include <curses.h>
+```
+
+To start and end our use of `curses` we need to modify our loop in `main()`:
+
+```
+// init curses
+initscr();
+
+// main application loop
+while (!done_ && rt_dac_.isStreamRunning())
+{
+    ProcessControl();
+    SLEEP(10); // 10 ms
+}
+
+// exit curses
+endwin();
+```
+
+Note that the use of `ncurses` should not be mixed with the use of `cin`/`cout`.
+
+Now we will modify the `ProcessControl()` function to send a NOTE ON message if a key is pressed, and a NOTE OFF when it is released.
+
+```
+TODO code
+
+```
+}
+
+Before typing `make` we also have to add the `ncurses` library to the linker in the `Makefile`:
+
+```
+LIBS          = -lpthread -lsndfile -lasound -lncurses
+```
+
+Now press the keys on your keyboard to make some sounds!
 
 
 ## Classes
