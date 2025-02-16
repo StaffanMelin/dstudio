@@ -136,7 +136,7 @@ All classes derived from DSound can be of different types and have a get and set
 
 ## Basic tutorial
 
-Lets create a subtractive synthesizer that you can play on the computer keyboard.
+Lets create a subtractive synthesizer that outputs a random sequence of notes.
 
 We will start with `example-00-test`. This basic project creates a synthesizer, loads it with a preset and starts a note.
 
@@ -207,35 +207,30 @@ Let's msodify our code!
 
 Create a copy of the `example-00-test` directory and name it `example-00-tutorial`. Open `main.cpp` in a text editor.
 
-We need to use the `getch()` function from the curses/ncurses library, so add this line after `#include "main.h"` in `main.c`:
+First of all, let's comment out that initial MIDI NOTE ON event. It's at the end of the `InitSynths()` function:
 
 ```
-#include <curses.h>
+	//dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 48, 100);
 ```
 
-To start and end our use of `curses` we need to modify our loop in `main()`:
+Now we will modify the `ProcessControl()` function so it:
 
-```
-// init curses
-initscr();
+- selects a note from an predefined set
+- plays it for a random length
+- pauses a random length
+- repeaats
 
-// main application loop
-while (!done_ && rt_dac_.isStreamRunning())
-{
-    ProcessControl();
-    SLEEP(10); // 10 ms
-}
+Hopefully it will sound interesting!
 
-// exit curses
-endwin();
-```
-
-Note that the use of `ncurses` should not be mixed with the use of `cin`/`cout`.
-
-Now we will modify the `ProcessControl()` function to send a NOTE ON message if a key is pressed, and a NOTE OFF when it is released.
 
 ```
 TODO code
+
+
+uint8_t notes = {36, 39, 41, 43, 44, 46}
+
+static uint8_t note = 0;
+
 
 ```
 }

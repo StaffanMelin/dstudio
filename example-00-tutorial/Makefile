@@ -15,7 +15,7 @@ INCPATH       = -I. -I. \
 				-I../rtDaisySP/src/Synthesis \
 				-I../rtDaisySP/src/Utility
 LINK          = g++
-LIBS          = -lpthread -lsndfile -lasound -lncurses
+LIBS          = -lpthread -lsndfile -lasound
 
 # files
 

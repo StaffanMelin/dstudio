@@ -1,5 +1,5 @@
 #include "main.h"
-#include <curses.h>
+
 #include <iostream>
 #include <cstdlib>
 #include <signal.h>
@@ -103,25 +103,29 @@ bool InitSynths()
 void ProcessControl()
 {
 	static auto key = 0;
-	uint8_t note;
+	static uint8_t note = 0;
 	static bool key_on = false;
 
 	key = getch();
-
+	if (key != ERR)
+	{
 	if ((key > 30) && (key < 130))
     {
 		if (!key_on)
 		{
+			printw("key on");
 			key_on = true;
 			note = key - 30;
 			//dsynthpad.MidiIn(MIDI_MESSAGE_NOTEON, note, 70);
 			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, note, 100);
 		}
+	}
 	} else {
 		if (key_on)
 		{
+			printw("key off");
 			//dsynthpad.MidiIn(MIDI_MESSAGE_NOTEOFF, note, 0);
-			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, note, 100);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, note, 0);
 			key_on = false;
 		}
 	}
@@ -178,7 +182,7 @@ int main(int argc, char *argv[])
 
 			// init curses
 			initscr();
-
+			timeout(0);
 			// main application loop
 			while (!done_ && rt_dac_.isStreamRunning())
 			{
