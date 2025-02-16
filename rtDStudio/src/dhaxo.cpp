@@ -309,13 +309,11 @@ DHaxo::HaxoControl DHaxo::ProcessControl()
                 if (note_last_ != MIDI_NOTE_NONE)
                 {
                     // finish old note
-                    //synth_->SetLevel(0.0f); // TODO neccessary? Doesn't let note finish env. OK for mono though.
                     synth_->MidiIn(MIDI_MESSAGE_NOTEOFF + channel_, note_last_, 0);
                 }
                 if (note_ != note_last_)
                 {
                     // start new note
-                    //synth_->SetLevel(vol_);
                     synth_->MidiIn(MIDI_MESSAGE_NOTEON + channel_, note_, 100);
                     note_last_ = note_;
                 }

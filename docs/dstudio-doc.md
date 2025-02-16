@@ -20,8 +20,7 @@ License: GNU General Public License v3.0. DaisySP is licensed under the MIT lice
 
 DaisySP: https://github.com/electro-smith/DaisySP. Thank you Electro-Smith for making this!
 
-TODO
-rtaudio: 
+RtAudio: https://www.music.mcgill.ca/~gary/rtaudio/ 
 
 Project site: http://oscillator.se/opensource
 
@@ -43,22 +42,22 @@ I am using Debian 12 Trixie.
 
 You need:
 
-- build-essential
-- make
-- libsndfile1
+- `build-essential`
+- `make`
+- `libsndfile1`
 
 So:
 
-` sudo apt install build-essential make libsndfile1`
+`sudo apt install build-essential make libsndfile1`
 
 Add RtAudio support, as this is our audio backend:
 
-- `sudo apt install libasound2 libasound2-data libasound2-dev`
-- `sudo apt install libevent-dev`
+`sudo apt install libasound2 libasound2-data libasound2-dev libevent-dev`
 
-The above also installs necessary dependencies.
+The above also installs the necessary dependencies.
 
 Note. On my current Debian Trixie several of these package have a version number as well as "t64" in their names.
+
 
 ### Build and examples
 
@@ -78,11 +77,13 @@ Optional start argument:
 - `-l` - show a list of all audio outputs
 - `-d <dev>` - select audio output, use partial string matching (or use default)
 
+
 ## Program structure
+
 
 ### Structure
 
-The header file dstudio.h is a global settings file that contains some common settings.
+The header file `dstudio.h` is a global settings file that contains some common settings.
 
 #### drt.h - rtAudio
 
@@ -120,18 +121,18 @@ Methods:
 
 ### Object configuration
 
-All DStudio instruments are configured using a struct, then calling the Setup() method of the object. The easiest way to understand them is by looking a the examples and study the header files.
+All DStudio instruments are configured using a struct, then you call the Setup() method of the object. The easiest way to understand them is by looking a the examples and study the header files.
 
 If you are using the mixer it will take care of calling all sound generating objects for you.
 
-All classes derived from DSound can be of different types and have a get and set method for working with this: GetType() and SetType():
+All classes derived from DSound can be of different types and have a get and set method for working with this (`GetType()` and `SetType()`):
 
 - `TUNED` - used and set as default for all tuned instruments, ie synths
 - `PERCUSSION` - used and set as default for all drum sounds
 - `FX` - used and set as default for all FX plugins
 - `MIXER` - analyses the incoming MIDI and sends it to the channel indicated by (in) the MIDI message
-- `MIXER_SUB` - a submixer is a mixer put on one channel of the main mixer. When a DMixer of this type receives a MIDI message it sends it to all instruments on every channel. Use this to build fat patches.
-- `MIXER_PERCUSSION` - looks at incoming MIDI and sends it on to the channel indicated by the NOTE value - 36 (the 36 comes from the constant MIDI_PERCUSSION_START defined in dstudio.h). This way you can create a drum set using a DMixer of type `MIXER_PERCUSSION`.
+- `MIXER_SUB` - a submixer is a mixer put on one channel of the main mixer. When a `DMixer` of this type receives a MIDI message it sends it to all instruments on every channel. Use this to build fat patches.
+- `MIXER_PERCUSSION` - looks at incoming MIDI and sends it on to the channel indicated by the NOTE value - 36 (the 36 comes from the constant MIDI_PERCUSSION_START defined in `dstudio.h`). This way you can create a drum set using a `DMixer` of type `MIXER_PERCUSSION`.
 
 
 ## Basic tutorial
@@ -140,7 +141,7 @@ Lets create a subtractive synthesizer that outputs a random sequence of notes.
 
 We will start with `example-00-test`. This basic project creates a synthesizer, loads it with a preset and starts a note.
 
-Open the `main.h` file. It contains just a single definition of the `DEBUG` constant. With this defined, DStudio will print some possibly helpful information as it is running (how much depends on the example).
+Open the `main.h` file. It contains just a single definition of the `DEBUG` constant. With this defined, DStudio will print some possibly helpful information as it is running.
 
 Now open the `main.cpp` file. It starts with a lot of imports:
 
@@ -158,29 +159,30 @@ Now open the `main.cpp` file. It starts with a lot of imports:
 - `#include "../rtDStudio/src/drt.h"` - the rtAudio library for sending audio to the sound card, neccessary
 
 Next we have some global variables:
+
 - `bool done_;` - the application runs as long as this is `false`; Ctrl + C triggers the `finish()` function which sets it to `true`
 - `DSynthSub dsynthpad;` - this object is our instance of the DSynthSub class
 - `DMixer dmixer;` - this object is our instance of the DMixer class
 
-Let's jump to the `InitSynths()` function. It creates an instance of a configurtion for the DSynthSub, fills it with the contents of the `data/sub_pad.xml` file, finally uses this filled-in configuration to setup the DSynthSub synthesizer.
+Let's jump to the `InitSynths()` function. It creates an instance of a configurtion for the `DSynthSub`, fills it with the contents of the `data/sub_pad.xml` file, finally uses this filled-in configuration to setup the `DSynthSub` synthesizer.
 
-Next we create a bunch of variables to hold the configuration member values for the mixer, DMixer. The Dmixer configuration is created, and the values are filled in "manually". An explanation of these can be found in the Classes reference.
+Next we create a bunch of variables to hold the configuration member values for the mixer, `DMixer`. The `Dmixer` configuration is created, and the values are filled in "manually". An explanation of these can be found in the "Classes" reference.
 
 At the end of the function we start the synthesizer by sending it a MIDI NOTE ON event.
 
-The function `ProcessControl()` is empty right now, but we are going to change that soon, as this is where we will check if a key is pressed and play a corresponding note.
+The function `ProcessControl()` is empty right now, but we are going to change that soon, as this is where we will place our logic.
 
 Finally we have our `main()` function. It first checks whether any command line arguments were sent. Then it calls our `InitSynths()` function. It also connects our mixer with the RtAudio output, using the line:
 
-```
+```c++
 dout_ = &dmixer;
 ```
 
-Next it calls the `InitRtAudio()` function, which connects our sound output, held in `dout_` with the sound card.
+Next it calls the `InitRtAudio()` function, which connects our sound output, held in `dout_`, with the sound card.
 
-We have a couple of lines that sets up the Ctrl + C functionality, next is the infinite loop:
+We have a couple of lines that sets up the Ctrl + C functionality, then we have the infinite loop:
 
-```
+```c++
 // main application loop
 while (!done_ && rt_dac_.isStreamRunning())
 {
@@ -191,7 +193,7 @@ while (!done_ && rt_dac_.isStreamRunning())
 
 This calls the `ProcessControl()` function, next sleeps for 10 ms, and then repeats. This loop is run as fast as our computer can handle, which probably is faster than we need, hence the `SLEEP()` call, which lets the computer do other things for a while.
 
-All this runs until `done_` is true, at which point we exit the infinite loop, clean up, and exits the whole program.
+All this runs until `done_` is true, at which point we exit the loop, clean up, and exits the whole program.
 
 You can build and run the code using:
 
@@ -203,14 +205,14 @@ make
 
 If we don't give `dstudio` any arguments, it uses the default sound card as output.
 
-Let's msodify our code!
+Let's modify our code!
 
 Create a copy of the `example-00-test` directory and name it `example-00-tutorial`. Open `main.cpp` in a text editor.
 
 First of all, let's comment out that initial MIDI NOTE ON event. It's at the end of the `InitSynths()` function:
 
-```
-	//dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 48, 100);
+```c++
+//dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 48, 100);
 ```
 
 Now we will modify the `ProcessControl()` function so it:
@@ -218,30 +220,73 @@ Now we will modify the `ProcessControl()` function so it:
 - selects a note from an predefined set
 - plays it for a random length
 - pauses a random length
-- repeaats
+- repeats
 
 Hopefully it will sound interesting!
 
+We need to keep track of the note being played, and the time it plays, so place this near the top of the program (after the `DMixer dmixer` row):
 
+```C++
+// maximum interval in microseconds
+#define INTERVAL_MAX 1000000
+// setup clock
+uint8_t notes[6] = {36, 39, 41, 43, 44, 46};
+uint64_t interval_start = dGetElapsedTimeMicros();
+uint64_t interval_length = 0;
+uint8_t note = 0;
+bool note_playing = false;
 ```
-TODO code
 
+So we have an array of MIDI note values, we keep track of when a note starts or stops playing, and we keep track of what note is playing, and if it is playing.
 
-uint8_t notes = {36, 39, 41, 43, 44, 46}
+Let's add some code to the `ProcessControl()` function. We first check if our interval has passed.
 
-static uint8_t note = 0;
+```c++
+if (dGetElapsedTimeMicros() - interval_start > interval_length) {
 
-
-```
+    if (note_playing) {
+        // time is up, so silence note and set new interval
+        //dsynthpad.MidiIn(MIDI_MESSAGE_NOTEOFF, note, 0);
+        dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 0, note, 0);
+        interval_start = dGetElapsedTimeMicros();
+        interval_length = static_cast<uint64_t>(dRandom(INTERVAL_MAX));
+        note_playing = false;
+    } else {
+        // time is up, so play a new note and set new interval
+        //dsynthpad.MidiIn(MIDI_MESSAGE_NOTEON, note, 70);
+        note = notes[(int)dRandom(5)];
+        dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, note, 100);
+        interval_start = dGetElapsedTimeMicros();
+        interval_length = static_cast<uint64_t>(dRandom(INTERVAL_MAX));
+        note_playing = true;
+    }
 }
-
-Before typing `make` we also have to add the `ncurses` library to the linker in the `Makefile`:
-
-```
-LIBS          = -lpthread -lsndfile -lasound -lncurses
 ```
 
-Now press the keys on your keyboard to make some sounds!
+We have two things todo if the interval is up:
+
+- If a note is already playing, silence it and calculate a new interval for silence.
+- If a note is not playing, select a new one from the predefined values, set it to play, and calculate a new interval before silencing it
+
+Type `make` and test it! Don't forget to create the `bin` directory first.
+
+We can do a simple addition to the code: for every new note, let's change the filter cutoff frequency. Place this one line before the line with the MIDI_MESSAGE_NOTEON:
+
+```c++
+dsynthpad.SetFilterFreq(500 + dRandom(10000));
+```
+
+This line uses one of the methods of the `DSynthSub` class to change the filter cutoff frequency.
+
+As we can see in the `date/sub_pad.xml` file, the filter is set to low pass and no resonance:
+
+```
+    <filter_type>2</filter_type>
+    <filter_cutoff>3000.0</filter_cutoff>
+    <filter_res>0.0</filter_res>
+```
+
+I have provided solution to this tutorial, `example-00-tutorial-solution`.
 
 
 ## Classes
@@ -249,31 +294,32 @@ Now press the keys on your keyboard to make some sounds!
 DStudio is a collection of classes. The majority of them create sounds and are all derived classes of the DSound class:
 
 - classic synthesizers:
-    - DSynthSub: a classic subtractive, virtual analog, two oscillator synth
-    - DSynthFm: an FM synth
+    - `DSynthSub`: a classic subtractive, virtual analog, two oscillator synth
+    - `DSynthFm`: an FM synth
     - both with portamento, filters, envelopes for pitch, filter, amplitude, an LFO that can affect pitch, filter, amplitude, delay and overdrive
 
-- an experimental synthesizer: DSynthVar, a variable shape synth, with filter, envelopes and unique modulations with different random modes as well as a modulation sequencer, delay and distortion  
+- an experimental synthesizer: `DSynthVar`, a variable shape synth, with filter, envelopes and unique modulations with different random modes as well as a modulation sequencer, delay and distortion  
 
-- a sampler: DSampler, with filter, envelopes, LFO, delay and distortion
+- a sampler: `DSampler`, with filter, envelopes, LFO, delay and distortion
 
-- individual drum sounds: DBass, DClap, DCymbal, DDrum, DHihat and DSnare, most of them with three different sound generating algorithms, all with lots of options for shaping the sound
+- individual drum sounds: `DBass`, `DClap`, `DCymbal`, `DDrum`, `DHihat` and `DSnare`, most of them with three different sound generating algorithms, all with lots of options for shaping the sound
 
-They can be combined using the mixer class DMixer. The mixer can pan and adjust levels of all channels, as well as providing two send channels for reverb and chorus.
+They can be combined using the mixer class `DMixer`. The mixer can pan and adjust levels of all channels, as well as providing two send channels for reverb and chorus.
 
-You can use the sequencer, DSeqMidi, to sequence them. Or you can use and control them directly in your code.
+You can use the sequencer, `DSeqMidi`, to sequence them. Or you can use and control them directly in your code.
 
-You can also use the permutating sequencer DSeqPerm. Feed it with sequences and let it provide you with ever changing results!
+You can also use the permutating sequencer `DSeqPerm`. Feed it with sequences and let it provide you with ever changing results!
 
 For details on how to use the classes, see the corresponding header files and the example projects.
 
+
 ### Instruments
 
-The synthesizers and the sampler have their own sound generation methods, but here are the features that are common to them all (with some exceptions to the DSynthVar which has more flexible types of modulation). 
+The synthesizers and the sampler have their own sound generation methods, but here are the features that are common to them all (with some exceptions to the `DSynthVar` which has more flexible types of modulation). 
 
-They are all initialized using a config struct with the following common members: TODO
+They are all initialized using a config struct with the following common members:
 
-- float sample_rate: set this to the global settings DSTUDIO_SAMPLE_RATE
+- `float sample_rate`: set this to the global settings DSTUDIO_SAMPLE_RATE
 - uint8_t voices: maximum number of polyphony
 - float tune: detuning in hertz
 - uint8_t transpose: MIDI transpose value
@@ -313,19 +359,13 @@ They are all initialized using a config struct with the following common members
 
 Most parameters can be modified with corresponding Set*-functions. The synthesizers also all have a `ChangeParam()` function suitable for real-time control of the most common parameters. This is what DHaxo uses.
 
-TODO:
-
-Document how lfo_amp, lfo_x_level etc work together (an osc moves from -1 to 1); LFO affects signal centered on eg the cutoff freq
-
 ### Presets
 
-You can now save and load presets of all synthesizers and drums using the DSettings static class. They are stored as XML files.
+You can now save and load presets of all synthesizers and drums using the DSettings static class. They are stored as XML files. Study the examples to see how they are created.
 
-TODO
+You must use the DSettings class for this to work.
 
-You must use settings for this to work.
-
-There is no error checking on loading presets.
+Note! There is no error checking on loading presets.
 
 ### DSynthSub
 A classic virtual analog subtractive synth with two oscillators, noise, a selectable filter, an EG, a LFO that can control amplitude, filter or pitch, portamento, delay and overdrive FX.
@@ -544,38 +584,7 @@ A DFX plugin passes MIDI straight through, process the child sound, adds fx and 
 
 #### How to use a DFX plugin
 
-Here is an example on how to add a DFXFlanger to a DSynthSub synthesizer (from demo 3).
-
-TODO
-
-Create a sound source (a DSynthSub):
-
-```
-dsynth_config.sample_rate = settings.sampleRate;
-dsynth_config.voices = 6;
-dsynth_config.waveform0 = DSynthSub::WAVE_SAW;
-...
-dsynthbass.Init(dsynth_config);
-Create the DFXFlanger plugin and add the DSynthSub as a child:
-// flanger on bass pad
-DFXFlanger::Config dfxflanger_config;
-dfxflanger_config.sample_rate = settings.sampleRate;
-dfxflanger_config.level = 0.8f;
-dfxflanger_config.feedback = 0.7f;
-dfxflanger_config.lfo_depth = 0.8f;
-dfxflanger_config.lfo_freq = 0.3f;
-dfxflanger_config.delay = 0.8f;
-dfxflanger_config.child = &dsynthbass;
-dfxflanger.Init(dfxflanger_config);
-```
-
-Add it to the DMixer:
-
-```
-dmix_synth[0] = &dfxflanger;
-```
-
-When the DMixer's Process() method is called, it will call the DFXFlanger plugin which in turn will call the child, the DSynthSub plugin.
+For an example of how to add an effect to a synthesizer, se example 3, where a DFXFlanger is added to a DSynthSub synthesizer. When the DMixer's Process() method is called, it will call the DFXFlanger plugin which in turn will call the child, the DSynthSub plugin.
 
 ![DFX](assets/dfx.png "DFX example")
 
@@ -652,7 +661,7 @@ Panner is a stereo effect that preferably operates on mono DSounds.
 
 The slicer samples a random length of the audio, and repeats it random times, then starts anew.
 
-TODO
+See example 4 for an example of how to slice up the output from the `DSampler`.
 
 #### Tremolo
 
@@ -845,15 +854,13 @@ Note that the DMixer input for DSplit must be stereo.
 
 ### DSettings
 
-TODO.
-
 Read and writes XML settings files.
 
-### DSettings D
-
-TODO.
+### DSettingsD
 
 Builds upon DSettings to provide easy switching between presets in the same directory.
+
+This is used in the Haxophone examples to let the player easily switch between presets without moving their fingers from the instrument.
 
 ### DHaxo
 
@@ -905,11 +912,11 @@ For the interested there are is a test-directory in the example-11 directory.
 
 #### How to use
 
-TODO
+The use of DStudio for the Haxophone is demonstrated in example 11, 12 and 13.
 
 Haxophone start:
 
-`dstudio -d MAX98357A`
+`./dstudio -d MAX98357A`
 
 You can swith presets by sucking in air and using keys that are not used for sound generation:
 
@@ -929,21 +936,11 @@ case 524288: // 2^19, right middle finger
     haxo_control = HAXOCONTROL_TURNOFF;
 ```
 
-The fingerings runs through the presets stored in the /data directory.
-
-TODO
-
-How to change sounds. (Example 13). Note! Sep dir for solo.
-
-TODO
-
-pressure different sensors, debug flag
+The fingerings runs through the presets stored in the `/data` directory.
 
 #### Controller
 
-TODO
-
-How to build a (foot) controller. I used a Seeeduino Xiao (SAMD21 version), but any Arduino-compatible will probably do.
+How to build a (foot) controller. I used a Seeeduino Xiao (SAMD21 version), but any Arduino-compatible microcontroller will probably do.
 
 ![Seeeduino Xiao](assets/seeeduino_xiao_pinout.jpg "Seeeduino Xiao")
 
@@ -976,16 +973,12 @@ The Xiao is connected to, and gets its power, via a USB cable attached to the Ha
 
 You have to upload the Arduino code found in example 12.
 
-TODO
-
-`DispatchController()` and constants for dispatching controllers
-
 
 ### DWindow
 
-TODO
+WIP.
 
-Simple touchscreen integration based on SDL. WIP.
+Simple touchscreen integration based on SDL.
 
 To use DWindow (and DControl):
 
@@ -994,7 +987,7 @@ To use DWindow (and DControl):
 
 ### DControl
 
-TODO
+WIP.
 
 On-screen controls for DWindow. WIP.
 
@@ -1007,6 +1000,8 @@ A good way to learn to use DStudio is by running and studying the examples.
 ### Example 0
 
 A simple example that just starts a note playing on a synthesizer.
+
+See the "Basic tutorial".
 
 
 ### Example 1 - Algorithmic
@@ -1031,6 +1026,8 @@ A drone experiment. In the main.cpp you can configure the number of drones
 Remember that the mixer handles 16 channels by default. If you create more drones you also have to increase the number of mixer channels in dstudio.h. I have successfully created 100 drones running at the same time (the number must fit in 8 bits).
 
 ![Example2](assets/example2.png "Example 2")
+
+If you want more than 255 drones in a mixer, create sub-mixers and attach them to the main mixer.
 
 Uses direct setup of synthesizers -- not DSettings.
 
@@ -1131,6 +1128,6 @@ Solo voice with example 10 as background.
 
 ### Example 15 - Touch screen drone
 
-TODO
+WIP.
 
-Six voice drone machine with touch screen UI. WIP - for next version of DStudio.
+Six voice drone machine with touch screen UI.

@@ -10,13 +10,14 @@ float dRandom(float max) {
     return (max * rand() / float(RAND_MAX)) * (1.0f - std::numeric_limits<float>::epsilon());
 }
 
-// class that measure interval in microseconds
+// measure interval in microseconds
 void DInterval::Init(uint64_t interval_us)
 {
     interval_us_ = interval_us;
     uint64_t start_ = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
+// countdown interval and check if it has passed
 bool DInterval::Process()
 {
     bool retval = false;
