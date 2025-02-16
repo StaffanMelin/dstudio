@@ -3,7 +3,6 @@
 CXX           = g++
 CXXFLAGS      = -pipe -O2 -Wall -Wextra -fPIC -D__LINUX_ALSA__
 INCPATH       = -I. -I. \
-				-I/usr/include/SDL2 \
 				-I../rtDStudio/src \
 				-I../rtDaisySP/src/Control \
 				-I../rtDaisySP/src/Drums \
@@ -140,10 +139,6 @@ bin/main.o: main.cpp \
 		$(wildcard ../rtDaisySP/src/PhysicalModeling/*.h) \
 		$(wildcard ../rtDStudio/src/*.h)
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bin/main.o main.cpp
-
-bin/dwindow.o: ../rtDStudio/src/dwindow.cpp \
-			../rtDStudio/src/dwindow.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bin/dwindow.o ../rtDStudio/src/dwindow.cpp
 
 bin/RtAudio.o: ../rtaudio/RtAudio.cpp ../rtaudio/RtAudio.h \
 		../rtDStudio/src/dsound.h \

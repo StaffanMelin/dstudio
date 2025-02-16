@@ -916,8 +916,7 @@ Test with:
 
 Add GPIO support:
 
-- `libgpiod` is already installed
-- `sudo apt install libgpiod-dev`
+`sudo apt install gpiod libgpiod libgpiod-dev`
 
 Test with:
 - `gpiodetect`
