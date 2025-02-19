@@ -18,4 +18,4 @@ Demonstrations of what DStudio can do:
 
 Notes:
 
-- 2025-02-17: I just found out that my use of GPIOD (for the `DHaxo` class) is depracated. I will try to fix this soon!
+- 2025-02-17: I just found out that my use of GPIOD (for the `DHaxo` class) is depracated in Debian Testing (not AFAIK in raspian). I will try to fix this soon!
