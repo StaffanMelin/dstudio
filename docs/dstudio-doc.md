@@ -1005,7 +1005,7 @@ Simple touchscreen integration based on SDL.
 To use `DWindow` (and `DControl`):
 
 ```
-sudo apt install libsdl2-dev libsdl2-image-dev libsdl1-ttf-dev
+sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 ```
 
 
@@ -1144,3 +1144,7 @@ Solo voice with example 10 as background.
 WIP.
 
 Six voice drone machine with touch screen UI.
+
+### Example 16 - Dystopian cyberpunk drone
+
+Cinematic drone with a sampled background (pitched drone old space music made by me), run through a large reverb.
