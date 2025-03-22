@@ -14,6 +14,7 @@
 #include "../rtDStudio/src/dsynthsub.h"
 #include "../rtDStudio/src/dsampler.h"
 #include "../rtDStudio/src/dsynthvar.h"
+#include "../rtDStudio/src/dsynthfm.h"
 
 #include "../rtDStudio/src/dfx.h"
 #include "../rtDStudio/src/dsettings.h"
@@ -34,6 +35,9 @@ DSynthSub dsynthspace;
 DSampler dsampler;
 DSynthVar dsynthmelody;
 DFXFilter dfxfilter;
+DSynthFm dsynthbling;
+DSynthVar dtexture;
+DFXSlicer dfxslicer;
 
 DMixer dmixer;
 
@@ -56,7 +60,7 @@ bool InitSynths()
 {
 	bool retval = true;
 
-	// synths subtractive
+	DSynthVar::Config dsynthvar_config;
 	DSynthSub::Config dsynth_config;
 
 	// synth pad (dsynthsub)
@@ -71,6 +75,11 @@ bool InitSynths()
 	dsynthspace.Init();
 	DSettings::LoadSetting(DSettings::DSYNTHSUB, DSettings::NONE, "data/sub_space.xml", &dsynth_config);
 	dsynthspace.Set(dsynth_config);
+
+	DSynthFm::Config dsynthfm_config;
+	dsynthbling.Init();
+	DSettings::LoadSetting(DSettings::DSYNTHFM, DSettings::NONE, "data/fm_bling.xml", &dsynthfm_config);
+	dsynthbling.Set(dsynthfm_config);
 
 	// sampler (sampleplayer)
 	DSampler::Config dsampler_config;
@@ -114,8 +123,22 @@ bool InitSynths()
 	// dsampler.Load("data/test.wav", true);
 	dsampler.Load("data/goa_bp.wav", true);
 
+	dtexture.Init();
+	DSettings::LoadSetting(DSettings::DSYNTHVAR, DSettings::NONE, "data/var_texture.xml", &dsynthvar_config);
+	dtexture.Set(dsynthvar_config);
+
+	// slicer on texture
+	DFXSlicer::Config dfxslicer_config;
+	dfxslicer_config.sample_rate = DSTUDIO_SAMPLE_RATE;
+	dfxslicer_config.level = 1.0f;
+	dfxslicer_config.child = &dtexture;
+	dfxslicer_config.record_samples_max = DSTUDIO_SAMPLE_RATE; // 1 sec
+	dfxslicer_config.playback_rep_max = 10;
+	dfxslicer_config.trig_mode = false;
+	dfxslicer.Init();
+	dfxslicer.Set(dfxslicer_config);
+
 	// synth melody (dsynthvar)
-	DSynthVar::Config dsynthvar_config;
 	dsynthmelody.Init();
 	DSettings::LoadSetting(DSettings::DSYNTHVAR, DSettings::NONE, "data/var_melody.xml", &dsynthvar_config);
 	dsynthmelody.Set(dsynthvar_config);
@@ -179,10 +202,26 @@ bool InitSynths()
 	dmix_chorus_level[4] = 0.3f;
 	dmix_reverb_level[4] = 0.3f;
 	dmix_mono[4] = true;
-	dmix_group[4] = 0;
+	dmix_group[4] = 4;
+
+	dmix_synth[5] = &dsynthbling;
+	dmix_pan[5] = 0.8f;
+	dmix_level[5] = 0.05;
+	dmix_chorus_level[5] = 0.3f;
+	dmix_reverb_level[5] = 0.4f;
+	dmix_mono[5] = true;
+	dmix_group[5] = 5;
+
+	dmix_synth[6] = &dtexture;
+	dmix_pan[6] = 0.4f;
+	dmix_level[6] = 0.02;
+	dmix_chorus_level[6] = 0.2f;
+	dmix_reverb_level[6] = 0.8f;
+	dmix_mono[6] = true;
+	dmix_group[6] = 6;
 
 	dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
-	dmix_config.channels = 5;
+	dmix_config.channels = 7;
 	dmix_config.amp = 1.0f;
 	dmix_config.synth = dmix_synth;
 	dmix_config.pan = dmix_pan;
@@ -203,6 +242,7 @@ bool InitSynths()
 	dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 0, 36, 100);
 	dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 1, 60, 100);
 	dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 2, 48, 100);
+	dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 6, 48, 100);
 
 	return retval;
 }
@@ -213,10 +253,17 @@ bool InitSynths()
 
 void ProcessControl()
 {
+	static int sec = 1;
 	static int s_melody = 0;
 	static int s_kajsa = 0;
 	static int n_kajsa = 0;
 	static int s_space = 0;
+
+	static int s_bling = 0;
+	static int s_bling_c = 5 + dRandom(25);
+
+	// assume ProcessControl() is called once per second
+	sec++;
 
 	// melody
 	float dice = dRandom(1);
@@ -298,6 +345,48 @@ void ProcessControl()
 			s_melody = (int)dRandom(5);
 			break;
 		}
+	}
+
+	s_bling_c--;
+	switch (s_bling)
+	{
+	case 0:
+		if (s_bling_c == 0)
+		{
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, 72 + 3, 100);
+			s_bling++;
+			s_bling_c = 3 + dRandom(5);
+		}
+		break;
+	case 1:
+		if (s_bling_c == 0)
+		{
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 5, 72 + 3, 0);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, 72 + 2, 100);
+			s_bling++;
+			s_bling_c = 3 + dRandom(5);
+		}
+		break;
+	case 2:
+		if (s_bling_c == 0)
+		{
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 5, 72 + 2, 0);
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEON + 5, 72 + 0, 100);
+			s_bling++;
+			s_bling_c = 3 + dRandom(5);
+		}
+		break;
+	case 3:
+		if (s_bling_c == 0)
+		{
+			dmixer.MidiIn(MIDI_MESSAGE_NOTEOFF + 5, 72 + 0, 0);
+			s_bling = 0;
+			s_bling_c = 13 + dRandom(25);
+		}
+		break;
+
+	default:
+		break;
 	}
 }
 
