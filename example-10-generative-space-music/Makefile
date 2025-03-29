@@ -1,7 +1,7 @@
 # setup
 
 CXX           = g++
-CXXFLAGS      = -pipe -O2 -Wall -Wextra -fPIC -D__LINUX_ALSA__
+CXXFLAGS      = -pipe -Ofast -Wall -Wextra -D__LINUX_ALSA__
 INCPATH       = -I. -I. \
 				-I../rtDStudio/src \
 				-I../rtDaisySP/src/Control \

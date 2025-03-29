@@ -88,6 +88,7 @@ class DSettings
         DSYNTHVAR,
         DSAMPLER,
         DRUM,
+        DSYNTHSUBS,
         UNKNOWN
         // more to come: mixer, fx, seq etc
     };

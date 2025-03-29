@@ -1,6 +1,6 @@
 <settings>
     <settingstype>DSynthSub</settingstype>
-    <voices>4</voices>
+    <voices>1</voices>
     <waveform0>1</waveform0>
     <waveform1>2</waveform1>
     <tune>0.000000000</tune>
@@ -8,7 +8,7 @@
     <transpose>0</transpose>
     <osc0_level>0.2</osc0_level>
     <osc1_level>0.5</osc1_level>
-    <noise_level>0.0</noise_level>
+    <noise_level>0.2</noise_level>
     <filter_type>2</filter_type>
     <filter_cutoff>1500.0</filter_cutoff>
     <filter_res>0.0</filter_res>
@@ -22,10 +22,10 @@
     <eg_f_decay>0.0</eg_f_decay>
     <eg_f_sustain>1.0</eg_f_sustain>
     <eg_f_release>2.0</eg_f_release>
-    <eg_a_attack>20.0</eg_a_attack>
+    <eg_a_attack>10.0</eg_a_attack>
     <eg_a_decay>0.1</eg_a_decay>
     <eg_a_sustain>1.0</eg_a_sustain>
-    <eg_a_release>5.0</eg_a_release>
+    <eg_a_release>8.0</eg_a_release>
     <lfo_waveform>1</lfo_waveform>
     <lfo_freq>0.05</lfo_freq>
     <lfo_amp>1.0</lfo_amp>

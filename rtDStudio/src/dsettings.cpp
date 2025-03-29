@@ -1,5 +1,6 @@
 #include "dsettings.h"
 #include "dsynthsub.h"
+#include "dsynthsubs.h"
 #include "dsynthfm.h"
 #include "dsynthvar.h"
 #include "dsampler.h"
@@ -535,6 +536,58 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
             p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
             p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
             p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+
+        }
+        break;
+    case DSettings::DSYNTHSUBS:
+        {
+            DSynthSubS::Config *p;
+            p = (DSynthSubS::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->voices = settings.getValue("settings:voices", 1);
+            p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
+            p->waveform1 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform1", DSynthSub::WAVE_TRI));
+            //p->tune = settings.getValue("settings:tune", 0.0f);
+            p->detune = settings.getValue("settings:detune", 0.0f);
+            //p->transpose = settings.getValue("settings:transpose", 0);
+
+            p->osc0_level = settings.getValue("settings:osc0_level", 0.5f);
+            p->osc1_level = settings.getValue("settings:osc1_level", 0.5f);
+            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+            p->filter_type = static_cast<DSynthSub::FilterType>(settings.getValue("settings:filter_type", DSynthSub::LOW));
+            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+
+            p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
+            p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
+            p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
+            p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
+            p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
+
+            p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
+            p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
+            p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
+            p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
+            p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
+
+            p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+            p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+            p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+            p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+
+            p->lfo_waveform = static_cast<DSynthSub::Waveform>(settings.getValue("settings:lfo_waveform", DSynthSub::WAVE_TRI));
+
+            p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+            p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+            p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+            p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+            p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+
+            p->portamento = settings.getValue("settings:portamento", 0.0f);
+            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+            //p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+            //p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
 
         }
         break;

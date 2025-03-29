@@ -1,6 +1,6 @@
 <settings>
     <settingstype>DSynthVar</settingstype>
-    <voices>2</voices>
+    <voices>1</voices>
     <waveshape>0.500000000</waveshape>
     <pulsewidth>0.500000000</pulsewidth>
     <sync_enable>1</sync_enable>
