@@ -1,29 +1,28 @@
 # setup
 
-CXX           = /home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-g++
-#CXXFLAGS      = -pipe -Ofast -Wall -Wextra -D__LINUX_ALSA__
-CXXFLAGS      = -pipe -Og -Wall -Wextra -fPIC -D__LINUX_ALSA__ -U__arm__ -ffast-math -march=armv7-a -mtune=cortex-a7 -mfloat-abi=hard -std=gnu++11
-INCPATH       = -I. -I. \
-				-I../rtDStudio/src \
-				-I../rtDaisySP/src/Control \
-				-I../rtDaisySP/src/Drums \
-				-I../rtDaisySP/src/Dynamics \
-				-I../rtDaisySP/src/Effects \
-				-I../rtDaisySP/src/Filters \
-				-I../rtDaisySP/src/Noise \
-				-I../rtDaisySP/src/PhysicalModeling \
-				-I../rtDaisySP/src/Synthesis \
-				-I../rtDaisySP/src/Utility \
-				-I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/include \
-				-I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/usr/include \
-				-I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/usr/t113lib/include \
-				-I/home/staffan/debiandata/projects/tech/gecho/t113lib/include
-LINK          = /home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-g++
-LIBS          = -lpthread -lsndfile -lasound \
-		-L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/lib \
-		-L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/usr/lib \
-    -L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/usr/t113lib/lib/ \
-		-L/home/staffan/debiandata/projects/tech/gecho/t113lib/lib/
+CXX = /home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-g++
+CXXFLAGS = -pipe -Og -Wall -Wextra -fPIC -D__LINUX_ALSA__ -U__arm__ -ffast-math -march=armv7-a -mtune=cortex-a7 -mfloat-abi=hard -std=gnu++11
+INCPATH = -I. -I. \
+ -I../rtDStudio/src \
+ -I../rtDaisySP/src/Control \
+ -I../rtDaisySP/src/Drums \
+ -I../rtDaisySP/src/Dynamics \
+ -I../rtDaisySP/src/Effects \
+ -I../rtDaisySP/src/Filters \
+ -I../rtDaisySP/src/Noise \
+ -I../rtDaisySP/src/PhysicalModeling \
+ -I../rtDaisySP/src/Synthesis \
+ -I../rtDaisySP/src/Utility \
+ -I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/include \
+ -I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/usr/include \
+ -I/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/usr/t113lib/include
+
+LINK = /home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/bin/arm-openwrt-linux-muslgnueabi-g++
+
+LIBS = -lpthread -lsndfile -lasound \
+ -L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/lib \
+ -L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/toolchain-sunxi-musl/toolchain/usr/lib \
+ -L/home/staffan/debiandata/projects/tech/gecho/T113_toolchain_GCC741_musl/usr/t113lib/lib
 
 # files
 
