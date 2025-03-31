@@ -1,9 +1,8 @@
 #pragma once
 #ifndef DSY_ALLPASS_H
 #define DSY_ALLPASS_H
-
-#include <stdint.h>
 #ifdef __cplusplus
+#include "Utility/dsp.h"
 
 #include <math.h>
 
