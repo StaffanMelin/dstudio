@@ -1,6 +1,6 @@
 <settings>
     <settingstype>DSynthSub</settingstype>
-    <voices>8</voices>
+    <voices>4</voices>
     <waveform0>2</waveform0>
     <waveform1>5</waveform1>
     <tune>0.0</tune>
