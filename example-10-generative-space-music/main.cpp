@@ -137,21 +137,21 @@ bool InitSynths()
     dmix_synth[5] = &dsynthembellish;
     dmix_synth[6] = &dsynthfill;
     dmix_pan[0] = 0.5f;
-    dmix_pan[1] = 0.2f;
+    dmix_pan[1] = 0.12f;
     dmix_pan[2] = 0.8f;
-    dmix_pan[3] = 0.4f;
-    dmix_pan[4] = 0.6f;
+    dmix_pan[3] = 0.35f;
+    dmix_pan[4] = 0.75f;
     dmix_pan[5] = 0.3f;
     dmix_pan[6] = 0.7f;
-    dmix_level[0] = 0.4;//.4
-    dmix_level[1] = 0.4;//.4
-    dmix_level[2] = 0.2;//.2
-    dmix_level[3] = 0.3;//.3
-    dmix_level[4] = 0.6;//.5
+    dmix_level[0] = 0.4;
+    dmix_level[1] = 0.22;
+    dmix_level[2] = 0.4;
+    dmix_level[3] = 0.5;
+    dmix_level[4] = 0.65;
     dmix_level[5] = 0.3;//.3
     dmix_level[6] = 0.35;//.35
-    dmix_chorus_level[0] = 0.0f;
-    dmix_chorus_level[1] = 0.3f;
+    dmix_chorus_level[0] = 0.2f;
+    dmix_chorus_level[1] = 0.5f;
     dmix_chorus_level[2] = 0.5f;
     dmix_chorus_level[3] = 0.2f;
     dmix_chorus_level[4] = 0.0f;
@@ -162,7 +162,7 @@ bool InitSynths()
     dmix_reverb_level[2] = 0.5f;
     dmix_reverb_level[3] = 0.7f;
     dmix_reverb_level[4] = 0.5f;
-    dmix_reverb_level[5] = 0.2f;
+    dmix_reverb_level[5] = 0.5f;
     dmix_reverb_level[6] = 0.7f;
     dmix_mono[0] = true;
     dmix_mono[1] = true;
@@ -179,7 +179,7 @@ bool InitSynths()
     dmix_group[5] = 5;
     dmix_group[6] = 6;
     dmix_config.sample_rate = DSTUDIO_SAMPLE_RATE;
-    dmix_config.channels = 7;
+    dmix_config.channels = 6;
     dmix_config.amp = 1.0f;
     dmix_config.synth = dmix_synth;
     dmix_config.pan = dmix_pan;
@@ -190,12 +190,12 @@ bool InitSynths()
     dmix_config.group = dmix_group;
     dmix_config.chorus_return = 0.5;
     dmix_config.reverb_return = 0.8f;
-    dmix_config.mix_dry = 0.2;
+    dmix_config.mix_dry = 0.15;
     dmixer.Init();
     dmixer.Set(dmix_config);
 
     // demo start
-    dmixer.SetReverb(0.9f, 2000.0f);
+    dmixer.SetReverb(0.94f, 12000.0f);
 
     // gen note creation
 
@@ -216,10 +216,10 @@ bool InitSynths()
     dgen_drama_fade[5] = 0.0f;
     dgen_drama_fade[6] = 0.2f;
 
-    dgen_note_t dgen_note_base = {24, 70, 48, 48, 70, 82, 36}; // base MIDI note of each channel; same length as number of channels
+    dgen_note_t dgen_note_base = {24, 60, 48, 48, 72, 72, 36}; // base MIDI note of each channel; same length as number of channels
     dgen_note_t dgen_note_pad = {0, 4, 7, 10}; // relative to base note
     dgen_note_t dgen_note_arp = {0, 7, 7, 2}; // relative to base note
-    dgen_note_t dgen_note_melody = {0, 2, 4, 2, 5, 4, 7, 4}; // relative to base note
+    dgen_note_t dgen_note_melody = {0, 2, 5, 4, 5, 9, 7, 9}; // relative to base note
 
     DGenDrone::Config dgen_config;
     dgen_config.bpm = 60;

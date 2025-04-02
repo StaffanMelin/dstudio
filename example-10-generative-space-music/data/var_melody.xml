@@ -10,7 +10,7 @@
     <osc_level>0.400000006</osc_level>
     <noise_level>0.000000000</noise_level>
     <filter_type>2</filter_type>
-    <filter_cutoff>500.000000000</filter_cutoff>
+    <filter_cutoff>750.000000000</filter_cutoff>
     <filter_res>0.000000000</filter_res>
     <mod_eg_p>0</mod_eg_p>
     <mod_eg_f>1</mod_eg_f>

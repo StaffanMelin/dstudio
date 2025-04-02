@@ -1,6 +1,6 @@
 <settings>
     <settingstype>DSynthFm</settingstype>
-    <voices>2</voices>
+    <voices>1</voices>
     <ratio>1.000000000</ratio>
     <index>0.500000000</index>
     <tune>0.000000000</tune>
@@ -32,7 +32,7 @@
     <lfo_a_level>0.000000000</lfo_a_level>
     <portamento>0.000000000</portamento>
     <delay_delay>1.000000000</delay_delay>
-    <delay_feedback>0.400000006</delay_feedback>
+    <delay_feedback>0.700000006</delay_feedback>
     <overdrive_gain>0.000000000</overdrive_gain>
     <overdrive_drive>0.000000000</overdrive_drive>
 </settings>
