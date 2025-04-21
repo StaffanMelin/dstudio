@@ -310,3 +310,14 @@ void DMixer::SetMixDry(float mix_dry)
 {
     mix_dry_ = mix_dry;
 }
+
+DSound *DMixer::GetSynth(uint8_t synth)
+{
+    if (synth < channels_)
+    {
+        return synth_[synth];
+    } else {
+        return NULL;
+    }
+
+}

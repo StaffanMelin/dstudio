@@ -89,6 +89,8 @@ class DSynthSub : public DSynth
 
     void SetLevel(float);
     void ChangeParam(DSynth::Param param, float value);
+
+    Config base_config_;
     
 private:
 
@@ -131,8 +133,6 @@ private:
     float overdrive_gain_;
     float overdrive_drive_;
 
-    Config base_config_;
-    
 	uint8_t osc_next_;
     uint8_t note_midi_[DSYNTH_VOICES_MAX];
     float note_freq_[DSYNTH_VOICES_MAX];

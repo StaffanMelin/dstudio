@@ -85,6 +85,7 @@ class DSynthSubS : public DSynth
     void ChangeParam(DSynth::Param param, float value);
     
 private:
+    Config base_config_;
 
 	float sample_rate_;
    	uint8_t voices_;
@@ -120,8 +121,6 @@ private:
     float portamento_;
     float delay_delay_;
     float delay_feedback_;
-
-    Config base_config_;
     
 	uint8_t osc_next_;
     uint8_t note_midi_[DSYNTH_VOICES_MAX];
