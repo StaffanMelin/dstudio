@@ -10,6 +10,8 @@
 #include "dclap.h"
 #include "dcymbal.h"
 #include "ddrum.h"
+#include "dchop.h"
+#include "dhits.h"
 
 #include "libs/tinyxml.h"
 #include <iostream>
@@ -19,7 +21,7 @@
 #include <dirent.h>
 #include <algorithm>
 
-int DXMLSettings::getValue(const std::string& tag, int defaultValue)
+int DXMLSettings::getValue(const std::string &tag, int defaultValue)
 {
     size_t found = tag.find(":");
     if (found != std::string::npos)
@@ -28,14 +30,14 @@ int DXMLSettings::getValue(const std::string& tag, int defaultValue)
 
         if (setting_ != NULL)
         {
-	    int value = ofTo<int>(setting_->GetText());
+            int value = ofTo<int>(setting_->GetText());
             return value;
         }
     }
     return defaultValue;
 }
 
-float DXMLSettings::getValue(const std::string& tag, float defaultValue)
+float DXMLSettings::getValue(const std::string &tag, float defaultValue)
 {
     size_t found = tag.find(":");
     if (found != std::string::npos)
@@ -43,14 +45,14 @@ float DXMLSettings::getValue(const std::string& tag, float defaultValue)
         setting_ = root_->FirstChildElement(tag.substr(found + 1).c_str());
         if (setting_ != NULL)
         {
-	    float value = ofTo<float>(setting_->GetText());
+            float value = ofTo<float>(setting_->GetText());
             return value;
         }
     }
     return defaultValue;
 }
 
-std::string DXMLSettings::getValue(const std::string& tag, const std::string& defaultValue)
+std::string DXMLSettings::getValue(const std::string &tag, const std::string &defaultValue)
 {
     size_t found = tag.find(":");
     if (found != std::string::npos)
@@ -59,47 +61,47 @@ std::string DXMLSettings::getValue(const std::string& tag, const std::string& de
 
         if (setting_ != NULL)
         {
-    	    std::string value = setting_->GetText();
+            std::string value = setting_->GetText();
             return value;
         }
     }
     return defaultValue;
 }
 
-void DXMLSettings::setValue(const std::string& tag, int value)
+void DXMLSettings::setValue(const std::string &tag, int value)
 {
     size_t found = tag.find(":");
     if (found != std::string::npos)
     {
-        setting_ = new TiXmlElement(tag.substr(found + 1));  
-        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));  
-        root_->LinkEndChild(setting_);
-    }    
-}
-
-void DXMLSettings::setValue(const std::string& tag, float value)
-{
-    size_t found = tag.find(":");
-    if (found != std::string::npos)
-    {
-        setting_ = new TiXmlElement(tag.substr(found + 1));  
-        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));  
+        setting_ = new TiXmlElement(tag.substr(found + 1));
+        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));
         root_->LinkEndChild(setting_);
     }
 }
 
-void DXMLSettings::setValue(const std::string& tag, const std::string& value)
+void DXMLSettings::setValue(const std::string &tag, float value)
 {
     size_t found = tag.find(":");
     if (found != std::string::npos)
     {
-        setting_ = new TiXmlElement(tag.substr(found + 1));  
-        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));  
+        setting_ = new TiXmlElement(tag.substr(found + 1));
+        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));
         root_->LinkEndChild(setting_);
     }
 }
 
-void DXMLSettings::saveInit(const std::string& fileName)
+void DXMLSettings::setValue(const std::string &tag, const std::string &value)
+{
+    size_t found = tag.find(":");
+    if (found != std::string::npos)
+    {
+        setting_ = new TiXmlElement(tag.substr(found + 1));
+        setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));
+        root_->LinkEndChild(setting_);
+    }
+}
+
+void DXMLSettings::saveInit(const std::string &fileName)
 {
     fileName_ = fileName;
     doc_ = new TiXmlDocument();
@@ -112,10 +114,10 @@ void DXMLSettings::saveExit()
     delete doc_;
 }
 
-void DXMLSettings::loadInit(const std::string& fileName)
+void DXMLSettings::loadInit(const std::string &fileName)
 {
     fileName_ = fileName;
-    doc_ = new TiXmlDocument();  
+    doc_ = new TiXmlDocument();
     if (!doc_->LoadFile(fileName.c_str()))
     {
         std::cout << "ERROR: Couldn't load " << fileName << "\n";
@@ -125,12 +127,10 @@ void DXMLSettings::loadInit(const std::string& fileName)
     root_ = doc_->RootElement();
 }
 
-
 void DXMLSettings::loadExit()
 {
     delete doc_;
 }
-
 
 void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config)
 {
@@ -141,336 +141,412 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
     switch (type)
     {
     case DSettings::DSYNTHSUB:
-        {
-            DSynthSub::Config *p;
-            p = (DSynthSub::Config *)config;
-            settings.setValue("settings:settingstype", "DSynthSub");
-            settings.setValue("settings:voices", p->voices);
-            settings.setValue("settings:waveform0", p->waveform0);
-            settings.setValue("settings:waveform1", p->waveform1);
-            settings.setValue("settings:tune", p->tune);
-            settings.setValue("settings:detune", p->detune);
-            settings.setValue("settings:transpose", p->transpose);
-            settings.setValue("settings:osc0_level", p->osc0_level);
-            settings.setValue("settings:osc1_level", p->osc1_level);
-            settings.setValue("settings:noise_level", p->noise_level);
-            settings.setValue("settings:filter_type", p->filter_type);
-            settings.setValue("settings:filter_cutoff", p->filter_cutoff);
-            settings.setValue("settings:filter_res", p->filter_res);
+    {
+        DSynthSub::Config *p;
+        p = (DSynthSub::Config *)config;
+        settings.setValue("settings:settingstype", "DSynthSub");
+        settings.setValue("settings:voices", p->voices);
+        settings.setValue("settings:waveform0", p->waveform0);
+        settings.setValue("settings:waveform1", p->waveform1);
+        settings.setValue("settings:tune", p->tune);
+        settings.setValue("settings:detune", p->detune);
+        settings.setValue("settings:transpose", p->transpose);
+        settings.setValue("settings:osc0_level", p->osc0_level);
+        settings.setValue("settings:osc1_level", p->osc1_level);
+        settings.setValue("settings:noise_level", p->noise_level);
+        settings.setValue("settings:filter_type", p->filter_type);
+        settings.setValue("settings:filter_cutoff", p->filter_cutoff);
+        settings.setValue("settings:filter_res", p->filter_res);
 
-            settings.setValue("settings:eg_p_level", p->eg_p_level);
-            settings.setValue("settings:eg_p_attack", p->eg_p_attack);
-            settings.setValue("settings:eg_p_decay", p->eg_p_decay);
-            settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
-            settings.setValue("settings:eg_p_release", p->eg_p_release);
+        settings.setValue("settings:eg_p_level", p->eg_p_level);
+        settings.setValue("settings:eg_p_attack", p->eg_p_attack);
+        settings.setValue("settings:eg_p_decay", p->eg_p_decay);
+        settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
+        settings.setValue("settings:eg_p_release", p->eg_p_release);
 
-            settings.setValue("settings:eg_f_level", p->eg_f_level);
-            settings.setValue("settings:eg_f_attack", p->eg_f_attack);
-            settings.setValue("settings:eg_f_decay", p->eg_f_decay);
-            settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
-            settings.setValue("settings:eg_f_release", p->eg_f_release);
+        settings.setValue("settings:eg_f_level", p->eg_f_level);
+        settings.setValue("settings:eg_f_attack", p->eg_f_attack);
+        settings.setValue("settings:eg_f_decay", p->eg_f_decay);
+        settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
+        settings.setValue("settings:eg_f_release", p->eg_f_release);
 
-            settings.setValue("settings:eg_a_attack", p->eg_a_attack);
-            settings.setValue("settings:eg_a_decay", p->eg_a_decay);
-            settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
-            settings.setValue("settings:eg_a_release", p->eg_a_release);
+        settings.setValue("settings:eg_a_attack", p->eg_a_attack);
+        settings.setValue("settings:eg_a_decay", p->eg_a_decay);
+        settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
+        settings.setValue("settings:eg_a_release", p->eg_a_release);
 
-            settings.setValue("settings:lfo_waveform", p->lfo_waveform);
-            settings.setValue("settings:lfo_freq", p->lfo_freq);
-            settings.setValue("settings:lfo_amp", p->lfo_amp);
-            settings.setValue("settings:lfo_p_level", p->lfo_p_level);
-            settings.setValue("settings:lfo_f_level", p->lfo_f_level);
-            settings.setValue("settings:lfo_a_level", p->lfo_a_level);
+        settings.setValue("settings:lfo_waveform", p->lfo_waveform);
+        settings.setValue("settings:lfo_freq", p->lfo_freq);
+        settings.setValue("settings:lfo_amp", p->lfo_amp);
+        settings.setValue("settings:lfo_p_level", p->lfo_p_level);
+        settings.setValue("settings:lfo_f_level", p->lfo_f_level);
+        settings.setValue("settings:lfo_a_level", p->lfo_a_level);
 
-            settings.setValue("settings:portamento", p->portamento);
-            settings.setValue("settings:delay_delay", p->delay_delay);
-            settings.setValue("settings:delay_feedback", p->delay_feedback);
-            settings.setValue("settings:overdrive_gain", p->overdrive_gain);
-            settings.setValue("settings:overdrive_drive", p->overdrive_drive);
-        }
-        break;
+        settings.setValue("settings:portamento", p->portamento);
+        settings.setValue("settings:delay_delay", p->delay_delay);
+        settings.setValue("settings:delay_feedback", p->delay_feedback);
+        settings.setValue("settings:overdrive_gain", p->overdrive_gain);
+        settings.setValue("settings:overdrive_drive", p->overdrive_drive);
+    }
+    break;
     case DSettings::DSYNTHFM:
-        {
-            DSynthFm::Config *p;
-            p = (DSynthFm::Config *)config;
-            settings.setValue("settings:settingstype", "DSynthFm");
-            settings.setValue("settings:voices", p->voices);
-            settings.setValue("settings:ratio", p->ratio);
-            settings.setValue("settings:index", p->index);
-            settings.setValue("settings:tune", p->tune);
-            settings.setValue("settings:transpose", p->transpose);
-            settings.setValue("settings:osc0_level", p->osc0_level);
-            settings.setValue("settings:noise_level", p->noise_level);
-            settings.setValue("settings:filter_type", p->filter_type);
-            settings.setValue("settings:filter_cutoff", p->filter_cutoff);
-            settings.setValue("settings:filter_res", p->filter_res);
+    {
+        DSynthFm::Config *p;
+        p = (DSynthFm::Config *)config;
+        settings.setValue("settings:settingstype", "DSynthFm");
+        settings.setValue("settings:voices", p->voices);
+        settings.setValue("settings:ratio", p->ratio);
+        settings.setValue("settings:index", p->index);
+        settings.setValue("settings:tune", p->tune);
+        settings.setValue("settings:transpose", p->transpose);
+        settings.setValue("settings:osc0_level", p->osc0_level);
+        settings.setValue("settings:noise_level", p->noise_level);
+        settings.setValue("settings:filter_type", p->filter_type);
+        settings.setValue("settings:filter_cutoff", p->filter_cutoff);
+        settings.setValue("settings:filter_res", p->filter_res);
 
-            settings.setValue("settings:eg_p_level", p->eg_p_level);
-            settings.setValue("settings:eg_p_attack", p->eg_p_attack);
-            settings.setValue("settings:eg_p_decay", p->eg_p_decay);
-            settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
-            settings.setValue("settings:eg_p_release", p->eg_p_release);
+        settings.setValue("settings:eg_p_level", p->eg_p_level);
+        settings.setValue("settings:eg_p_attack", p->eg_p_attack);
+        settings.setValue("settings:eg_p_decay", p->eg_p_decay);
+        settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
+        settings.setValue("settings:eg_p_release", p->eg_p_release);
 
-            settings.setValue("settings:eg_f_level", p->eg_f_level);
-            settings.setValue("settings:eg_f_attack", p->eg_f_attack);
-            settings.setValue("settings:eg_f_decay", p->eg_f_decay);
-            settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
-            settings.setValue("settings:eg_f_release", p->eg_f_release);
+        settings.setValue("settings:eg_f_level", p->eg_f_level);
+        settings.setValue("settings:eg_f_attack", p->eg_f_attack);
+        settings.setValue("settings:eg_f_decay", p->eg_f_decay);
+        settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
+        settings.setValue("settings:eg_f_release", p->eg_f_release);
 
-            settings.setValue("settings:eg_a_attack", p->eg_a_attack);
-            settings.setValue("settings:eg_a_decay", p->eg_a_decay);
-            settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
-            settings.setValue("settings:eg_a_release", p->eg_a_release);
+        settings.setValue("settings:eg_a_attack", p->eg_a_attack);
+        settings.setValue("settings:eg_a_decay", p->eg_a_decay);
+        settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
+        settings.setValue("settings:eg_a_release", p->eg_a_release);
 
-            settings.setValue("settings:lfo_waveform", p->lfo_waveform);
-            settings.setValue("settings:lfo_freq", p->lfo_freq);
-            settings.setValue("settings:lfo_amp", p->lfo_amp);
-            settings.setValue("settings:lfo_p_level", p->lfo_p_level);
-            settings.setValue("settings:lfo_f_level", p->lfo_f_level);
-            settings.setValue("settings:lfo_a_level", p->lfo_a_level);
+        settings.setValue("settings:lfo_waveform", p->lfo_waveform);
+        settings.setValue("settings:lfo_freq", p->lfo_freq);
+        settings.setValue("settings:lfo_amp", p->lfo_amp);
+        settings.setValue("settings:lfo_p_level", p->lfo_p_level);
+        settings.setValue("settings:lfo_f_level", p->lfo_f_level);
+        settings.setValue("settings:lfo_a_level", p->lfo_a_level);
 
-            settings.setValue("settings:portamento", p->portamento);
-            settings.setValue("settings:delay_delay", p->delay_delay);
-            settings.setValue("settings:delay_feedback", p->delay_feedback);
-            settings.setValue("settings:overdrive_gain", p->overdrive_gain);
-            settings.setValue("settings:overdrive_drive", p->overdrive_drive);
-        }
-        break;
+        settings.setValue("settings:portamento", p->portamento);
+        settings.setValue("settings:delay_delay", p->delay_delay);
+        settings.setValue("settings:delay_feedback", p->delay_feedback);
+        settings.setValue("settings:overdrive_gain", p->overdrive_gain);
+        settings.setValue("settings:overdrive_drive", p->overdrive_drive);
+    }
+    break;
     case DSettings::DSYNTHVAR:
-        {
-            DSynthVar::Config *p;
-            p = (DSynthVar::Config *)config;
-            settings.setValue("settings:settingstype", "DSynthVar");
-            settings.setValue("settings:voices", p->voices);
-            settings.setValue("settings:waveshape", p->waveshape);
-            settings.setValue("settings:pulsewidth", p->pulsewidth);
-            settings.setValue("settings:sync_enable", p->sync_enable);
-            settings.setValue("settings:sync_freq", p->sync_freq);
-            settings.setValue("settings:tune", p->tune);
-            settings.setValue("settings:transpose", p->transpose);
-            settings.setValue("settings:osc_level", p->osc_level);
-            settings.setValue("settings:noise_level", p->noise_level);
-            settings.setValue("settings:filter_type", p->filter_type);
-            settings.setValue("settings:filter_cutoff", p->filter_cutoff);
-            settings.setValue("settings:filter_res", p->filter_res);
+    {
+        DSynthVar::Config *p;
+        p = (DSynthVar::Config *)config;
+        settings.setValue("settings:settingstype", "DSynthVar");
+        settings.setValue("settings:voices", p->voices);
+        settings.setValue("settings:waveshape", p->waveshape);
+        settings.setValue("settings:pulsewidth", p->pulsewidth);
+        settings.setValue("settings:sync_enable", p->sync_enable);
+        settings.setValue("settings:sync_freq", p->sync_freq);
+        settings.setValue("settings:tune", p->tune);
+        settings.setValue("settings:transpose", p->transpose);
+        settings.setValue("settings:osc_level", p->osc_level);
+        settings.setValue("settings:noise_level", p->noise_level);
+        settings.setValue("settings:filter_type", p->filter_type);
+        settings.setValue("settings:filter_cutoff", p->filter_cutoff);
+        settings.setValue("settings:filter_res", p->filter_res);
 
-            settings.setValue("settings:mod_eg_p", p->mod_eg_p);
-            settings.setValue("settings:mod_eg_f", p->mod_eg_f);
-            settings.setValue("settings:mod_eg_a", p->mod_eg_a);
-            settings.setValue("settings:mod_filter_cutoff", p->mod_filter_cutoff);
-            settings.setValue("settings:mod_waveshape", p->mod_waveshape);
-            settings.setValue("settings:mod_pulsewidth", p->mod_pulsewidth);
-            settings.setValue("settings:mod_sync_freq", p->mod_sync_freq);
-            settings.setValue("settings:mod_delay", p->mod_delay);
+        settings.setValue("settings:mod_eg_p", p->mod_eg_p);
+        settings.setValue("settings:mod_eg_f", p->mod_eg_f);
+        settings.setValue("settings:mod_eg_a", p->mod_eg_a);
+        settings.setValue("settings:mod_filter_cutoff", p->mod_filter_cutoff);
+        settings.setValue("settings:mod_waveshape", p->mod_waveshape);
+        settings.setValue("settings:mod_pulsewidth", p->mod_pulsewidth);
+        settings.setValue("settings:mod_sync_freq", p->mod_sync_freq);
+        settings.setValue("settings:mod_delay", p->mod_delay);
 
-            settings.setValue("settings:eg_0_level", p->eg_0_level);
-            settings.setValue("settings:eg_0_attack", p->eg_0_attack);
-            settings.setValue("settings:eg_0_decay", p->eg_0_decay);
-            settings.setValue("settings:eg_0_sustain", p->eg_0_sustain);
-            settings.setValue("settings:eg_0_release", p->eg_0_release);
+        settings.setValue("settings:eg_0_level", p->eg_0_level);
+        settings.setValue("settings:eg_0_attack", p->eg_0_attack);
+        settings.setValue("settings:eg_0_decay", p->eg_0_decay);
+        settings.setValue("settings:eg_0_sustain", p->eg_0_sustain);
+        settings.setValue("settings:eg_0_release", p->eg_0_release);
 
-            settings.setValue("settings:eg_1_level", p->eg_1_level);
-            settings.setValue("settings:eg_1_attack", p->eg_1_attack);
-            settings.setValue("settings:eg_1_decay", p->eg_1_decay);
-            settings.setValue("settings:eg_1_sustain", p->eg_1_sustain);
-            settings.setValue("settings:eg_1_release", p->eg_1_release);
+        settings.setValue("settings:eg_1_level", p->eg_1_level);
+        settings.setValue("settings:eg_1_attack", p->eg_1_attack);
+        settings.setValue("settings:eg_1_decay", p->eg_1_decay);
+        settings.setValue("settings:eg_1_sustain", p->eg_1_sustain);
+        settings.setValue("settings:eg_1_release", p->eg_1_release);
 
-            settings.setValue("settings:eg_2_level", p->eg_2_level);
-            settings.setValue("settings:eg_2_attack", p->eg_2_attack);
-            settings.setValue("settings:eg_2_decay", p->eg_2_decay);
-            settings.setValue("settings:eg_2_sustain", p->eg_2_sustain);
-            settings.setValue("settings:eg_2_release", p->eg_2_release);
+        settings.setValue("settings:eg_2_level", p->eg_2_level);
+        settings.setValue("settings:eg_2_attack", p->eg_2_attack);
+        settings.setValue("settings:eg_2_decay", p->eg_2_decay);
+        settings.setValue("settings:eg_2_sustain", p->eg_2_sustain);
+        settings.setValue("settings:eg_2_release", p->eg_2_release);
 
-            settings.setValue("settings:lfo_0_waveform", p->lfo_0_waveform);
-            settings.setValue("settings:lfo_0_freq", p->lfo_0_freq);
-            settings.setValue("settings:lfo_0_amp", p->lfo_0_amp);
-            settings.setValue("settings:lfo_0_offset", p->lfo_0_offset);
+        settings.setValue("settings:lfo_0_waveform", p->lfo_0_waveform);
+        settings.setValue("settings:lfo_0_freq", p->lfo_0_freq);
+        settings.setValue("settings:lfo_0_amp", p->lfo_0_amp);
+        settings.setValue("settings:lfo_0_offset", p->lfo_0_offset);
 
-            settings.setValue("settings:lfo_1_waveform", p->lfo_1_waveform);
-            settings.setValue("settings:lfo_1_freq", p->lfo_1_freq);
-            settings.setValue("settings:lfo_1_amp", p->lfo_1_amp);
-            settings.setValue("settings:lfo_1_offset", p->lfo_1_offset);
+        settings.setValue("settings:lfo_1_waveform", p->lfo_1_waveform);
+        settings.setValue("settings:lfo_1_freq", p->lfo_1_freq);
+        settings.setValue("settings:lfo_1_amp", p->lfo_1_amp);
+        settings.setValue("settings:lfo_1_offset", p->lfo_1_offset);
 
-            settings.setValue("settings:lfo_2_waveform", p->lfo_2_waveform);
-            settings.setValue("settings:lfo_2_freq", p->lfo_2_freq);
-            settings.setValue("settings:lfo_2_amp", p->lfo_2_amp);
-            settings.setValue("settings:lfo_2_offset", p->lfo_2_offset);
+        settings.setValue("settings:lfo_2_waveform", p->lfo_2_waveform);
+        settings.setValue("settings:lfo_2_freq", p->lfo_2_freq);
+        settings.setValue("settings:lfo_2_amp", p->lfo_2_amp);
+        settings.setValue("settings:lfo_2_offset", p->lfo_2_offset);
 
-            settings.setValue("settings:sm_0_type", p->sm_0_type);
-            settings.setValue("settings:sm_0_freq", p->sm_0_freq);
-            settings.setValue("settings:sm_0_amp", p->sm_0_amp);
-            settings.setValue("settings:sm_0_offset", p->sm_0_offset);
-            settings.setValue("settings:sm_0_seq_val", VecToStr(p->sm_0_seq_val));
+        settings.setValue("settings:sm_0_type", p->sm_0_type);
+        settings.setValue("settings:sm_0_freq", p->sm_0_freq);
+        settings.setValue("settings:sm_0_amp", p->sm_0_amp);
+        settings.setValue("settings:sm_0_offset", p->sm_0_offset);
+        settings.setValue("settings:sm_0_seq_val", VecToStr(p->sm_0_seq_val));
 
-            settings.setValue("settings:sm_1_type", p->sm_1_type);
-            settings.setValue("settings:sm_1_freq", p->sm_1_freq);
-            settings.setValue("settings:sm_1_amp", p->sm_1_amp);
-            settings.setValue("settings:sm_1_offset", p->sm_1_offset);
-            settings.setValue("settings:sm_1_seq_val", VecToStr(p->sm_1_seq_val));
+        settings.setValue("settings:sm_1_type", p->sm_1_type);
+        settings.setValue("settings:sm_1_freq", p->sm_1_freq);
+        settings.setValue("settings:sm_1_amp", p->sm_1_amp);
+        settings.setValue("settings:sm_1_offset", p->sm_1_offset);
+        settings.setValue("settings:sm_1_seq_val", VecToStr(p->sm_1_seq_val));
 
-            settings.setValue("settings:sm_2_type", p->sm_2_type);
-            settings.setValue("settings:sm_2_freq", p->sm_2_freq);
-            settings.setValue("settings:sm_2_amp", p->sm_2_amp);
-            settings.setValue("settings:sm_2_offset", p->sm_2_offset);
-            settings.setValue("settings:sm_2_seq_val", VecToStr(p->sm_2_seq_val));
+        settings.setValue("settings:sm_2_type", p->sm_2_type);
+        settings.setValue("settings:sm_2_freq", p->sm_2_freq);
+        settings.setValue("settings:sm_2_amp", p->sm_2_amp);
+        settings.setValue("settings:sm_2_offset", p->sm_2_offset);
+        settings.setValue("settings:sm_2_seq_val", VecToStr(p->sm_2_seq_val));
 
-            settings.setValue("settings:portamento", p->portamento);
-            settings.setValue("settings:delay_delay", p->delay_delay);
-            settings.setValue("settings:delay_feedback", p->delay_feedback);
-            settings.setValue("settings:overdrive_gain", p->overdrive_gain);
-            settings.setValue("settings:overdrive_drive", p->overdrive_drive);
-        }
-        break;
+        settings.setValue("settings:portamento", p->portamento);
+        settings.setValue("settings:delay_delay", p->delay_delay);
+        settings.setValue("settings:delay_feedback", p->delay_feedback);
+        settings.setValue("settings:overdrive_gain", p->overdrive_gain);
+        settings.setValue("settings:overdrive_drive", p->overdrive_drive);
+    }
+    break;
     case DSettings::DSAMPLER:
-        {
-            DSampler::Config *p;
-            p = (DSampler::Config *)config;
-            settings.setValue("settings:settingstype", "DSampler");
-            settings.setValue("settings:voices", p->voices);
-            settings.setValue("settings:tune", p->tune);
-            settings.setValue("settings:transpose", p->transpose);
-            settings.setValue("settings:osc0_level", p->osc0_level);
-            settings.setValue("settings:noise_level", p->noise_level);
-            settings.setValue("settings:filter_type", p->filter_type);
-            settings.setValue("settings:filter_cutoff", p->filter_cutoff);
-            settings.setValue("settings:filter_res", p->filter_res);
+    {
+        DSampler::Config *p;
+        p = (DSampler::Config *)config;
+        settings.setValue("settings:settingstype", "DSampler");
+        settings.setValue("settings:voices", p->voices);
+        settings.setValue("settings:tune", p->tune);
+        settings.setValue("settings:transpose", p->transpose);
+        settings.setValue("settings:osc0_level", p->osc0_level);
+        settings.setValue("settings:noise_level", p->noise_level);
+        settings.setValue("settings:filter_type", p->filter_type);
+        settings.setValue("settings:filter_cutoff", p->filter_cutoff);
+        settings.setValue("settings:filter_res", p->filter_res);
 
-            settings.setValue("settings:eg_p_level", p->eg_p_level);
-            settings.setValue("settings:eg_p_attack", p->eg_p_attack);
-            settings.setValue("settings:eg_p_decay", p->eg_p_decay);
-            settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
-            settings.setValue("settings:eg_p_release", p->eg_p_release);
+        settings.setValue("settings:eg_p_level", p->eg_p_level);
+        settings.setValue("settings:eg_p_attack", p->eg_p_attack);
+        settings.setValue("settings:eg_p_decay", p->eg_p_decay);
+        settings.setValue("settings:eg_p_sustain", p->eg_p_sustain);
+        settings.setValue("settings:eg_p_release", p->eg_p_release);
 
-            settings.setValue("settings:eg_f_level", p->eg_f_level);
-            settings.setValue("settings:eg_f_attack", p->eg_f_attack);
-            settings.setValue("settings:eg_f_decay", p->eg_f_decay);
-            settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
-            settings.setValue("settings:eg_f_release", p->eg_f_release);
+        settings.setValue("settings:eg_f_level", p->eg_f_level);
+        settings.setValue("settings:eg_f_attack", p->eg_f_attack);
+        settings.setValue("settings:eg_f_decay", p->eg_f_decay);
+        settings.setValue("settings:eg_f_sustain", p->eg_f_sustain);
+        settings.setValue("settings:eg_f_release", p->eg_f_release);
 
-            settings.setValue("settings:eg_a_attack", p->eg_a_attack);
-            settings.setValue("settings:eg_a_decay", p->eg_a_decay);
-            settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
-            settings.setValue("settings:eg_a_release", p->eg_a_release);
+        settings.setValue("settings:eg_a_attack", p->eg_a_attack);
+        settings.setValue("settings:eg_a_decay", p->eg_a_decay);
+        settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
+        settings.setValue("settings:eg_a_release", p->eg_a_release);
 
-            settings.setValue("settings:lfo_waveform", p->lfo_waveform);
-            settings.setValue("settings:lfo_freq", p->lfo_freq);
-            settings.setValue("settings:lfo_amp", p->lfo_amp);
-            settings.setValue("settings:lfo_p_level", p->lfo_p_level);
-            settings.setValue("settings:lfo_f_level", p->lfo_f_level);
-            settings.setValue("settings:lfo_a_level", p->lfo_a_level);
+        settings.setValue("settings:lfo_waveform", p->lfo_waveform);
+        settings.setValue("settings:lfo_freq", p->lfo_freq);
+        settings.setValue("settings:lfo_amp", p->lfo_amp);
+        settings.setValue("settings:lfo_p_level", p->lfo_p_level);
+        settings.setValue("settings:lfo_f_level", p->lfo_f_level);
+        settings.setValue("settings:lfo_a_level", p->lfo_a_level);
 
-            settings.setValue("settings:portamento", p->portamento);
-            settings.setValue("settings:delay_delay", p->delay_delay);
-            settings.setValue("settings:delay_feedback", p->delay_feedback);
-            settings.setValue("settings:overdrive_gain", p->overdrive_gain);
-            settings.setValue("settings:overdrive_drive", p->overdrive_drive);
+        settings.setValue("settings:portamento", p->portamento);
+        settings.setValue("settings:delay_delay", p->delay_delay);
+        settings.setValue("settings:delay_feedback", p->delay_feedback);
+        settings.setValue("settings:overdrive_gain", p->overdrive_gain);
+        settings.setValue("settings:overdrive_drive", p->overdrive_drive);
 
-            settings.setValue("settings:loop", p->loop);
-            settings.setValue("settings:sample_file_name", p->sample_file_name);
-            settings.setValue("settings:sample_phase_start", (int)(p->sample_phase_start));
-            settings.setValue("settings:sample_phase_loop_start", (int)(p->sample_phase_loop_start));
-            settings.setValue("settings:sample_phase_loop_end", (int)(p->sample_phase_loop_end));
-            settings.setValue("settings:sample_phase_end", (int)(p->sample_phase_end));
+        settings.setValue("settings:loop", p->loop);
+        settings.setValue("settings:sample_file_name", p->sample_file_name);
+        settings.setValue("settings:sample_phase_start", (int)(p->sample_phase_start));
+        settings.setValue("settings:sample_phase_loop_start", (int)(p->sample_phase_loop_start));
+        settings.setValue("settings:sample_phase_loop_end", (int)(p->sample_phase_loop_end));
+        settings.setValue("settings:sample_phase_end", (int)(p->sample_phase_end));
 
-            settings.setValue("settings:sample_length", (int)(p->sample_length));
-            settings.setValue("settings:sample_channels", (int)(p->sample_channels));
-        }
-        break;
+        settings.setValue("settings:sample_length", (int)(p->sample_length));
+        settings.setValue("settings:sample_channels", (int)(p->sample_channels));
+    }
+    break;
+    case DSettings::DCHOP:
+    {
+        DChop::Config *p;
+        p = (DChop::Config *)config;
+        settings.setValue("settings:settingstype", "DChop");
+        settings.setValue("settings:chop_gate", p->chop_gate);
+        settings.setValue("settings:mode_free", p->mode_free);
+        settings.setValue("settings:loop", p->loop);
+        settings.setValue("settings:tune", p->tune);
+        settings.setValue("settings:filter_type", p->filter_type);
+        settings.setValue("settings:filter_cutoff", p->filter_cutoff);
+        settings.setValue("settings:filter_res", p->filter_res);
+
+        settings.setValue("settings:eg_a_attack", p->eg_a_attack);
+        settings.setValue("settings:eg_a_decay", p->eg_a_decay);
+        settings.setValue("settings:eg_a_sustain", p->eg_a_sustain);
+        settings.setValue("settings:eg_a_release", p->eg_a_release);
+
+        settings.setValue("settings:lfo_waveform", p->lfo_waveform);
+        settings.setValue("settings:lfo_freq", p->lfo_freq);
+        settings.setValue("settings:lfo_amp", p->lfo_amp);
+        settings.setValue("settings:lfo_p_level", p->lfo_p_level);
+        settings.setValue("settings:lfo_f_level", p->lfo_f_level);
+        settings.setValue("settings:lfo_a_level", p->lfo_a_level);
+
+        settings.setValue("settings:delay_delay", p->delay_delay);
+        settings.setValue("settings:delay_feedback", p->delay_feedback);
+        settings.setValue("settings:overdrive_gain", p->overdrive_gain);
+        settings.setValue("settings:overdrive_drive", p->overdrive_drive);
+
+        settings.setValue("settings:sample_file_name", p->sample_file_name);
+        settings.setValue("settings:sample_length", (int)(p->sample_length));
+        settings.setValue("settings:sample_channels", (int)(p->sample_channels));
+
+        settings.setValue("settings:sample_phase_start_0", (int)(p->sample_phase_start[0]));
+        settings.setValue("settings:sample_phase_end_0", (int)(p->sample_phase_end[0]));
+        settings.setValue("settings:chops_0", (int)(p->chops[0]));
+        settings.setValue("settings:chop_notes_0", (int)(p->chops_notes[0]));
+
+        settings.setValue("settings:sample_phase_start_1", (int)(p->sample_phase_start[1]));
+        settings.setValue("settings:sample_phase_end_1", (int)(p->sample_phase_end[1]));
+        settings.setValue("settings:chops_1", (int)(p->chops[1]));
+        settings.setValue("settings:chop_notes_1", (int)(p->chops_notes[1]));
+
+        settings.setValue("settings:sample_phase_start_2", (int)(p->sample_phase_start[2]));
+        settings.setValue("settings:sample_phase_end_2", (int)(p->sample_phase_end[2]));
+        settings.setValue("settings:chops_2", (int)(p->chops[2]));
+        settings.setValue("settings:chop_notes_2", (int)(p->chops_notes[2]));
+
+        settings.setValue("settings:sample_phase_start_3", (int)(p->sample_phase_start[3]));
+        settings.setValue("settings:sample_phase_end_3", (int)(p->sample_phase_end[3]));
+        settings.setValue("settings:chops_3", (int)(p->chops[3]));
+        settings.setValue("settings:chop_notes_3", (int)(p->chops_notes[3]));
+
+        settings.setValue("settings:sample_phase_start_4", (int)(p->sample_phase_start[4]));
+        settings.setValue("settings:sample_phase_end_4", (int)(p->sample_phase_end[4]));
+        settings.setValue("settings:chops_4", (int)(p->chops[4]));
+        settings.setValue("settings:chop_notes_4", (int)(p->chops_notes[4]));
+
+        settings.setValue("settings:sample_phase_start_5", (int)(p->sample_phase_start[5]));
+        settings.setValue("settings:sample_phase_end_5", (int)(p->sample_phase_end[5]));
+        settings.setValue("settings:chops_5", (int)(p->chops[5]));
+        settings.setValue("settings:chop_notes_5", (int)(p->chops_notes[5]));
+
+        settings.setValue("settings:sample_phase_start_6", (int)(p->sample_phase_start[6]));
+        settings.setValue("settings:sample_phase_end_6", (int)(p->sample_phase_end[6]));
+        settings.setValue("settings:chops_6", (int)(p->chops[6]));
+        settings.setValue("settings:chop_notes_6", (int)(p->chops_notes[6]));
+
+        settings.setValue("settings:sample_phase_start_7", (int)(p->sample_phase_start[7]));
+        settings.setValue("settings:sample_phase_end_7", (int)(p->sample_phase_end[7]));
+        settings.setValue("settings:chops_7", (int)(p->chops[7]));
+        settings.setValue("settings:chop_notes_7", (int)(p->chops_notes[7]));
+
+    }
+    break;
     case DSettings::DRUM:
         switch (subtype)
         {
         case DSettings::DBASS:
-            {
-                DBass::Config *p;
-                p = (DBass::Config *)config;
-                settings.setValue("settings:settingstype", "DBass");
-                settings.setValue("settings:type", p->type);
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:tone", p->tone);
-                settings.setValue("settings:decay", p->decay);
-                settings.setValue("settings:fm_attack", p->fm_attack);
-                settings.setValue("settings:fm_self", p->fm_self);
-                settings.setValue("settings:decay", p->dirtiness);
-                settings.setValue("settings:fm_env_amount", p->fm_env_amount);
-                settings.setValue("settings:fm_env_decay", p->fm_env_decay);
-                settings.setValue("settings:min", p->min);
-            }
-            break;
+        {
+            DBass::Config *p;
+            p = (DBass::Config *)config;
+            settings.setValue("settings:settingstype", "DBass");
+            settings.setValue("settings:type", p->type);
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:tone", p->tone);
+            settings.setValue("settings:decay", p->decay);
+            settings.setValue("settings:fm_attack", p->fm_attack);
+            settings.setValue("settings:fm_self", p->fm_self);
+            settings.setValue("settings:decay", p->dirtiness);
+            settings.setValue("settings:fm_env_amount", p->fm_env_amount);
+            settings.setValue("settings:fm_env_decay", p->fm_env_decay);
+            settings.setValue("settings:min", p->min);
+        }
+        break;
         case DSettings::DSNARE:
-            {
-                DSnare::Config *p;
-                p = (DSnare::Config *)config;
-                settings.setValue("settings:settingstype", "DSnare");
-                settings.setValue("settings:type", p->type);
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:decay", p->decay);
-                settings.setValue("settings:snappy", p->snappy);
-                settings.setValue("settings:tone", p->tone);
-                settings.setValue("settings:fm_amount", p->fm_amount);
-                settings.setValue("settings:amp", p->amp);
-                settings.setValue("settings:min", p->min);
-                settings.setValue("settings:res", p->res);
-                settings.setValue("settings:drive", p->drive);
-                settings.setValue("settings:freq_noise", p->freq_noise);
-            }
-            break;
+        {
+            DSnare::Config *p;
+            p = (DSnare::Config *)config;
+            settings.setValue("settings:settingstype", "DSnare");
+            settings.setValue("settings:type", p->type);
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:decay", p->decay);
+            settings.setValue("settings:snappy", p->snappy);
+            settings.setValue("settings:tone", p->tone);
+            settings.setValue("settings:fm_amount", p->fm_amount);
+            settings.setValue("settings:amp", p->amp);
+            settings.setValue("settings:min", p->min);
+            settings.setValue("settings:res", p->res);
+            settings.setValue("settings:drive", p->drive);
+            settings.setValue("settings:freq_noise", p->freq_noise);
+        }
+        break;
         case DSettings::DHIHAT:
-            {
-                DHihat::Config *p;
-                p = (DHihat::Config *)config;
-                settings.setValue("settings:settingstype", "DHihat");
-                settings.setValue("settings:type", p->type);
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:decay", p->decay);
-                settings.setValue("settings:tone", p->tone);
-                settings.setValue("settings:noisiness", p->noisiness);
-                settings.setValue("settings:amp", p->amp);
-                settings.setValue("settings:res", p->res);
-                settings.setValue("settings:drive", p->drive);
-            }
-            break;
+        {
+            DHihat::Config *p;
+            p = (DHihat::Config *)config;
+            settings.setValue("settings:settingstype", "DHihat");
+            settings.setValue("settings:type", p->type);
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:decay", p->decay);
+            settings.setValue("settings:tone", p->tone);
+            settings.setValue("settings:noisiness", p->noisiness);
+            settings.setValue("settings:amp", p->amp);
+            settings.setValue("settings:res", p->res);
+            settings.setValue("settings:drive", p->drive);
+        }
+        break;
         case DSettings::DCLAP:
-            {
-                DClap::Config *p;
-                p = (DClap::Config *)config;
-                settings.setValue("settings:settingstype", "DClap");
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:res", p->res);
-                settings.setValue("settings:drive", p->drive);
-                settings.setValue("settings:amp", p->amp);
-                settings.setValue("settings:decay", p->decay);
-            }
-            break;
+        {
+            DClap::Config *p;
+            p = (DClap::Config *)config;
+            settings.setValue("settings:settingstype", "DClap");
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:res", p->res);
+            settings.setValue("settings:drive", p->drive);
+            settings.setValue("settings:amp", p->amp);
+            settings.setValue("settings:decay", p->decay);
+        }
+        break;
         case DSettings::DCYMBAL:
-            {
-                DCymbal::Config *p;
-                p = (DCymbal::Config *)config;
-                settings.setValue("settings:settingstype", "DCymbal");
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:res", p->res);
-                settings.setValue("settings:drive", p->drive);
-                settings.setValue("settings:amp", p->amp);
-                settings.setValue("settings:decay", p->decay);
-                settings.setValue("settings:min", p->min);
-                settings.setValue("settings:mix", p->mix);
-            }
+        {
+            DCymbal::Config *p;
+            p = (DCymbal::Config *)config;
+            settings.setValue("settings:settingstype", "DCymbal");
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:res", p->res);
+            settings.setValue("settings:drive", p->drive);
+            settings.setValue("settings:amp", p->amp);
+            settings.setValue("settings:decay", p->decay);
+            settings.setValue("settings:min", p->min);
+            settings.setValue("settings:mix", p->mix);
+        }
         case DSettings::DDRUM:
-            {
-                DDrum::Config *p;
-                p = (DDrum::Config *)config;
-                settings.setValue("settings:settingstype", "DCymbal");
-                settings.setValue("settings:vol", p->vol);
-                settings.setValue("settings:freq", p->freq);
-                settings.setValue("settings:amp", p->amp);
-                settings.setValue("settings:decay", p->decay);
-                settings.setValue("settings:min", p->min);
-            }
-            break;
+        {
+            DDrum::Config *p;
+            p = (DDrum::Config *)config;
+            settings.setValue("settings:settingstype", "DCymbal");
+            settings.setValue("settings:vol", p->vol);
+            settings.setValue("settings:freq", p->freq);
+            settings.setValue("settings:amp", p->amp);
+            settings.setValue("settings:decay", p->decay);
+            settings.setValue("settings:min", p->min);
+        }
+        break;
         default:
             break;
         }
@@ -481,401 +557,474 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
 
 void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config)
 {
-    
+
     DXMLSettings settings;
     settings.loadInit(file_name);
 
     switch (type)
     {
     case DSettings::DSYNTHSUB:
-        {
-            DSynthSub::Config *p;
-            p = (DSynthSub::Config *)config;
-            p->sample_rate = DSTUDIO_SAMPLE_RATE;
-            p->voices = settings.getValue("settings:voices", 1);
-            p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
-            p->waveform1 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform1", DSynthSub::WAVE_TRI));
-            p->tune = settings.getValue("settings:tune", 0.0f);
-            p->detune = settings.getValue("settings:detune", 0.0f);
-            p->transpose = settings.getValue("settings:transpose", 0);
+    {
+        DSynthSub::Config *p;
+        p = (DSynthSub::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->voices = settings.getValue("settings:voices", 1);
+        p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
+        p->waveform1 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform1", DSynthSub::WAVE_TRI));
+        p->tune = settings.getValue("settings:tune", 0.0f);
+        p->detune = settings.getValue("settings:detune", 0.0f);
+        p->transpose = settings.getValue("settings:transpose", 0);
 
-            p->osc0_level = settings.getValue("settings:osc0_level", 0.5f);
-            p->osc1_level = settings.getValue("settings:osc1_level", 0.5f);
-            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
-            p->filter_type = static_cast<DSynthSub::FilterType>(settings.getValue("settings:filter_type", DSynthSub::LOW));
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+        p->osc0_level = settings.getValue("settings:osc0_level", 0.5f);
+        p->osc1_level = settings.getValue("settings:osc1_level", 0.5f);
+        p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+        p->filter_type = static_cast<DSynthSub::FilterType>(settings.getValue("settings:filter_type", DSynthSub::LOW));
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
-            p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
-            p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
-            p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
-            p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
-            p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
+        p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
+        p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
+        p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
+        p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
+        p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
 
-            p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
-            p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
-            p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
-            p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
-            p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
+        p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
+        p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
+        p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
+        p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
+        p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
 
-            p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
-            p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
-            p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
-            p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+        p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+        p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+        p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+        p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
 
-            p->lfo_waveform = static_cast<DSynthSub::Waveform>(settings.getValue("settings:lfo_waveform", DSynthSub::WAVE_TRI));
+        p->lfo_waveform = static_cast<DSynthSub::Waveform>(settings.getValue("settings:lfo_waveform", DSynthSub::WAVE_TRI));
 
-            p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
-            p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
-            p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
-            p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+        p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+        p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+        p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+        p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
 
-            p->portamento = settings.getValue("settings:portamento", 0.0f);
-            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
-            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
-            p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
-            p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
-
-        }
-        break;
+        p->portamento = settings.getValue("settings:portamento", 0.0f);
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+    }
+    break;
     case DSettings::DSYNTHSUBS:
-        {
-            DSynthSubS::Config *p;
-            p = (DSynthSubS::Config *)config;
-            p->sample_rate = DSTUDIO_SAMPLE_RATE;
-            p->voices = settings.getValue("settings:voices", 1);
-            p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
-            p->waveform1 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform1", DSynthSub::WAVE_TRI));
-            //p->tune = settings.getValue("settings:tune", 0.0f);
-            p->detune = settings.getValue("settings:detune", 0.0f);
-            //p->transpose = settings.getValue("settings:transpose", 0);
+    {
+        DSynthSubS::Config *p;
+        p = (DSynthSubS::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->voices = settings.getValue("settings:voices", 1);
+        p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
+        p->waveform1 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform1", DSynthSub::WAVE_TRI));
+        // p->tune = settings.getValue("settings:tune", 0.0f);
+        p->detune = settings.getValue("settings:detune", 0.0f);
+        // p->transpose = settings.getValue("settings:transpose", 0);
 
-            p->osc0_level = settings.getValue("settings:osc0_level", 0.5f);
-            p->osc1_level = settings.getValue("settings:osc1_level", 0.5f);
-            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
-            p->filter_type = static_cast<DSynthSub::FilterType>(settings.getValue("settings:filter_type", DSynthSub::LOW));
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+        p->osc0_level = settings.getValue("settings:osc0_level", 0.5f);
+        p->osc1_level = settings.getValue("settings:osc1_level", 0.5f);
+        p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+        p->filter_type = static_cast<DSynthSub::FilterType>(settings.getValue("settings:filter_type", DSynthSub::LOW));
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
-            p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
-            p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
-            p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
-            p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
-            p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
+        p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
+        p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
+        p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
+        p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
+        p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
 
-            p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
-            p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
-            p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
-            p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
-            p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
+        p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
+        p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
+        p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
+        p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
+        p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
 
-            p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
-            p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
-            p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
-            p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+        p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+        p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+        p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+        p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
 
-            p->lfo_waveform = static_cast<DSynthSub::Waveform>(settings.getValue("settings:lfo_waveform", DSynthSub::WAVE_TRI));
+        p->lfo_waveform = static_cast<DSynthSub::Waveform>(settings.getValue("settings:lfo_waveform", DSynthSub::WAVE_TRI));
 
-            p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
-            p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
-            p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
-            p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+        p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+        p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+        p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+        p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
 
-            p->portamento = settings.getValue("settings:portamento", 0.0f);
-            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
-            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
-            //p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
-            //p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
-
-        }
-        break;
+        p->portamento = settings.getValue("settings:portamento", 0.0f);
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        // p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        // p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+    }
+    break;
     case DSettings::DSYNTHFM:
-        {
-            DSynthFm::Config *p;
-            p = (DSynthFm::Config *)config;
-            p->sample_rate = DSTUDIO_SAMPLE_RATE;
-            p->voices = settings.getValue("settings:voices", 1);
-            p->ratio = settings.getValue("settings:ratio", 0.5f);
-            p->index = settings.getValue("settings:index", 0.5f);
-            p->tune = settings.getValue("settings:tune", 0.0f);
-            p->transpose = settings.getValue("settings:transpose", 0);
+    {
+        DSynthFm::Config *p;
+        p = (DSynthFm::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->voices = settings.getValue("settings:voices", 1);
+        p->ratio = settings.getValue("settings:ratio", 0.5f);
+        p->index = settings.getValue("settings:index", 0.5f);
+        p->tune = settings.getValue("settings:tune", 0.0f);
+        p->transpose = settings.getValue("settings:transpose", 0);
 
-            p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
-            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
-            p->filter_type = static_cast<DSynthFm::FilterType>(settings.getValue("settings:filter_type", DSynthFm::LOW));
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+        p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
+        p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+        p->filter_type = static_cast<DSynthFm::FilterType>(settings.getValue("settings:filter_type", DSynthFm::LOW));
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
-            p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
-            p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
-            p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
-            p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
-            p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
+        p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
+        p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
+        p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
+        p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
+        p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
 
-            p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
-            p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
-            p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
-            p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
-            p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
+        p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
+        p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
+        p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
+        p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
+        p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
 
-            p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
-            p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
-            p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
-            p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+        p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+        p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+        p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+        p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
 
-            p->lfo_waveform = static_cast<DSynthFm::Waveform>(settings.getValue("settings:lfo_waveform", DSynthFm::WAVE_TRI));
+        p->lfo_waveform = static_cast<DSynthFm::Waveform>(settings.getValue("settings:lfo_waveform", DSynthFm::WAVE_TRI));
 
-            p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
-            p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
-            p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
-            p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+        p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+        p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+        p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+        p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
 
-            p->portamento = settings.getValue("settings:portamento", 0.0f);
-            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
-            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
-            p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
-            p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
-        }
-        break;
+        p->portamento = settings.getValue("settings:portamento", 0.0f);
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+    }
+    break;
     case DSettings::DSYNTHVAR:
-        {
-            DSynthVar::Config *p;
-            p = (DSynthVar::Config *)config;
-            p->sample_rate = DSTUDIO_SAMPLE_RATE;
-            p->voices = settings.getValue("settings:voices", 1);
-            p->waveshape = settings.getValue("settings:waveshape", 0.5f);
-            p->pulsewidth = settings.getValue("settings:pulsewidth", 0.5f);
-            p->sync_enable = settings.getValue("settings:sync_enable", true);
-            p->sync_freq = settings.getValue("settings:sync_freq", 440.0f);
-            p->tune = settings.getValue("settings:tune", 0.0f);
-            p->transpose = settings.getValue("settings:transpose", 0);
-            p->osc_level = settings.getValue("settings:osc_level", 0.5f);
-            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
-            p->filter_type = static_cast<DSynthVar::FilterType>(settings.getValue("settings:filter_type", DSynthVar::LOW));
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+    {
+        DSynthVar::Config *p;
+        p = (DSynthVar::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->voices = settings.getValue("settings:voices", 1);
+        p->waveshape = settings.getValue("settings:waveshape", 0.5f);
+        p->pulsewidth = settings.getValue("settings:pulsewidth", 0.5f);
+        p->sync_enable = settings.getValue("settings:sync_enable", true);
+        p->sync_freq = settings.getValue("settings:sync_freq", 440.0f);
+        p->tune = settings.getValue("settings:tune", 0.0f);
+        p->transpose = settings.getValue("settings:transpose", 0);
+        p->osc_level = settings.getValue("settings:osc_level", 0.5f);
+        p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+        p->filter_type = static_cast<DSynthVar::FilterType>(settings.getValue("settings:filter_type", DSynthVar::LOW));
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
-            p->mod_eg_p = settings.getValue("settings:mod_eg_p", 0.0f);
-            p->mod_eg_f = settings.getValue("settings:mod_eg_f", 0.0f);
-            p->mod_eg_a = settings.getValue("settings:mod_eg_a", 0.0f);
-            p->mod_filter_cutoff = settings.getValue("settings:mod_filter_cutoff", 0.0f);
-            p->mod_waveshape = settings.getValue("settings:mod_waveshape", 0.0f);
-            p->mod_pulsewidth = settings.getValue("settings:mod_pulsewidth", 0.0f);
-            p->mod_sync_freq = settings.getValue("settings:mod_sync_freq", 0.0f);
-            p->mod_delay = settings.getValue("settings:mod_delay", 0.0f);
+        p->mod_eg_p = settings.getValue("settings:mod_eg_p", 0.0f);
+        p->mod_eg_f = settings.getValue("settings:mod_eg_f", 0.0f);
+        p->mod_eg_a = settings.getValue("settings:mod_eg_a", 0.0f);
+        p->mod_filter_cutoff = settings.getValue("settings:mod_filter_cutoff", 0.0f);
+        p->mod_waveshape = settings.getValue("settings:mod_waveshape", 0.0f);
+        p->mod_pulsewidth = settings.getValue("settings:mod_pulsewidth", 0.0f);
+        p->mod_sync_freq = settings.getValue("settings:mod_sync_freq", 0.0f);
+        p->mod_delay = settings.getValue("settings:mod_delay", 0.0f);
 
-            p->eg_0_level = settings.getValue("settings:eg_0_level", 1.0f);
-            p->eg_0_attack = settings.getValue("settings:eg_0_attack", 0.0f);
-            p->eg_0_decay = settings.getValue("settings:eg_0_decay", 0.0f);
-            p->eg_0_sustain = settings.getValue("settings:eg_0_sustain", 1.0f);
-            p->eg_0_release = settings.getValue("settings:eg_0_release", 0.0f);
+        p->eg_0_level = settings.getValue("settings:eg_0_level", 1.0f);
+        p->eg_0_attack = settings.getValue("settings:eg_0_attack", 0.0f);
+        p->eg_0_decay = settings.getValue("settings:eg_0_decay", 0.0f);
+        p->eg_0_sustain = settings.getValue("settings:eg_0_sustain", 1.0f);
+        p->eg_0_release = settings.getValue("settings:eg_0_release", 0.0f);
 
-            p->eg_1_level = settings.getValue("settings:eg_1_level", 1.0f);
-            p->eg_1_attack = settings.getValue("settings:eg_1_attack", 0.0f);
-            p->eg_1_decay = settings.getValue("settings:eg_1_decay", 0.0f);
-            p->eg_1_sustain = settings.getValue("settings:eg_1_sustain", 1.0f);
-            p->eg_1_release = settings.getValue("settings:eg_1_release", 0.0f);
+        p->eg_1_level = settings.getValue("settings:eg_1_level", 1.0f);
+        p->eg_1_attack = settings.getValue("settings:eg_1_attack", 0.0f);
+        p->eg_1_decay = settings.getValue("settings:eg_1_decay", 0.0f);
+        p->eg_1_sustain = settings.getValue("settings:eg_1_sustain", 1.0f);
+        p->eg_1_release = settings.getValue("settings:eg_1_release", 0.0f);
 
-            p->eg_2_level = settings.getValue("settings:eg_2_level", 1.0f);
-            p->eg_2_attack = settings.getValue("settings:eg_2_attack", 0.0f);
-            p->eg_2_decay = settings.getValue("settings:eg_2_decay", 0.0f);
-            p->eg_2_sustain = settings.getValue("settings:eg_2_sustain", 1.0f);
-            p->eg_2_release = settings.getValue("settings:eg_2_release", 0.0f);
+        p->eg_2_level = settings.getValue("settings:eg_2_level", 1.0f);
+        p->eg_2_attack = settings.getValue("settings:eg_2_attack", 0.0f);
+        p->eg_2_decay = settings.getValue("settings:eg_2_decay", 0.0f);
+        p->eg_2_sustain = settings.getValue("settings:eg_2_sustain", 1.0f);
+        p->eg_2_release = settings.getValue("settings:eg_2_release", 0.0f);
 
-            p->lfo_0_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_0_waveform", DSynthVar::WAVE_TRI));
-            p->lfo_0_freq = settings.getValue("settings:lfo_0_freq", 0.0f);
-            p->lfo_0_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_0_offset = settings.getValue("settings:lfo_0_offset", 0.0f);
+        p->lfo_0_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_0_waveform", DSynthVar::WAVE_TRI));
+        p->lfo_0_freq = settings.getValue("settings:lfo_0_freq", 0.0f);
+        p->lfo_0_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_0_offset = settings.getValue("settings:lfo_0_offset", 0.0f);
 
-            p->lfo_1_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_1_waveform", DSynthVar::WAVE_TRI));
-            p->lfo_1_freq = settings.getValue("settings:lfo_1_freq", 0.0f);
-            p->lfo_1_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_1_offset = settings.getValue("settings:lfo_1_offset", 0.0f);
+        p->lfo_1_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_1_waveform", DSynthVar::WAVE_TRI));
+        p->lfo_1_freq = settings.getValue("settings:lfo_1_freq", 0.0f);
+        p->lfo_1_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_1_offset = settings.getValue("settings:lfo_1_offset", 0.0f);
 
-            p->lfo_2_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_2_waveform", DSynthVar::WAVE_TRI));
-            p->lfo_2_freq = settings.getValue("settings:lfo_2_freq", 0.0f);
-            p->lfo_2_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_2_offset = settings.getValue("settings:lfo_2_offset", 0.0f);
+        p->lfo_2_waveform = static_cast<DSynthVar::Waveform>(settings.getValue("settings:lfo_2_waveform", DSynthVar::WAVE_TRI));
+        p->lfo_2_freq = settings.getValue("settings:lfo_2_freq", 0.0f);
+        p->lfo_2_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_2_offset = settings.getValue("settings:lfo_2_offset", 0.0f);
 
-            p->sm_0_type = settings.getValue("settings:sm_0_type", DSTUDIO_SM_TYPE_NOISE);
-            p->sm_0_freq = settings.getValue("settings:sm_0_freq", 0.0f);
-            p->sm_0_amp = settings.getValue("settings:sm_0_amp", 1.0f);
-            p->sm_0_offset = settings.getValue("settings:sm_0_offset", 0.0f);
-            p->sm_0_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_0_seq_val", ""));
+        p->sm_0_type = settings.getValue("settings:sm_0_type", DSTUDIO_SM_TYPE_NOISE);
+        p->sm_0_freq = settings.getValue("settings:sm_0_freq", 0.0f);
+        p->sm_0_amp = settings.getValue("settings:sm_0_amp", 1.0f);
+        p->sm_0_offset = settings.getValue("settings:sm_0_offset", 0.0f);
+        p->sm_0_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_0_seq_val", ""));
 
-            p->sm_1_type = settings.getValue("settings:sm_1_type", DSTUDIO_SM_TYPE_NOISE);
-            p->sm_1_freq = settings.getValue("settings:sm_1_freq", 0.0f);
-            p->sm_1_amp = settings.getValue("settings:sm_1_amp", 1.0f);
-            p->sm_1_offset = settings.getValue("settings:sm_1_offset", 0.0f);
-            p->sm_1_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_1_seq_val", ""));
+        p->sm_1_type = settings.getValue("settings:sm_1_type", DSTUDIO_SM_TYPE_NOISE);
+        p->sm_1_freq = settings.getValue("settings:sm_1_freq", 0.0f);
+        p->sm_1_amp = settings.getValue("settings:sm_1_amp", 1.0f);
+        p->sm_1_offset = settings.getValue("settings:sm_1_offset", 0.0f);
+        p->sm_1_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_1_seq_val", ""));
 
-            p->sm_2_type = settings.getValue("settings:sm_2_type", DSTUDIO_SM_TYPE_NOISE);
-            p->sm_2_freq = settings.getValue("settings:sm_2_freq", 0.0f);
-            p->sm_2_amp = settings.getValue("settings:sm_2_amp", 1.0f);
-            p->sm_2_offset = settings.getValue("settings:sm_2_offset", 0.0f);
-            p->sm_2_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_2_seq_val", ""));
+        p->sm_2_type = settings.getValue("settings:sm_2_type", DSTUDIO_SM_TYPE_NOISE);
+        p->sm_2_freq = settings.getValue("settings:sm_2_freq", 0.0f);
+        p->sm_2_amp = settings.getValue("settings:sm_2_amp", 1.0f);
+        p->sm_2_offset = settings.getValue("settings:sm_2_offset", 0.0f);
+        p->sm_2_seq_val = DSettings::StrToVec(settings.getValue("settings:sm_2_seq_val", ""));
 
-            p->portamento = settings.getValue("settings:portamento", 0.0f);
-            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
-            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
-            p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
-            p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
-        }
-        break;
+        p->portamento = settings.getValue("settings:portamento", 0.0f);
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+    }
+    break;
     case DSettings::DSAMPLER:
-        {
-            DSampler::Config *p;
-            p = (DSampler::Config *)config;
-            p->sample_rate = DSTUDIO_SAMPLE_RATE;
-            p->voices = settings.getValue("settings:voices", 1);
-            p->tune = settings.getValue("settings:tune", 0.0f);
-            p->transpose = settings.getValue("settings:transpose", 0);
+    {
+        DSampler::Config *p;
+        p = (DSampler::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->voices = settings.getValue("settings:voices", 1);
+        p->tune = settings.getValue("settings:tune", 0.0f);
+        p->transpose = settings.getValue("settings:transpose", 0);
 
-            p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
-            p->noise_level = settings.getValue("settings:noise_level", 0.0f);
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));
-            p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
-            p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+        p->osc0_level = settings.getValue("settings:osc0_level", 1.0f);
+        p->noise_level = settings.getValue("settings:noise_level", 0.0f);
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
-            p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
-            p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
-            p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
-            p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
-            p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
+        p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);
+        p->eg_p_attack = settings.getValue("settings:eg_p_attack", 0.0f);
+        p->eg_p_decay = settings.getValue("settings:eg_p_decay", 0.0f);
+        p->eg_p_sustain = settings.getValue("settings:eg_p_sustain", 0.0f);
+        p->eg_p_release = settings.getValue("settings:eg_p_release", 0.0f);
 
-            p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
-            p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
-            p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
-            p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
-            p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
+        p->eg_f_level = settings.getValue("settings:eg_f_level", 1.0f);
+        p->eg_f_attack = settings.getValue("settings:eg_f_attack", 0.0f);
+        p->eg_f_decay = settings.getValue("settings:eg_f_decay", 0.0f);
+        p->eg_f_sustain = settings.getValue("settings:eg_f_sustain", 1.0f);
+        p->eg_f_release = settings.getValue("settings:eg_f_release", 0.0f);
 
-            p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
-            p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
-            p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
-            p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+        p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+        p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+        p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+        p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
 
-            p->lfo_waveform = static_cast<DSampler::Waveform>(settings.getValue("settings:lfo_waveform", DSampler::WAVE_TRI));
-            p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
-            p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
-            p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
-            p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
-            p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+        p->lfo_waveform = static_cast<DSampler::Waveform>(settings.getValue("settings:lfo_waveform", DSampler::WAVE_TRI));
+        p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+        p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+        p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+        p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
 
-            p->portamento = settings.getValue("settings:portamento", 0.0f);
-            p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
-            p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
-            p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
-            p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
-            p->loop = settings.getValue("settings:loop", false);
-            p->sample_file_name = settings.getValue("settings:sample_file_name", "");
-            p->sample_phase_start = settings.getValue("settings:sample_phase_start", 0);
-            p->sample_phase_loop_start = settings.getValue("settings:sample_phase_loop_start", 0);
-            p->sample_phase_loop_end = settings.getValue("settings:sample_phase_loop_end", 0);
-            p->sample_phase_end = settings.getValue("settings:sample_phase_end", 0);
-            p->sample_length = settings.getValue("settings:sample_length", 0);
-            p->sample_channels = settings.getValue("settings:sample_channels", 0);
-        }
-        break;
+        p->portamento = settings.getValue("settings:portamento", 0.0f);
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+        p->loop = settings.getValue("settings:loop", false);
+        p->sample_file_name = settings.getValue("settings:sample_file_name", "");
+        p->sample_phase_start = settings.getValue("settings:sample_phase_start", 0);
+        p->sample_phase_loop_start = settings.getValue("settings:sample_phase_loop_start", 0);
+        p->sample_phase_loop_end = settings.getValue("settings:sample_phase_loop_end", 0);
+        p->sample_phase_end = settings.getValue("settings:sample_phase_end", 0);
+        p->sample_length = settings.getValue("settings:sample_length", 0);
+        p->sample_channels = settings.getValue("settings:sample_channels", 0);
+    }
+    break;
+    case DSettings::DCHOP:
+    {
+        DChop::Config *p;
+        p = (DChop::Config *)config;
+        p->sample_rate = DSTUDIO_SAMPLE_RATE;
+        p->tune = settings.getValue("settings:tune", 0.0f);
+        p->loop = settings.getValue("settings:loop", false);
+        p->chop_gate = settings.getValue("settings:chop_gate", 0.5f);
+        p->mode_free = settings.getValue("settings:mode_free", true);
 
+        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
+        p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));
+        p->filter_res = settings.getValue("settings:filter_res", 0.0f);
+
+        p->eg_a_attack = settings.getValue("settings:eg_a_attack", 0.0f);
+        p->eg_a_decay = settings.getValue("settings:eg_a_decay", 0.0f);
+        p->eg_a_sustain = settings.getValue("settings:eg_a_sustain", 1.0f);
+        p->eg_a_release = settings.getValue("settings:eg_a_release", 0.0f);
+
+        p->lfo_waveform = static_cast<DSampler::Waveform>(settings.getValue("settings:lfo_waveform", DSampler::WAVE_TRI));
+        p->lfo_freq = settings.getValue("settings:lfo_freq", 0.0f);
+        p->lfo_amp = settings.getValue("settings:lfo_amp", 0.0f);
+        p->lfo_p_level = settings.getValue("settings:lfo_p_level", 0.0f);
+        p->lfo_f_level = settings.getValue("settings:lfo_f_level", 0.0f);
+        p->lfo_a_level = settings.getValue("settings:lfo_a_level", 0.0f);
+
+        p->delay_delay = settings.getValue("settings:delay_delay", 0.0f);
+        p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
+        p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
+        p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+
+        p->sample_file_name = settings.getValue("settings:sample_file_name", "");
+        p->sample_length = settings.getValue("settings:sample_length", 0);
+        p->sample_channels = settings.getValue("settings:sample_channels", 0);
+
+        p->sample_phase_start[0] = settings.getValue("settings:sample_phase_start_0", 0);
+        p->sample_phase_end[0] = settings.getValue("settings:sample_phase_end_0", 0);
+        p->chops[0] = settings.getValue("settings:chops_0", 0);
+        p->chops_notes[0] = settings.getValue("settings:chop_notes_0", 0);
+
+        p->sample_phase_start[1] = settings.getValue("settings:sample_phase_start_1", 0);
+        p->sample_phase_end[1] = settings.getValue("settings:sample_phase_end_1", 0);
+        p->chops[1] = settings.getValue("settings:chops_1", 0);
+        p->chops_notes[1] = settings.getValue("settings:chop_notes_1", 0);
+
+        p->sample_phase_start[2] = settings.getValue("settings:sample_phase_start_2", 0);
+        p->sample_phase_end[2] = settings.getValue("settings:sample_phase_end_2", 0);
+        p->chops[2] = settings.getValue("settings:chops_0", 2);
+        p->chops_notes[2] = settings.getValue("settings:chop_notes_0", 2);
+
+        p->sample_phase_start[3] = settings.getValue("settings:sample_phase_start_3", 0);
+        p->sample_phase_end[3] = settings.getValue("settings:sample_phase_end_3", 0);
+        p->chops[3] = settings.getValue("settings:chops_0", 3);
+        p->chops_notes[3] = settings.getValue("settings:chop_notes_0", 3);
+
+        p->sample_phase_start[4] = settings.getValue("settings:sample_phase_start_4", 0);
+        p->sample_phase_end[4] = settings.getValue("settings:sample_phase_end_4", 0);
+        p->chops[4] = settings.getValue("settings:chops_0", 4);
+        p->chops_notes[4] = settings.getValue("settings:chop_notes_0", 4);
+
+        p->sample_phase_start[5] = settings.getValue("settings:sample_phase_start_5", 0);
+        p->sample_phase_end[5] = settings.getValue("settings:sample_phase_end_5", 0);
+        p->chops[5] = settings.getValue("settings:chops_0", 5);
+        p->chops_notes[5] = settings.getValue("settings:chop_notes_0", 5);
+
+        p->sample_phase_start[6] = settings.getValue("settings:sample_phase_start_6", 0);
+        p->sample_phase_end[6] = settings.getValue("settings:sample_phase_end_6", 0);
+        p->chops[6] = settings.getValue("settings:chops_0", 6);
+        p->chops_notes[6] = settings.getValue("settings:chop_notes_0", 6);
+
+        p->sample_phase_start[7] = settings.getValue("settings:sample_phase_start_7", 0);
+        p->sample_phase_end[7] = settings.getValue("settings:sample_phase_end_7", 0);
+        p->chops[7] = settings.getValue("settings:chops_0", 7);
+        p->chops_notes[7] = settings.getValue("settings:chop_notes_0", 7);
+    }
+    break;
     case DSettings::DRUM:
         switch (subtype)
         {
         case DSettings::DBASS:
-            {
-                DBass::Config *p;
-                p = (DBass::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->type = settings.getValue("settings:type", 1);
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 100.0f);
-                p->tone = settings.getValue("settings:tone", 0.5f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-                p->fm_attack = settings.getValue("settings:fm_attack", 0.0f);
-                p->fm_self = settings.getValue("settings:fm_self", 0.5f);
-                p->dirtiness = settings.getValue("settings:decay", 0.5f);
-                p->fm_env_amount = settings.getValue("settings:fm_env_amount", 0.5f);
-                p->fm_env_decay = settings.getValue("settings:fm_env_decay", 0.5f);
-                p->min = settings.getValue("settings:min", 0.5f);
-            }
-            break;
+        {
+            DBass::Config *p;
+            p = (DBass::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->type = settings.getValue("settings:type", 1);
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 100.0f);
+            p->tone = settings.getValue("settings:tone", 0.5f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+            p->fm_attack = settings.getValue("settings:fm_attack", 0.0f);
+            p->fm_self = settings.getValue("settings:fm_self", 0.5f);
+            p->dirtiness = settings.getValue("settings:decay", 0.5f);
+            p->fm_env_amount = settings.getValue("settings:fm_env_amount", 0.5f);
+            p->fm_env_decay = settings.getValue("settings:fm_env_decay", 0.5f);
+            p->min = settings.getValue("settings:min", 0.5f);
+        }
+        break;
         case DSettings::DSNARE:
-            {
-                DSnare::Config *p;
-                p = (DSnare::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->type = settings.getValue("settings:type", 1);
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 100.0f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-                p->snappy = settings.getValue("settings:snappy", 0.5f);
-                p->tone = settings.getValue("settings:tone", 0.5f);
-                p->fm_amount = settings.getValue("settings:fm_amount", 0.5f);
-                p->amp = settings.getValue("settings:amp", 0.5f);
-                p->min = settings.getValue("settings:min", 0.5f);
-                p->res = settings.getValue("settings:res", 0.5f);
-                p->drive = settings.getValue("settings:drive", 0.5f);
-                p->freq_noise = settings.getValue("settings:freq_noise", 1000.0f);
-            }
-            break;
+        {
+            DSnare::Config *p;
+            p = (DSnare::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->type = settings.getValue("settings:type", 1);
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 100.0f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+            p->snappy = settings.getValue("settings:snappy", 0.5f);
+            p->tone = settings.getValue("settings:tone", 0.5f);
+            p->fm_amount = settings.getValue("settings:fm_amount", 0.5f);
+            p->amp = settings.getValue("settings:amp", 0.5f);
+            p->min = settings.getValue("settings:min", 0.5f);
+            p->res = settings.getValue("settings:res", 0.5f);
+            p->drive = settings.getValue("settings:drive", 0.5f);
+            p->freq_noise = settings.getValue("settings:freq_noise", 1000.0f);
+        }
+        break;
         case DSettings::DHIHAT:
-            {
-                DHihat::Config *p;
-                p = (DHihat::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->type = settings.getValue("settings:type", 1.0f);
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 1000.0f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-                p->tone = settings.getValue("settings:tone", 0.5f);
-                p->noisiness = settings.getValue("settings:noisiness", 0.5f);
-                p->amp = settings.getValue("settings:amp", 0.5f);
-                p->res = settings.getValue("settings:res", 0.5f);
-                p->drive = settings.getValue("settings:drive", 0.5f);
-            }
-            break;
+        {
+            DHihat::Config *p;
+            p = (DHihat::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->type = settings.getValue("settings:type", 1.0f);
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 1000.0f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+            p->tone = settings.getValue("settings:tone", 0.5f);
+            p->noisiness = settings.getValue("settings:noisiness", 0.5f);
+            p->amp = settings.getValue("settings:amp", 0.5f);
+            p->res = settings.getValue("settings:res", 0.5f);
+            p->drive = settings.getValue("settings:drive", 0.5f);
+        }
+        break;
         case DSettings::DCLAP:
-            {
-                DClap::Config *p;
-                p = (DClap::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 1000.0f);
-                p->res = settings.getValue("settings:res", 0.5f);
-                p->drive = settings.getValue("settings:drive", 0.5f);
-                p->amp = settings.getValue("settings:amp", 0.5f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-            }
-            break;
+        {
+            DClap::Config *p;
+            p = (DClap::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 1000.0f);
+            p->res = settings.getValue("settings:res", 0.5f);
+            p->drive = settings.getValue("settings:drive", 0.5f);
+            p->amp = settings.getValue("settings:amp", 0.5f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+        }
+        break;
         case DSettings::DCYMBAL:
-            {
-                DCymbal::Config *p;
-                p = (DCymbal::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 1000.0f);
-                p->res = settings.getValue("settings:res", 0.5f);
-                p->drive = settings.getValue("settings:drive", 0.5f);
-                p->amp = settings.getValue("settings:amp", 0.5f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-                p->min = settings.getValue("settings:min", 0.5f);
-                p->mix = settings.getValue("settings:mix", 0.5f);
-            }
+        {
+            DCymbal::Config *p;
+            p = (DCymbal::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 1000.0f);
+            p->res = settings.getValue("settings:res", 0.5f);
+            p->drive = settings.getValue("settings:drive", 0.5f);
+            p->amp = settings.getValue("settings:amp", 0.5f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+            p->min = settings.getValue("settings:min", 0.5f);
+            p->mix = settings.getValue("settings:mix", 0.5f);
+        }
         case DSettings::DDRUM:
-            {
-                DDrum::Config *p;
-                p = (DDrum::Config *)config;
-                p->sample_rate = DSTUDIO_SAMPLE_RATE;
-                p->vol = settings.getValue("settings:vol", 1.0f);
-                p->freq = settings.getValue("settings:freq", 1000.0f);
-                p->amp = settings.getValue("settings:amp", 0.5f);
-                p->decay = settings.getValue("settings:decay", 0.5f);
-                p->min = settings.getValue("settings:min", 0.5f);
-            }
-            break;
+        {
+            DDrum::Config *p;
+            p = (DDrum::Config *)config;
+            p->sample_rate = DSTUDIO_SAMPLE_RATE;
+            p->vol = settings.getValue("settings:vol", 1.0f);
+            p->freq = settings.getValue("settings:freq", 1000.0f);
+            p->amp = settings.getValue("settings:amp", 0.5f);
+            p->decay = settings.getValue("settings:decay", 0.5f);
+            p->min = settings.getValue("settings:min", 0.5f);
+        }
+        break;
         default:
             break;
         } // switch
@@ -883,8 +1032,6 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     } // switch
     settings.loadExit();
 }
-
-
 
 std::string DSettings::VecToStr(std::vector<float> vec)
 {
@@ -894,7 +1041,7 @@ std::string DSettings::VecToStr(std::vector<float> vec)
     {
         if (i != 0)
         {
-           str += ", ";
+            str += ", ";
         }
         str += std::to_string(vec[i]);
     }
@@ -902,24 +1049,26 @@ std::string DSettings::VecToStr(std::vector<float> vec)
     return (str);
 }
 
-
-
 std::vector<float> DSettings::StrToVec(std::string str)
 {
     std::vector<float> vec;
 
     std::string temp;
-    for (int i = 0; i < str.length() ;i++)
+    for (int i = 0; i < str.length(); i++)
     {
         char ch = str[i];
         if (ch == ' ')
         {
             continue;
-        } else if (ch == ',') {
+        }
+        else if (ch == ',')
+        {
             if (temp.length() != 0)
                 vec.push_back(std::stof(temp));
             temp = "";
-        } else {
+        }
+        else
+        {
             temp += ch;
         }
     }
@@ -931,8 +1080,6 @@ std::vector<float> DSettings::StrToVec(std::string str)
     return (vec);
 }
 
-
-
 void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir_name)
 {
     // https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
@@ -942,13 +1089,14 @@ void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir
     files_.clear();
     file_at_ = 0;
     dir_name_ = dir_name;
-
+    std::string ext;
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir(dir_name.c_str())) != NULL)
     {
         // read all files in directory
-        while ((ent = readdir(dir)) != NULL) {
+        while ((ent = readdir(dir)) != NULL)
+        {
             // regular file?
             if (ent->d_type == DT_REG)
             {
@@ -956,42 +1104,69 @@ void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir
                 // eg <settingstype>DSynthSub</settingstype>
                 DXMLSettings settings;
                 std::string file_name = ent->d_name; // converts from c-style to c++-style string
-                settings.loadInit(dir_name_ + file_name);
-                std::string sound_type = settings.getValue("settings:settingstype", "");
-                settings.loadExit();
-                DSoundType sound_type_enum = MapSoundType(sound_type);
-                if (sound_type_enum == type)
+                // only read XML files
+                size_t i = file_name.rfind('.', file_name.length());
+                if (i != std::string::npos)
                 {
-                    files_.push_back(file_name);
-                    //#ifdef DEBUG
-                    std::cout << file_name << "\n";
-                    //#endif
+                    ext = file_name.substr(i + 1, file_name.length() - i);
+                }
+                else
+                {
+                    ext = "";
+                }
+                if (ext == "xml")
+                {
+
+                    settings.loadInit(dir_name_ + file_name);
+                    std::string sound_type = settings.getValue("settings:settingstype", "");
+                    settings.loadExit();
+                    DSoundType sound_type_enum = MapSoundType(sound_type);
+                    if (sound_type_enum == type)
+                    {
+                        files_.push_back(file_name);
+                        // #ifdef DEBUG
+                        std::cout << file_name << "\n";
+                        // #endif
+                    }
                 }
             }
         }
-        closedir (dir);
+        closedir(dir);
         std::sort(files_.begin(), files_.end());
     }
 }
 
-
-
 DSettings::DSoundType DSettingsD::MapSoundType(std::string sound_type)
 {
-    if (sound_type == "DSynthSub") {
+    if (sound_type == "DSynthSub")
+    {
         return DSettings::DSYNTHSUB;
-    } else if (sound_type == "DSynthVar") {
+    }
+    else if (sound_type == "DSynthVar")
+    {
         return DSettings::DSYNTHVAR;
-    } else if (sound_type == "DSynthFm") {
+    }
+    else if (sound_type == "DSynthFm")
+    {
         return DSettings::DSYNTHFM;
-    } else if (sound_type == "DSampler") {
+    }
+    else if (sound_type == "DSampler")
+    {
         return DSettings::DSAMPLER;
-    } else {
+    }
+    else if (sound_type == "DChop")
+    {
+        return DSettings::DCHOP;
+    }
+    else if (sound_type == "DHits")
+    {
+        return DSettings::DHITS;
+    }
+    else
+    {
         return DSettings::UNKNOWN;
     }
 }
-
-
 
 std::string DSettingsD::NextFile()
 {
@@ -1004,15 +1179,15 @@ std::string DSettingsD::NextFile()
         if (file_at_ < (files_len - 1))
         {
             file_at_++;
-        } else {
+        }
+        else
+        {
             file_at_ = 0;
         }
     }
 
     return file_name;
 }
-
-
 
 std::string DSettingsD::PrevFile()
 {
@@ -1025,7 +1200,9 @@ std::string DSettingsD::PrevFile()
         if (file_at_ > 0)
         {
             file_at_--;
-        } else {
+        }
+        else
+        {
             file_at_ = files_len - 1;
         }
     }

@@ -16,6 +16,7 @@ void DMixerS::Init()
 
 void DMixerS::Set(const Config& config)
 {
+    
 	//sample_rate_ = config.sample_rate;
 	channels_ = config.channels;
 

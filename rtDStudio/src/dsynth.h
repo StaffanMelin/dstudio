@@ -62,7 +62,8 @@ class DSynth : public DSound
 		LOW,
 		NOTCH,
         PEAK,
-        PASSTHROUGH
+        PASSTHROUGH,
+        LAST_FILTERTYPE
 	};
 
     struct Config

@@ -17,6 +17,7 @@ void DMixer::Init()
 
 void DMixer::Set(const Config& config)
 {
+
 	//sample_rate_ = config.sample_rate;
 	channels_ = config.channels;
 
@@ -26,7 +27,7 @@ void DMixer::Set(const Config& config)
 	{
 		synth_[i] = config.synth[i];
         level_[i] = config.level[i];
-		pan_[i] = config.pan[i];
+        pan_[i] = config.pan[i];
         chorus_level_[i] = config.chorus_level[i];
         reverb_level_[i] = config.reverb_level[i];
         mono_[i] = config.mono[i];

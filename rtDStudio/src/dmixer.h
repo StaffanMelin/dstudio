@@ -47,7 +47,7 @@ class DMixer : public DSound
     void SetReverbReturn(float);
     void SetMixDry(float);
     DSound *GetSynth(uint8_t synth);
-private:
+
 
 	float sample_rate_;
 	uint8_t channels_;
@@ -76,5 +76,6 @@ private:
 	float reverb_feedback_;
 	float reverb_lpffreq_;
 //	float reverb_dry_;
+private:
 
 };
