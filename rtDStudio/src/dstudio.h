@@ -53,6 +53,7 @@
 
 #include <chrono>
 uint64_t dGetElapsedTimeMicros();
+uint32_t dGetElapsedTimeMillis();
 float dRandom(float max);
 
 // class that measures interval in microseconds (millionth of a second)
