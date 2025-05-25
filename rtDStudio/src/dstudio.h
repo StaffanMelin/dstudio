@@ -55,6 +55,7 @@
 uint64_t dGetElapsedTimeMicros();
 uint32_t dGetElapsedTimeMillis();
 float dRandom(float max);
+float dRand(float max);
 
 // class that measures interval in microseconds (millionth of a second)
 class DInterval

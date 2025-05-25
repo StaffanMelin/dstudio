@@ -15,6 +15,10 @@ float dRandom(float max) {
     return (max * rand() / float(RAND_MAX)) * (1.0f - std::numeric_limits<float>::epsilon());
 }
 
+float dRand(float max) {
+    return (max * rand() / float(RAND_MAX));
+}
+
 // measure interval in microseconds
 void DInterval::Init(uint64_t interval_us)
 {

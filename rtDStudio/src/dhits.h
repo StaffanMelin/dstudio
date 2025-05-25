@@ -1,6 +1,7 @@
 #pragma once
 
 //#include <string>
+#include "../rtDStudio/src/libs/tinyxml.h"
 
 #include "dstudio.h"
 #include "dsound.h"
@@ -66,7 +67,7 @@ public:
     void Silence();
     void SetLevel(uint8_t hit, float level);
     void SetPan(uint8_t hit, float pan);
-    void SetTune(uint8_t tune);
+    void SetTune(uint8_t hit, float tune);
     void SetFreq(uint8_t hit, float freq);
     void SetEG(uint8_t hit, float, float, float, float);
     void SetDelay(float, float);
@@ -75,6 +76,18 @@ public:
     void GetPhase(uint8_t hit, uint32_t *, uint32_t *);
     void SetPhase(uint8_t hit, uint32_t, uint32_t);
     uint32_t GetLength(uint8_t hit);
+    void LoadHits(std::string file_name);
+
+    /*
+    float GetLevel(uint8_t  hit);
+    float GetPan(uint8_t  hit);
+    float GetTune(uint8_t  hit);
+    void GetEG(uint8_t hit, float a, float d, float s, float r);
+    void GetDelay(float delay, float feedback);
+    void GetOverdrive(float gain, float drive);
+    */
+
+    Config base_config_;
 
 private:
 
@@ -94,8 +107,6 @@ private:
     uint32_t sample_phase_start_[DHITS_HITS_MAX];
     uint32_t sample_phase_end_[DHITS_HITS_MAX]; // if 0, set to sample_length_ - 1 when loading sample
     uint32_t sample_length_[DHITS_HITS_MAX]; // set when loading sample; length of sample, < BUFFER_MAX
-
-    Config base_config_;
 
     // MIDI
     float note_freq_[DHITS_HITS_MAX];

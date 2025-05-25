@@ -449,7 +449,6 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         settings.setValue("settings:sample_phase_end_7", (int)(p->sample_phase_end[7]));
         settings.setValue("settings:chops_7", (int)(p->chops[7]));
         settings.setValue("settings:chop_notes_7", (int)(p->chops_notes[7]));
-
     }
     break;
     case DSettings::DRUM:

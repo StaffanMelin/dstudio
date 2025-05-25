@@ -63,8 +63,7 @@ void DHits::Set(const Config &config)
         eg_a_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_[i]);
         eg_a_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_[i]);
         eg_a_[i].SetSustainLevel(eg_a_sustain_[i]);
-        //std::cout << "dhits/Set():" << eg_a_sustain_[i] << "\n";
-
+        // std::cout << "dhits/Set():" << eg_a_sustain_[i] << "\n";
 
         // note data
         note_freq_[i] = 0.0f;
@@ -80,7 +79,6 @@ void DHits::Set(const Config &config)
     overdrive_gain_ = config.overdrive_gain;
     overdrive_drive_ = config.overdrive_drive;
     overdrive_.SetDrive(overdrive_drive_);
-
 }
 
 void DHits::Process(float *out_l, float *out_r)
@@ -95,12 +93,12 @@ void DHits::Process(float *out_l, float *out_r)
     float mix_l = 0;
     float mix_r = 0;
 
-    //std::cout << "DHits process"  << "\n";
+    // std::cout << "DHits process"  << "\n";
 
     for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
     {
-        //note_on = (note_midi_[i] != 0);
-        
+        // note_on = (note_midi_[i] != 0);
+
         note_on = (sample_index_[i] == sample_phase_start_[i]);
 
         // amplitude
@@ -124,7 +122,7 @@ void DHits::Process(float *out_l, float *out_r)
             // get samples and interpolate
             a = sample_buffer_[i][sample_index_int_];
             b = sample_buffer_[i][sample_index_int_ + 1];
-            osc_out = (a + (b - a) * sample_index_fraction_) * env_a_out;// * note_velocity_[i];
+            osc_out = (a + (b - a) * sample_index_fraction_) * env_a_out; // * note_velocity_[i];
 
             sample_index_[i] += sample_index_factor_[i];
             /*
@@ -142,7 +140,6 @@ void DHits::Process(float *out_l, float *out_r)
 
         mix_l += osc_out * level_[i] * (1.0f - pan_[i]);
         mix_r += osc_out * level_[i] * pan_[i];
-
     }
 
     // overdrive, no state in overdrive fx so we can use it on both channels
@@ -198,16 +195,16 @@ void DHits::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     uint8_t hit = midi_note;
     if (hit < DHITS_HITS_MAX)
     {
-        //std::cout << "DHits note on:" << (int)hit << "\n";
+        std::cout << "DHits note on:" << (int)hit << "\n";
 
-        note_freq_[hit] = DHITS_BASE_FREQ + tune_[hit];
+        note_freq_[hit] = DHITS_BASE_FREQ * tune_[hit];
         note_velocity_[hit] = (float)midi_velocity / MIDI_VELOCITY_MAX;
 
         sample_index_[hit] = sample_phase_start_[hit];
         sample_index_factor_[hit] = (note_freq_[hit] / DHITS_BASE_FREQ);
 
         eg_a_[hit].Retrigger(false); // TODO false?
-        eg_a_[hit].Process(true); // note on
+        eg_a_[hit].Process(true);    // note on
     }
 }
 
@@ -223,21 +220,26 @@ void DHits::Silence()
     }
 }
 
+void DHits::SetTune(uint8_t hit, float tune)
+{
+    tune_[hit] = tune;
+}
+
 void DHits::SetFreq(uint8_t hit, float freq)
 {
-        sample_index_factor_[hit] = (freq / DHITS_BASE_FREQ);
+    sample_index_factor_[hit] = (freq / DHITS_BASE_FREQ);
 }
 
 void DHits::SetEG(uint8_t hit, float eg_attack, float eg_decay, float eg_sustain, float eg_release)
 {
-        eg_a_attack_[hit] = eg_attack;
-        eg_a_decay_[hit] = eg_decay;
-        eg_a_sustain_[hit] = eg_sustain;
-        eg_a_release_[hit] = eg_release;
-            eg_a_[hit].SetTime(daisysp::ADSR_SEG_ATTACK, eg_a_attack_[hit]);
-            eg_a_[hit].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_[hit]);
-            eg_a_[hit].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_[hit]);
-            eg_a_[hit].SetSustainLevel(eg_a_sustain_[hit]);
+    eg_a_attack_[hit] = eg_attack;
+    eg_a_decay_[hit] = eg_decay;
+    eg_a_sustain_[hit] = eg_sustain;
+    eg_a_release_[hit] = eg_release;
+    eg_a_[hit].SetTime(daisysp::ADSR_SEG_ATTACK, eg_a_attack_[hit]);
+    eg_a_[hit].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_[hit]);
+    eg_a_[hit].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_[hit]);
+    eg_a_[hit].SetSustainLevel(eg_a_sustain_[hit]);
 }
 
 void DHits::SetDelay(float delay_delay, float delay_feedback)
@@ -288,7 +290,6 @@ bool DHits::Load(uint8_t hit, const std::string sample_file_name, bool reset)
             sample_file_name_[hit] = sample_file_name;
         }
         std::cout << "DHits start, end:" << sample_phase_start_[hit] << ", " << sample_phase_end_[hit] << "\n";
-
     }
     else
     {
@@ -310,16 +311,16 @@ bool DHits::Load(uint8_t hit, const std::string sample_file_name, bool reset)
 }
 
 void DHits::GetPhase(uint8_t hit,
-                    uint32_t *sample_phase_start,
-                    uint32_t *sample_phase_end)
+                     uint32_t *sample_phase_start,
+                     uint32_t *sample_phase_end)
 {
     *sample_phase_start = sample_phase_start_[hit];
     *sample_phase_end = sample_phase_end_[hit];
 }
 
 void DHits::SetPhase(uint8_t hit,
-                    uint32_t sample_phase_start,
-                    uint32_t sample_phase_end)
+                     uint32_t sample_phase_start,
+                     uint32_t sample_phase_end)
 {
     if (sample_phase_start < sample_length_[hit] - 1)
     {
@@ -340,7 +341,6 @@ uint32_t DHits::GetLength(uint8_t hit)
     return (sample_length_[hit]);
 }
 
-
 void DHits::SetLevel(uint8_t hit, float level)
 {
     level_[hit] = level;
@@ -349,4 +349,106 @@ void DHits::SetLevel(uint8_t hit, float level)
 void DHits::SetPan(uint8_t hit, float pan)
 {
     pan_[hit] = pan;
+}
+
+void DHits::LoadHits(std::string file_name)
+{
+    TiXmlDocument *pDoc;
+    TiXmlElement *pRoot;
+    Config config;
+
+    pDoc = new TiXmlDocument();
+    if (!pDoc->LoadFile(file_name.c_str()))
+    {
+        std::cout << "ERROR: Couldn't load " << file_name << "\n";
+        exit(0);
+    }
+    pRoot = pDoc->RootElement();
+
+    if (NULL != pRoot)
+    {
+                for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
+        {
+            config.sample_file_name[i] = "";
+
+        }
+        config.sample_rate = DSTUDIO_SAMPLE_RATE;
+
+        // get info
+        TiXmlElement *pElt;
+        const char *str_c;
+        pElt = pRoot->FirstChildElement("name");
+        str_c = pElt->GetText(); // cchar
+        std::string name = str_c;
+        pElt = pRoot->FirstChildElement("type");
+        str_c = pElt->GetText(); // cchar
+        std::string type = str_c;
+        std::cout << "Load DHits:"
+                  << name << " "
+                  << type << " "
+                  << std::endl;
+        pElt = pRoot->FirstChildElement("delay_delay");
+        str_c = pElt->GetText(); // cchar
+        config.delay_delay = atof(str_c);
+        pElt = pRoot->FirstChildElement("delay_feedback");
+        str_c = pElt->GetText(); // cchar
+        config.delay_feedback = atof(str_c);
+        pElt= pRoot->FirstChildElement("overdrive_gain");
+        str_c = pElt->GetText(); // cchar
+        config.overdrive_gain = atof(str_c);
+        pElt = pRoot->FirstChildElement("overdrive_drive");
+        str_c = pElt->GetText(); // cchar
+        config.overdrive_drive = atof(str_c);
+
+        // get notes
+        pElt = pRoot->FirstChildElement("voice");
+        while (pElt)
+        {
+            str_c = pElt->GetText(); // cchar
+            std::string file = str_c;
+            int channel;
+            float level, pan, tune;
+            float eg_a_attack, eg_a_decay, eg_a_sustain, eg_a_release;
+            pElt->QueryIntAttribute("channel", &channel);
+            pElt->QueryFloatAttribute("level", &level);
+            pElt->QueryFloatAttribute("pan", &pan);
+            pElt->QueryFloatAttribute("tune", &tune);
+            pElt->QueryFloatAttribute("eg_a_attack", &eg_a_attack);
+            pElt->QueryFloatAttribute("eg_a_decay", &eg_a_decay);
+            pElt->QueryFloatAttribute("eg_a_sustain", &eg_a_sustain);
+            pElt->QueryFloatAttribute("eg_a_release", &eg_a_release);
+
+            config.level[channel]=level;
+            config.pan[channel] = pan;
+            config.tune[channel] = tune;
+            config.eg_a_attack[channel] = eg_a_attack;
+            config.eg_a_decay[channel] = eg_a_decay;
+            config.eg_a_sustain[channel] = eg_a_sustain;
+            config.eg_a_release[channel] = eg_a_release;
+            config.sample_file_name[channel] = file;
+
+            std::cout << "Note (level, pan, tune, file):"
+                      << (float)level
+                      << " "
+                      << (float)pan
+                      << " "
+                      << (float)tune
+                      << " "
+                      << file
+                      << std::endl;
+
+            pElt = pElt->NextSiblingElement("voice");
+        }
+        Set(config);
+        for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
+        {
+            if (config.sample_file_name[i] != "")
+            {
+            Load(i, config.sample_file_name[i], true);
+            }
+
+        }
+    }
+
+    delete pDoc;
 }
