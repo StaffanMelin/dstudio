@@ -737,6 +737,16 @@ uint32_t DSampler::GetLength()
     return (sample_length_);
 }
 
+float *DSampler::GetSampleData()
+{
+    return (sample_buffer_);
+}
+
+uint8_t DSampler::GetSampleChannels()
+{
+    return (sample_channels_);
+}
+
 
 
 /*

@@ -811,7 +811,6 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
         p->noise_level = settings.getValue("settings:noise_level", 0.0f);
         p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
         p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));
-        p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
         p->filter_res = settings.getValue("settings:filter_res", 0.0f);
 
         p->eg_p_level = settings.getValue("settings:eg_p_level", 0.0f);

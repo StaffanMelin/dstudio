@@ -1,6 +1,6 @@
 #pragma once
 
-//#include <string>
+// #include <string>
 
 #include "dstudio.h"
 #include "dsound.h"
@@ -18,7 +18,6 @@ class DSampler : public DSynth
 {
 
 public:
-
     DSampler()
     {
         sample_buffer_ = new (std::nothrow) float[SAMPLE_BUFFER_MAX * 2];
@@ -76,7 +75,7 @@ public:
     };
 
     void Init();
-    void Set(const Config&);
+    void Set(const Config &);
     float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
@@ -98,14 +97,23 @@ public:
     void SetOverdrive(float, float);
     void SetLoop(bool);
     bool Load(std::string, bool reset = true);
-    void GetPhase(uint32_t *, uint32_t *, uint32_t *, uint32_t *);
-    void SetPhase(uint32_t, uint32_t, uint32_t, uint32_t);
+    void GetPhase(uint32_t *sample_phase_start,
+                  uint32_t *sample_phase_loop_start,
+                  uint32_t *sample_phase_loop_end,
+                  uint32_t *sample_phase_end);
+    void SetPhase(uint32_t sample_phase_start,
+                  uint32_t sample_phase_loop_start,
+                  uint32_t sample_phase_loop_end,
+                  uint32_t sample_phase_end);
+    float *GetSampleData();
+    uint8_t GetSampleChannels();
     uint32_t GetLength();
     void SetLevel(float);
     void ChangeParam(DSynth::Param param, float value);
 
-private:
+    Config base_config_;
 
+private:
     float sample_rate_;
     uint8_t voices_;
     float tune_;
@@ -145,11 +153,9 @@ private:
     uint32_t sample_phase_start_;
     uint32_t sample_phase_loop_start_;
     uint32_t sample_phase_loop_end_; // if 0, set to sample_length_ - 1 when loading sample
-    uint32_t sample_phase_end_; // if 0, set to sample_length_ - 1 when loading sample
-    uint32_t sample_length_; // set when loading sample; length of sample, < BUFFER_MAX
-    uint8_t sample_channels_; // set when loading sample
-
-    Config base_config_;
+    uint32_t sample_phase_end_;      // if 0, set to sample_length_ - 1 when loading sample
+    uint32_t sample_length_;         // set when loading sample; length of sample, < BUFFER_MAX
+    uint8_t sample_channels_;        // set when loading sample
 
     // MIDI
     uint8_t osc_next_;
@@ -165,7 +171,7 @@ private:
     // start lstart lend end
     // gate--<--------->
     // sample - runtime
-    float sample_index_[DSYNTH_VOICES_MAX]; // index into buffer
+    float sample_index_[DSYNTH_VOICES_MAX];        // index into buffer
     float sample_index_factor_[DSYNTH_VOICES_MAX]; // how much to advance index for a new sample
 
     daisysp::WhiteNoise noise_;
