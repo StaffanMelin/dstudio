@@ -666,6 +666,11 @@ bool DSampler::Load(const std::string sample_file_name, bool reset)
         sample_phase_end_ = 0;
         sample_channels_ = frame_size;
     }
+    base_config_.sample_length = sample_length_;
+    base_config_.sample_phase_start = sample_phase_start_;
+    base_config_.sample_phase_end = sample_phase_end_;
+    base_config_.sample_phase_loop_start = sample_phase_loop_start_;
+    base_config_.sample_phase_loop_end = sample_phase_loop_end_;
 
     sf_close(sample_file);
 
