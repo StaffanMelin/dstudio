@@ -82,7 +82,7 @@ void DChop::Set(const Config &config)
         chops_notes_[i] = config.chops_notes[i];
     }
     chop_gate_ = config.chop_gate;
-    mode_free_ = config.mode_free;
+    mode_internal_ = config.mode_internal;
     loop_ = config.loop;
 
     sample_length_ = config.sample_length; // length of sample, < BUFFER_MAX
@@ -142,7 +142,7 @@ void DChop::Process(float *out_l, float *out_r)
 
     // osc
 
-    if (mode_free_)
+    if (mode_internal_)
     {
         if (sample_index_ < sample_phase_end_[chop])
         {
@@ -181,8 +181,13 @@ void DChop::Process(float *out_l, float *out_r)
                 if (note_midi_ != MIDI_NOTE_NONE)
                 {
                     note_midi_ = MIDI_NOTE_NONE;
-                    std::cout << "  GATE!" << std::endl;
+                    // std::cout << "  GATE!" << std::endl;
                 }
+            }
+
+            if (loop_ && (sample_index_ >= sample_phase_end_[chop]))
+            {
+                sample_index_ = sample_phase_start_[chop];
             }
         }
         else
@@ -230,6 +235,11 @@ void DChop::Process(float *out_l, float *out_r)
             }
 
             sample_index_ += sample_index_factor_;
+
+            if (loop_ && (sample_index_ >= sample_length_))
+            {
+                sample_index_ = sample_phase_start_[chop];
+            }
         }
         else
         {
@@ -338,12 +348,13 @@ void DChop::Calc()
 
     // eg_a_.Retrigger(false);
     eg_a_.Retrigger(true);
-    std::cout << "DChop - Calc()." << std::endl;
+    std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
 }
 
+// midi_data0 is the number of the chop to be played
 void DChop::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1)
 {
-    std::cout << "DChop/MidiIn IN " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
+    // std::cout << "DChop/MidiIn IN " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
 
     // OMNI - ignore channel
     uint8_t midi_message = midi_status & MIDI_MESSAGE_MASK;
@@ -354,7 +365,7 @@ void DChop::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1)
         {
             // TODO
             // NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
-            std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
+            // std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
             NoteOn(midi_data0 & MIDI_DATA_MASK);
         }
         else
@@ -385,15 +396,15 @@ void DChop::NoteOn(uint8_t chop, uint8_t midi_note, uint8_t midi_velocity)
 
 void DChop::NoteOff(uint8_t chop)
 {
-    if (!mode_free_)
+    if (!mode_internal_)
     {
         note_midi_ = MIDI_NOTE_NONE;
     }
 }
 
-void DChop::SetModeFree(bool mode_free)
+void DChop::SetMode(bool mode)
 {
-    mode_free_ = mode_free;
+    mode_internal_ = mode;
 }
 
 void DChop::SetLoop(bool loop)

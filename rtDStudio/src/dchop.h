@@ -36,7 +36,7 @@ public:
         uint8_t chops[DCHOP_CHOPS];
         uint8_t chops_notes[DCHOP_CHOPS];
         float chop_gate; // percent of interval that note should be on (0.0 - 1.0)
-        bool mode_free;
+        bool mode_internal; // if true, switch to next chop when chop sample data end is reached; if not, continue until sample end
         float tune;
         FilterType filter_type;
         float filter_res;
@@ -72,7 +72,7 @@ public:
     void NoteOn(uint8_t chop);
     void NoteOff(uint8_t chop);
 
-    void SetModeFree(bool mode_free);
+    void SetMode(bool mode);
     void SetLoop(bool loop);
     void SetChopGate(float chop_gate);
     void SetFreq(float);
@@ -104,7 +104,7 @@ private:
     uint8_t chops_[DCHOP_CHOPS];
     uint8_t chops_notes_[DCHOP_CHOPS];
     float chop_gate_;
-    float mode_free_;
+    float mode_internal_;
     float tune_;
     FilterType filter_type_;
     float filter_res_;
