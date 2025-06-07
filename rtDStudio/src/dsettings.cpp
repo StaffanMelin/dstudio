@@ -382,7 +382,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         p = (DChop::Config *)config;
         settings.setValue("settings:settingstype", "DChop");
         settings.setValue("settings:chop_gate", p->chop_gate);
-        settings.setValue("settings:mode_free", p->mode_internal);
+        settings.setValue("settings:mode_internal", p->mode_internal);
         settings.setValue("settings:loop", p->loop);
         settings.setValue("settings:tune", p->tune);
         settings.setValue("settings:filter_type", p->filter_type);
@@ -860,7 +860,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
         p->tune = settings.getValue("settings:tune", 0.0f);
         p->loop = settings.getValue("settings:loop", false);
         p->chop_gate = settings.getValue("settings:chop_gate", 0.5f);
-        p->mode_internal = settings.getValue("settings:mode_free", true);
+        p->mode_internal = settings.getValue("settings:mode_internal", true);
 
         p->filter_cutoff = settings.getValue("settings:filter_cutoff", 1000.0f);
         p->filter_type = static_cast<DSampler::FilterType>(settings.getValue("settings:filter_type", DSampler::LOW));

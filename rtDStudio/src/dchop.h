@@ -68,9 +68,9 @@ public:
     void Process(float *, float *);
     void Calc();
     void MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 = 0);
-    void NoteOn(uint8_t chop, uint8_t midi_note, uint8_t midi_velocity = MIDI_VELOCITY_MAX);
-    void NoteOn(uint8_t chop);
-    void NoteOff(uint8_t chop);
+    void NoteOn(uint8_t chop, uint8_t midi_note, uint8_t midi_velocity);
+    void NoteOn(uint8_t chop, uint8_t midi_velocity);
+    void NoteOff(uint8_t chop, uint8_t midi_velocity);
 
     void SetMode(bool mode);
     void SetLoop(bool loop);

@@ -340,7 +340,6 @@ void DChop::Calc()
     uint8_t step = chops_[chop_step_];
     note_midi_ = chops_notes_[step];
     note_freq_ = daisysp::mtof(note_midi_ + tune_);
-    note_velocity_ = 1.0f;
 
     sample_index_ = sample_phase_start_[step];
     sample_index_factor_ = (note_freq_ / DCHOP_BASE_FREQ);
@@ -348,7 +347,7 @@ void DChop::Calc()
 
     // eg_a_.Retrigger(false);
     eg_a_.Retrigger(true);
-    std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
+    //std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
 }
 
 // midi_data0 is the number of the chop to be played
@@ -365,25 +364,27 @@ void DChop::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1)
         {
             // TODO
             // NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
-            // std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
-            NoteOn(midi_data0 & MIDI_DATA_MASK);
+            //std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
+            NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
         }
         else
         {
-            NoteOff(midi_data0 & MIDI_DATA_MASK);
+            NoteOff(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
         }
         break;
     case MIDI_MESSAGE_NOTEOFF:
-        NoteOff(midi_data0 & MIDI_DATA_MASK);
+        NoteOff(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
         break;
     default:
         break;
     }
 }
 
-void DChop::NoteOn(uint8_t chop)
+void DChop::NoteOn(uint8_t chop, uint8_t midi_velocity)
 {
     chop_step_ = chop;
+    note_velocity_ = midi_velocity / 100.0f;
+
     Calc();
 }
 
@@ -391,11 +392,15 @@ void DChop::NoteOn(uint8_t chop)
 void DChop::NoteOn(uint8_t chop, uint8_t midi_note, uint8_t midi_velocity)
 {
     chop_step_ = chop;
+    note_velocity_ = midi_velocity / 100.0f;
+
     Calc();
 }
 
-void DChop::NoteOff(uint8_t chop)
+void DChop::NoteOff(uint8_t chop, uint8_t midi_velocity)
 {
+    note_velocity_ = midi_velocity / 100.0f;
+
     if (!mode_internal_)
     {
         note_midi_ = MIDI_NOTE_NONE;
