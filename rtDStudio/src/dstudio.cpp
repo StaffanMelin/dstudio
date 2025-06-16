@@ -1,22 +1,46 @@
 #include "dstudio.h"
-#include <stdlib.h>     /* srand, rand */
+#include <stdlib.h> /* srand, rand */
 
 #include <chrono>
 
-uint64_t dGetElapsedTimeMicros(){
+uint64_t dGetElapsedTimeMicros()
+{
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-uint32_t dGetElapsedTimeMillis(){
+uint32_t dGetElapsedTimeMillis()
+{
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-float dRandom(float max) {
+float dRandom(float max)
+{
     return (max * rand() / float(RAND_MAX)) * (1.0f - std::numeric_limits<float>::epsilon());
 }
 
-float dRand(float max) {
+float dRand(float max)
+{
     return (max * rand() / float(RAND_MAX));
+}
+
+int dRandWeightedList(float w[], int count)
+{
+    float sum = 0;
+    for (int i = 0; i < count; i++)
+    {
+        sum += w[i];
+    }
+    int rnd = dRand(sum);
+    for (int i = 0; i < count; i++)
+    {
+        if (rnd < w[i])
+        {
+            return i;
+        }
+        rnd -= w[i];
+    }
+    // should't get here but...
+    return 0;
 }
 
 // measure interval in microseconds
