@@ -30,7 +30,7 @@ int dRandWeightedList(float w[], int count)
     {
         sum += w[i];
     }
-    int rnd = dRand(sum);
+    float rnd = dRand(sum);
     for (int i = 0; i < count; i++)
     {
         if (rnd < w[i])
