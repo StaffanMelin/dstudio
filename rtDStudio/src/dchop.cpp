@@ -333,6 +333,7 @@ void DChop::Process(float *out_l, float *out_r)
 
     *out_l = filter_out_l;
     *out_r = filter_out_r;
+    
 }
 
 void DChop::Calc()
