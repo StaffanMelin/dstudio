@@ -42,6 +42,8 @@ void DSampler::Init()
         note_velocity_[i] = 0.0f;
     }
 
+    eg_retrig_ = false;
+
     // lfo
 
     lfo_.Init(sample_rate_);
@@ -88,6 +90,7 @@ void DSampler::Set(const Config &config)
     eg_a_decay_ = config.eg_a_decay;
     eg_a_sustain_ = config.eg_a_sustain;
     eg_a_release_ = config.eg_a_release;
+    eg_retrig_ = config.eg_retrig;
     lfo_waveform_ = config.lfo_waveform;
     lfo_freq_ = config.lfo_freq;
     lfo_amp_ = config.lfo_amp;
@@ -396,9 +399,9 @@ void DSampler::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 
     if (portamento_ == 0)
     {
-        eg_p_[osc_next_].Retrigger(false);
-        eg_f_[osc_next_].Retrigger(false);
-        eg_a_[osc_next_].Retrigger(false);
+        eg_p_[osc_next_].Retrigger(eg_retrig_);
+        eg_f_[osc_next_].Retrigger(eg_retrig_);
+        eg_a_[osc_next_].Retrigger(eg_retrig_);
     }
 }
 
@@ -538,6 +541,11 @@ void DSampler::SetEG(Target target, float eg_attack, float eg_decay, float eg_su
     default:
         break;
     }
+}
+
+void DSampler::SetEGRetrig(bool eg_retrig)
+{
+    eg_retrig_ = eg_retrig;
 }
 
 void DSampler::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, float lfo_p_level, float lfo_f_level, float lfo_a_level)

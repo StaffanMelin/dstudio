@@ -31,6 +31,8 @@ void DChop::Init()
         note_velocity_ = 0.0f;
     }
 
+    eg_retrig_ = false;
+
     // lfo
 
     lfo_.Init(sample_rate_);
@@ -63,6 +65,7 @@ void DChop::Set(const Config &config)
     eg_a_decay_ = config.eg_a_decay;
     eg_a_sustain_ = config.eg_a_sustain;
     eg_a_release_ = config.eg_a_release;
+    eg_retrig_ = config.eg_retrig;
     lfo_waveform_ = config.lfo_waveform;
     lfo_freq_ = config.lfo_freq;
     lfo_amp_ = config.lfo_amp;
@@ -347,7 +350,7 @@ void DChop::Calc()
     sample_phase_gate_ = sample_phase_start_[step] + (sample_phase_end_[step] - sample_phase_start_[step]) * chop_gate_;
 
     // eg_a_.Retrigger(false);
-    eg_a_.Retrigger(true);
+    eg_a_.Retrigger(eg_retrig_);
     //std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
 }
 
@@ -479,6 +482,12 @@ void DChop::SetEG(Target target, float eg_attack, float eg_decay, float eg_susta
         break;
     }
 }
+
+void DChop::SetEGRetrig(bool eg_retrig)
+{
+    eg_retrig_ = eg_retrig;
+}
+
 
 void DChop::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, float lfo_p_level, float lfo_f_level, float lfo_a_level)
 {

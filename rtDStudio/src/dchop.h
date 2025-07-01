@@ -1,6 +1,6 @@
 #pragma once
 
-//#include <string>
+// #include <string>
 
 #include "dstudio.h"
 #include "dsound.h"
@@ -9,7 +9,7 @@
 #include <sndfile.h>
 
 // base freq
-#define DCHOP_BASE_FREQ 261.6f // MIDI note 60 
+#define DCHOP_BASE_FREQ 261.6f // MIDI note 60
 // max sample time in seconds
 #define DCHOP_SAMPLE_TIME_MAX 30
 #define DCHOP_SAMPLE_BUFFER_MAX (DSTUDIO_SAMPLE_RATE * DCHOP_SAMPLE_TIME_MAX * 2) // 60 secs; 48k * 2 * 4 = 384k/s
@@ -19,7 +19,6 @@ class DChop : public DSynth
 {
 
 public:
-
     DChop()
     {
         sample_buffer_ = new (std::nothrow) float[DCHOP_SAMPLE_BUFFER_MAX * 2];
@@ -35,7 +34,7 @@ public:
         float sample_rate;
         uint8_t chops[DCHOP_CHOPS];
         uint8_t chops_notes[DCHOP_CHOPS];
-        float chop_gate; // percent of interval that note should be on (0.0 - 1.0)
+        float chop_gate;    // percent of interval that note should be on (0.0 - 1.0)
         bool mode_internal; // if true, switch to next chop when chop sample data end is reached; if not, continue until sample end
         float tune;
         FilterType filter_type;
@@ -45,6 +44,7 @@ public:
         float eg_a_decay;
         float eg_a_sustain;
         float eg_a_release;
+        bool eg_retrig;
         Waveform lfo_waveform;
         float lfo_freq;
         float lfo_amp;
@@ -64,7 +64,7 @@ public:
     };
 
     void Init();
-    void Set(const Config&);
+    void Set(const Config &);
     void Process(float *, float *);
     void Calc();
     void MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 = 0);
@@ -81,11 +81,12 @@ public:
     void SetFilterFreq(float);
     void SetFilterRes(float);
     void SetEG(Target, float, float, float, float);
+    void SetEGRetrig(bool retrig);
     void SetLFO(Waveform, float, float, float, float, float);
     void SetDelay(float, float);
     void SetOverdrive(float, float);
     bool Load(std::string, bool reset = true);
-    //void SetPhase(uint8_t chop, uint32_t, uint32_t);
+    // void SetPhase(uint8_t chop, uint32_t, uint32_t);
     void SetChopNote(uint8_t chop, uint8_t note);
     uint8_t GetChopNote(uint8_t chop);
     void SetChopStart(uint8_t chop, uint32_t pos);
@@ -93,13 +94,12 @@ public:
     uint32_t GetSampleLength();
     float *GetSampleData();
     uint8_t GetSampleChannels();
-    //uint32_t *GetSamplePhaseStart();
-    //void ChangeParam(DSynth::Param param, float value);
+    // uint32_t *GetSamplePhaseStart();
+    // void ChangeParam(DSynth::Param param, float value);
 
     Config base_config_;
 
 private:
-
     float sample_rate_;
     uint8_t chops_[DCHOP_CHOPS];
     uint8_t chops_notes_[DCHOP_CHOPS];
@@ -113,6 +113,7 @@ private:
     float eg_a_decay_;
     float eg_a_sustain_; // level
     float eg_a_release_;
+    bool eg_retrig_;
     Waveform lfo_waveform_;
     float lfo_freq_;
     float lfo_amp_;
@@ -127,9 +128,8 @@ private:
     std::string sample_file_name_;
     uint32_t sample_phase_start_[DCHOP_CHOPS];
     uint32_t sample_phase_end_[DCHOP_CHOPS];
-    uint32_t sample_length_; // set when loading sample; length of sample, < BUFFER_MAX
+    uint32_t sample_length_;  // set when loading sample; length of sample, < BUFFER_MAX
     uint8_t sample_channels_; // set when loading sample
-
 
     uint8_t chop_step_;
 
@@ -147,7 +147,7 @@ private:
     // start lstart lend end
     // gate--<--------->
     // sample - runtime
-    float sample_index_; // index into buffer
+    float sample_index_;        // index into buffer
     float sample_index_factor_; // how much to advance index for a new sample
 
     daisysp::WhiteNoise noise_;

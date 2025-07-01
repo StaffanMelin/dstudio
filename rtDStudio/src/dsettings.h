@@ -88,7 +88,6 @@ class DSettings
         DSYNTHVAR,
         DSAMPLER,
         DRUM,
-        DSYNTHSUBS,
         DCHOP,
         DHITS,
         UNKNOWN

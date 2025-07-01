@@ -53,6 +53,7 @@ public:
         float eg_a_decay;
         float eg_a_sustain;
         float eg_a_release;
+        bool eg_retrig;
         Waveform lfo_waveform;
         float lfo_freq;
         float lfo_amp;
@@ -91,6 +92,7 @@ public:
     void SetFilterRes(float);
     void SetEGLevel(Target, float);
     void SetEG(Target, float, float, float, float);
+    void SetEGRetrig(bool retrig);
     void SetLFO(Waveform, float, float, float, float, float);
     void SetPortamento(float);
     void SetDelay(float, float);
@@ -137,6 +139,7 @@ private:
     float eg_a_decay_;
     float eg_a_sustain_; // level
     float eg_a_release_;
+    bool eg_retrig_;
     Waveform lfo_waveform_;
     float lfo_freq_;
     float lfo_amp_;

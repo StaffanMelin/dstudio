@@ -32,6 +32,7 @@ void DSynthSub::Init()
         note_freq_[i] = 0.0f;
         note_velocity_[i] = 0.0f;
     }
+    eg_retrig_ = false;
 
     // lfo
 
@@ -82,6 +83,7 @@ void DSynthSub::Set(const Config &config)
     eg_a_decay_ = config.eg_a_decay;
     eg_a_sustain_ = config.eg_a_sustain;
     eg_a_release_ = config.eg_a_release;
+    eg_retrig_ = config.eg_retrig;
     lfo_waveform_ = config.lfo_waveform;
     lfo_freq_ = config.lfo_freq;
     lfo_amp_ = config.lfo_amp;
@@ -313,9 +315,9 @@ void DSynthSub::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     //    eg_a_[osc_next_].SetSustainLevel((float)midi_velocity / MIDI_VELOCITY_MAX);
     if (portamento_ == 0)
     {
-        eg_p_[osc_next_].Retrigger(false);
-        eg_f_[osc_next_].Retrigger(false);
-        eg_a_[osc_next_].Retrigger(false);
+        eg_p_[osc_next_].Retrigger(eg_retrig_);
+        eg_f_[osc_next_].Retrigger(eg_retrig_);
+        eg_a_[osc_next_].Retrigger(eg_retrig_);
     }
 }
 
@@ -464,6 +466,11 @@ void DSynthSub::SetEG(Target target, float eg_attack, float eg_decay, float eg_s
     default:
         break;
     }
+}
+
+void DSynthSub::SetEGRetrig(bool eg_retrig)
+{
+    eg_retrig_ = eg_retrig;
 }
 
 void DSynthSub::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, float lfo_p_level, float lfo_f_level, float lfo_a_level)

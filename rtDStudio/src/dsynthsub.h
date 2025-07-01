@@ -17,17 +17,16 @@
 class DSynthSub : public DSynth
 {
 
-	public:
-
+public:
     DSynthSub() {}
     ~DSynthSub() {}
 
     struct Config
     {
-    	float sample_rate;
-    	uint8_t voices;
-		Waveform waveform0;
-		Waveform waveform1;
+        float sample_rate;
+        uint8_t voices;
+        Waveform waveform0;
+        Waveform waveform1;
         float tune;
         float detune; // notes, decimals allowed
         int8_t transpose;
@@ -35,8 +34,8 @@ class DSynthSub : public DSynth
         float osc1_level;
         float noise_level;
         FilterType filter_type;
-		float filter_res;
-		float filter_cutoff;
+        float filter_res;
+        float filter_cutoff;
         float eg_p_level;
         float eg_p_attack;
         float eg_p_decay;
@@ -51,9 +50,10 @@ class DSynthSub : public DSynth
         float eg_a_decay;
         float eg_a_sustain;
         float eg_a_release;
+        bool eg_retrig;
         Waveform lfo_waveform;
-		float lfo_freq;
-		float lfo_amp;
+        float lfo_freq;
+        float lfo_amp;
         float lfo_p_level;
         float lfo_f_level;
         float lfo_a_level;
@@ -64,13 +64,13 @@ class DSynthSub : public DSynth
         float overdrive_drive;
     };
 
-	void Init();
-	void Set(const Config&);
-	float Process();
+    void Init();
+    void Set(const Config &);
+    float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
     void NoteOn(uint8_t midi_note, uint8_t midi_velocity = MIDI_VELOCITY_MAX);
-	void NoteOff(uint8_t midi_note);
+    void NoteOff(uint8_t midi_note);
 
     void Silence();
     void SetWaveform(Waveform, Waveform);
@@ -82,6 +82,7 @@ class DSynthSub : public DSynth
     void SetFilterRes(float);
     void SetEGLevel(Target, float);
     void SetEG(Target, float, float, float, float);
+    void SetEGRetrig(bool retrig);
     void SetLFO(Waveform, float, float, float, float, float);
     void SetPortamento(float);
     void SetDelay(float, float);
@@ -91,13 +92,12 @@ class DSynthSub : public DSynth
     void ChangeParam(DSynth::Param param, float value);
 
     Config base_config_;
-    
-private:
 
-	float sample_rate_;
-   	uint8_t voices_;
-	Waveform waveform0_;
-	Waveform waveform1_;
+private:
+    float sample_rate_;
+    uint8_t voices_;
+    Waveform waveform0_;
+    Waveform waveform1_;
     float tune_;
     float detune_;
     int8_t transpose_;
@@ -105,8 +105,8 @@ private:
     float osc1_level_;
     float noise_level_;
     FilterType filter_type_;
-	float filter_res_;
-	float filter_cutoff_;
+    float filter_res_;
+    float filter_cutoff_;
     float eg_p_level_;
     float eg_p_attack_;
     float eg_p_decay_;
@@ -118,12 +118,13 @@ private:
     float eg_f_sustain_;
     float eg_f_release_;
     float eg_a_attack_;
-	float eg_a_decay_;
-	float eg_a_sustain_; // level
-	float eg_a_release_;
-	Waveform lfo_waveform_;
-	float lfo_freq_;
-	float lfo_amp_;
+    float eg_a_decay_;
+    float eg_a_sustain_; // level
+    float eg_a_release_;
+    bool eg_retrig_;
+    Waveform lfo_waveform_;
+    float lfo_freq_;
+    float lfo_amp_;
     float lfo_p_level_;
     float lfo_f_level_;
     float lfo_a_level_;
@@ -133,7 +134,7 @@ private:
     float overdrive_gain_;
     float overdrive_drive_;
 
-	uint8_t osc_next_;
+    uint8_t osc_next_;
     uint8_t note_midi_[DSYNTH_VOICES_MAX];
     float note_freq_[DSYNTH_VOICES_MAX];
     float note_velocity_[DSYNTH_VOICES_MAX];

@@ -2,31 +2,31 @@
 
 void DSynthFm::Init()
 {
-	sample_rate_ = DSTUDIO_SAMPLE_RATE;
-	voices_ = DSYNTH_VOICES_MAX;
+    sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    voices_ = DSYNTH_VOICES_MAX;
 
     // noise, shared
     noise_.Init();
 
-	for (uint8_t i = 0; i < voices_; i++)
-	{
-		// oscillators
-	
-		fm2_[i].Init(sample_rate_);		
+    for (uint8_t i = 0; i < voices_; i++)
+    {
+        // oscillators
+
+        fm2_[i].Init(sample_rate_);
 
         // EG - pitch, filter, amplitude
 
         eg_p_[i].Init(sample_rate_);
         eg_f_[i].Init(sample_rate_);
-		eg_a_[i].Init(sample_rate_);
+        eg_a_[i].Init(sample_rate_);
 
-		// filter
+        // filter
 
-		svf_[i].Init(sample_rate_);
-	
-		// portamento
-		
-		port_[i].Init(sample_rate_, 0.0f);    
+        svf_[i].Init(sample_rate_);
+
+        // portamento
+
+        port_[i].Init(sample_rate_, 0.0f);
 
         // note data
         note_midi_[i] = 0;
@@ -34,9 +34,11 @@ void DSynthFm::Init()
         note_velocity_[i] = 0.0f;
     }
 
-	// lfo
+    eg_retrig_ = false;
 
-	lfo_.Init(sample_rate_);
+    // lfo
+
+    lfo_.Init(sample_rate_);
 
     // delay
 
@@ -52,22 +54,21 @@ void DSynthFm::Init()
     SetType(TUNED);
 }
 
-
-void DSynthFm::Set(const Config& config)
+void DSynthFm::Set(const Config &config)
 {
     base_config_ = config;
 
-	//sample_rate_ = config.sample_rate;
-	voices_ = config.voices;
-	ratio_ = config.ratio;
-	index_ = config.index;
+    // sample_rate_ = config.sample_rate;
+    voices_ = config.voices;
+    ratio_ = config.ratio;
+    index_ = config.index;
     tune_ = config.tune;
     transpose_ = config.transpose;
     osc0_level_ = config.osc0_level;
     noise_level_ = config.noise_level;
     filter_type_ = config.filter_type;
-	filter_cutoff_ = config.filter_cutoff;
-	filter_res_ = config.filter_res;
+    filter_cutoff_ = config.filter_cutoff;
+    filter_res_ = config.filter_res;
     eg_p_level_ = config.eg_p_level;
     eg_p_attack_ = config.eg_p_attack;
     eg_p_decay_ = config.eg_p_decay;
@@ -78,13 +79,14 @@ void DSynthFm::Set(const Config& config)
     eg_f_decay_ = config.eg_f_decay;
     eg_f_sustain_ = config.eg_f_sustain;
     eg_f_release_ = config.eg_f_release;
-	eg_a_attack_ = config.eg_a_attack;
-	eg_a_decay_ = config.eg_a_decay;
+    eg_a_attack_ = config.eg_a_attack;
+    eg_a_decay_ = config.eg_a_decay;
     eg_a_sustain_ = config.eg_a_sustain;
-	eg_a_release_ = config.eg_a_release;
-	lfo_waveform_ = config.lfo_waveform;
-	lfo_freq_ = config.lfo_freq;
-	lfo_amp_ = config.lfo_amp;
+    eg_a_release_ = config.eg_a_release;
+    eg_retrig_ = config.eg_retrig;
+    lfo_waveform_ = config.lfo_waveform;
+    lfo_freq_ = config.lfo_freq;
+    lfo_amp_ = config.lfo_amp;
     lfo_p_level_ = config.lfo_p_level;
     lfo_f_level_ = config.lfo_f_level;
     lfo_a_level_ = config.lfo_a_level;
@@ -94,13 +96,13 @@ void DSynthFm::Set(const Config& config)
     overdrive_gain_ = config.overdrive_gain;
     overdrive_drive_ = config.overdrive_drive;
 
-	for (uint8_t i = 0; i < voices_; i++)
-	{
-		// oscillators
-	
-		fm2_[i].SetFrequency(440.0f); // default
-		fm2_[i].SetRatio(ratio_);
-		fm2_[i].SetIndex(index_);
+    for (uint8_t i = 0; i < voices_; i++)
+    {
+        // oscillators
+
+        fm2_[i].SetFrequency(440.0f); // default
+        fm2_[i].SetRatio(ratio_);
+        fm2_[i].SetIndex(index_);
 
         // EG - pitch, filter, amplitude
 
@@ -117,17 +119,17 @@ void DSynthFm::Set(const Config& config)
         eg_a_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_a_attack_);
         eg_a_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_);
         eg_a_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_);
-		eg_a_[i].SetSustainLevel(eg_a_sustain_);
+        eg_a_[i].SetSustainLevel(eg_a_sustain_);
 
-		// filter
+        // filter
 
-		svf_[i].SetFreq(filter_cutoff_);
-		svf_[i].SetRes(filter_res_);
-		svf_[i].SetDrive(0.0f); // default
-	
-		// portamento
-		
-		port_[i].SetHtime(portamento_);    
+        svf_[i].SetFreq(filter_cutoff_);
+        svf_[i].SetRes(filter_res_);
+        svf_[i].SetDrive(0.0f); // default
+
+        // portamento
+
+        port_[i].SetHtime(portamento_);
 
         // note data
         note_midi_[i] = 0;
@@ -135,11 +137,11 @@ void DSynthFm::Set(const Config& config)
         note_velocity_[i] = 0.0f;
     }
 
-	// lfo
+    // lfo
 
-	lfo_.SetWaveform(lfo_waveform_);
-	lfo_.SetFreq(lfo_freq_);
-	lfo_.SetAmp(lfo_amp_);
+    lfo_.SetWaveform(lfo_waveform_);
+    lfo_.SetFreq(lfo_freq_);
+    lfo_.SetAmp(lfo_amp_);
 
     // delay
 
@@ -153,25 +155,23 @@ void DSynthFm::Set(const Config& config)
     osc_next_ = 0; // circular buffer of midi notes
 }
 
-
-
 float DSynthFm::Process()
 {
-	float lfo_out;
+    float lfo_out;
     float env_p_out, env_f_out, env_a_out;
-	float osc_out;
-	float filter_out;
+    float osc_out;
+    float filter_out;
     float delay_out;
 
-	bool note_on;
-	
-	// lfo + apply
-	lfo_out = lfo_.Process();
-	
-	filter_out = 0;
-	for (uint8_t i = 0; i < voices_; i++)
-	{
-		note_on = (note_midi_[i] != 0);
+    bool note_on;
+
+    // lfo + apply
+    lfo_out = lfo_.Process();
+
+    filter_out = 0;
+    for (uint8_t i = 0; i < voices_; i++)
+    {
+        note_on = (note_midi_[i] != 0);
 
         // amplitude
         // amp can be affected by:
@@ -187,9 +187,11 @@ float DSynthFm::Process()
         if (portamento_ > 0)
         {
             f = port_[i].Process(note_freq_[i]) *
-                            powf(2.0f,
-                                 (tune_ / 1200.0 + lfo_out * lfo_p_level_ + env_p_out));
-        } else {
+                powf(2.0f,
+                     (tune_ / 1200.0 + lfo_out * lfo_p_level_ + env_p_out));
+        }
+        else
+        {
             f = note_freq_[i] *
                 powf(2.0f,
                      (tune_ / 1200.0 + lfo_out * lfo_p_level_ + env_p_out));
@@ -201,65 +203,60 @@ float DSynthFm::Process()
 
         osc_out = (fm2_[i].Process() * env_a_out * osc0_level_ + noise_.Process() * noise_level_) * note_velocity_[i];
 
-		// filter
+        // filter
         // cutoff can be affected by:
         // eg, lfo
 
         env_f_out = eg_f_[i].Process(note_on);
 
-        svf_[i].SetFreq(filter_cutoff_
-                        * (1 + lfo_out * lfo_f_level_)
-                        * env_f_out * eg_f_level_);
+        svf_[i].SetFreq(filter_cutoff_ * (1 + lfo_out * lfo_f_level_) * env_f_out * eg_f_level_);
         svf_[i].Process(osc_out);
-		switch (filter_type_)
-		{
-		case BAND:
-			filter_out += svf_[i].Band();
-			break;
-		case HIGH:
-			filter_out += svf_[i].High();
-			break;
-		case LOW:
-			filter_out += svf_[i].Low();
-			break;
-		case NOTCH:
-			filter_out += svf_[i].Notch();
-			break;
-		case PEAK:
-			filter_out += svf_[i].Peak();
-			break;
-		default:
-			filter_out += osc_out;
-		}
-	}
-//	filter_out /= voices_;
-	
+        switch (filter_type_)
+        {
+        case BAND:
+            filter_out += svf_[i].Band();
+            break;
+        case HIGH:
+            filter_out += svf_[i].High();
+            break;
+        case LOW:
+            filter_out += svf_[i].Low();
+            break;
+        case NOTCH:
+            filter_out += svf_[i].Notch();
+            break;
+        case PEAK:
+            filter_out += svf_[i].Peak();
+            break;
+        default:
+            filter_out += osc_out;
+        }
+    }
+    //	filter_out /= voices_;
+
     // overdrive
-    if (overdrive_drive_ > 0.0f) {
+    if (overdrive_drive_ > 0.0f)
+    {
         filter_out = overdrive_.Process(filter_out * overdrive_gain_);
     }
 
     // delay
-    if (delay_feedback_ > 0.0f) {
+    if (delay_feedback_ > 0.0f)
+    {
         delay_out = delay_.Read();
         delay_.Write((filter_out + delay_out) * delay_feedback_);
         filter_out += delay_out;
     }
 
-	// return
+    // return
     return (filter_out);
-
 }
-
-
 
 void DSynthFm::Process(float *out_l, float *out_r)
 {
     *out_l = Process();
     *out_r = *out_l;
 }
-
-
 
 void DSynthFm::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 = 0)
 {
@@ -272,7 +269,9 @@ void DSynthFm::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data
         if ((midi_data1 & MIDI_DATA_MASK) > 0)
         {
             NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
-        } else {
+        }
+        else
+        {
             NoteOff(midi_data0 & MIDI_DATA_MASK);
         }
         break;
@@ -295,11 +294,9 @@ void DSynthFm::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data
     }
 }
 
-
-
 void DSynthFm::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 {
-	osc_next_ = (osc_next_ + 1) % voices_;
+    osc_next_ = (osc_next_ + 1) % voices_;
 
     note_midi_[osc_next_] = midi_note + transpose_;
     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_]);
@@ -308,26 +305,22 @@ void DSynthFm::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 
     if (portamento_ == 0)
     {
-        eg_p_[osc_next_].Retrigger(false);
-        eg_f_[osc_next_].Retrigger(false);
-        eg_a_[osc_next_].Retrigger(false);
+        eg_p_[osc_next_].Retrigger(eg_retrig_);
+        eg_f_[osc_next_].Retrigger(eg_retrig_);
+        eg_a_[osc_next_].Retrigger(eg_retrig_);
     }
 }
 
-
-
 void DSynthFm::NoteOff(uint8_t midi_note)
 {
-	for (uint8_t i = 0; i < voices_; i++)
-	{
+    for (uint8_t i = 0; i < voices_; i++)
+    {
         if (note_midi_[i] == midi_note + transpose_)
-		{
-			note_midi_[i] = 0;
-		}
-	}
-}	
-
-
+        {
+            note_midi_[i] = 0;
+        }
+    }
+}
 
 void DSynthFm::Silence()
 {
@@ -338,8 +331,6 @@ void DSynthFm::Silence()
     }
 }
 
-
-
 void DSynthFm::SetRatio(float ratio)
 {
     ratio_ = ratio;
@@ -348,8 +339,6 @@ void DSynthFm::SetRatio(float ratio)
         fm2_[i].SetRatio(ratio_);
     }
 }
-
-
 
 void DSynthFm::SetIndex(float index)
 {
@@ -360,20 +349,15 @@ void DSynthFm::SetIndex(float index)
     }
 }
 
-
-
 void DSynthFm::SetTuning(float tune)
 {
     tune_ = tune;
 }
 
-
-
 void DSynthFm::SetTranspose(uint8_t transpose)
 {
     transpose_ = transpose;
 }
-
 
 void DSynthFm::SetLevel(float osc0_level, float noise_level)
 {
@@ -381,11 +365,11 @@ void DSynthFm::SetLevel(float osc0_level, float noise_level)
     noise_level_ = noise_level;
 }
 
-
-
 void DSynthFm::SetFilter(FilterType filter_type, float filter_cutoff, float filter_res)
 {
     filter_type_ = filter_type;
+    filter_cutoff_ = filter_cutoff;
+    filter_res_ = filter_res;
 
     for (uint8_t i = 0; i < voices_; i++)
     {
@@ -393,8 +377,6 @@ void DSynthFm::SetFilter(FilterType filter_type, float filter_cutoff, float filt
         svf_[i].SetRes(filter_res_);
     }
 }
-
-
 
 void DSynthFm::SetFilterFreq(float filter_cutoff)
 {
@@ -406,8 +388,6 @@ void DSynthFm::SetFilterFreq(float filter_cutoff)
     }
 }
 
-
-
 void DSynthFm::SetFilterRes(float filter_res)
 {
     filter_res_ = filter_res;
@@ -418,73 +398,73 @@ void DSynthFm::SetFilterRes(float filter_res)
     }
 }
 
-
-
 void DSynthFm::SetEGLevel(Target target, float level)
 {
     switch (target)
     {
-        case PITCH:
-            eg_p_level_ = level;
-            break;
-        case FILTER:
-            eg_f_level_ = level;
-            break;
-        default:
-            break;
+    case PITCH:
+        eg_p_level_ = level;
+        break;
+    case FILTER:
+        eg_f_level_ = level;
+        break;
+    default:
+        break;
     }
 }
-
-
 
 void DSynthFm::SetEG(Target target, float eg_attack, float eg_decay, float eg_sustain, float eg_release)
 {
     switch (target)
     {
-        case PITCH:
-            eg_p_attack_ = eg_attack;
-            eg_p_decay_ = eg_decay;
-            eg_p_sustain_ = eg_sustain;
-            eg_p_release_ = eg_release;
-            for (uint8_t i = 0; i < voices_; i++)
-            {
-                eg_p_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_p_attack_);
-                eg_p_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_p_decay_);
-                eg_p_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_p_release_);
-                eg_p_[i].SetSustainLevel(eg_p_sustain_);
-            }
-            break;
-        case FILTER:
-            eg_f_attack_ = eg_attack;
-            eg_f_decay_ = eg_decay;
-            eg_f_sustain_ = eg_sustain;
-            eg_f_release_ = eg_release;
-            for (uint8_t i = 0; i < voices_; i++)
-            {
-                eg_f_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_f_attack_);
-                eg_f_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_f_decay_);
-                eg_f_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_f_release_);
-                eg_f_[i].SetSustainLevel(eg_f_sustain_);
-            }
-            break;
-        case AMP:
-            eg_a_attack_ = eg_attack;
-            eg_a_decay_ = eg_decay;
-            eg_a_sustain_ = eg_sustain;
-            eg_a_release_ = eg_release;
-            for (uint8_t i = 0; i < voices_; i++)
-            {
-                eg_a_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_a_attack_);
-                eg_a_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_);
-                eg_a_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_);
-                eg_a_[i].SetSustainLevel(eg_a_sustain_);
-            }
-            break;
-        default:
-            break;
+    case PITCH:
+        eg_p_attack_ = eg_attack;
+        eg_p_decay_ = eg_decay;
+        eg_p_sustain_ = eg_sustain;
+        eg_p_release_ = eg_release;
+        for (uint8_t i = 0; i < voices_; i++)
+        {
+            eg_p_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_p_attack_);
+            eg_p_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_p_decay_);
+            eg_p_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_p_release_);
+            eg_p_[i].SetSustainLevel(eg_p_sustain_);
+        }
+        break;
+    case FILTER:
+        eg_f_attack_ = eg_attack;
+        eg_f_decay_ = eg_decay;
+        eg_f_sustain_ = eg_sustain;
+        eg_f_release_ = eg_release;
+        for (uint8_t i = 0; i < voices_; i++)
+        {
+            eg_f_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_f_attack_);
+            eg_f_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_f_decay_);
+            eg_f_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_f_release_);
+            eg_f_[i].SetSustainLevel(eg_f_sustain_);
+        }
+        break;
+    case AMP:
+        eg_a_attack_ = eg_attack;
+        eg_a_decay_ = eg_decay;
+        eg_a_sustain_ = eg_sustain;
+        eg_a_release_ = eg_release;
+        for (uint8_t i = 0; i < voices_; i++)
+        {
+            eg_a_[i].SetTime(daisysp::ADSR_SEG_ATTACK, eg_a_attack_);
+            eg_a_[i].SetTime(daisysp::ADSR_SEG_DECAY, eg_a_decay_);
+            eg_a_[i].SetTime(daisysp::ADSR_SEG_RELEASE, eg_a_release_);
+            eg_a_[i].SetSustainLevel(eg_a_sustain_);
+        }
+        break;
+    default:
+        break;
     }
 }
 
+void DSynthFm::SetEGRetrig(bool eg_retrig)
+{
+    eg_retrig_ = eg_retrig;
+}
 
 
 void DSynthFm::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, float lfo_p_level, float lfo_f_level, float lfo_a_level)
@@ -500,8 +480,6 @@ void DSynthFm::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, floa
     lfo_.SetAmp(lfo_amp_);
 }
 
-
-
 void DSynthFm::SetPortamento(float portamento)
 {
     portamento_ = portamento;
@@ -511,16 +489,12 @@ void DSynthFm::SetPortamento(float portamento)
     }
 }
 
-
-
 void DSynthFm::SetDelay(float delay_delay, float delay_feedback)
 {
     delay_delay_ = delay_delay;
     delay_feedback_ = delay_feedback;
     delay_.SetDelay(sample_rate_ * delay_delay_);
 }
-
-
 
 void DSynthFm::SetOverdrive(float overdrive_gain, float overdrive_drive)
 {
@@ -529,8 +503,6 @@ void DSynthFm::SetOverdrive(float overdrive_gain, float overdrive_drive)
     overdrive_.SetDrive(overdrive_drive_);
 }
 
-
-
 /*
     value goes from 0 to +1.0
 */
@@ -538,50 +510,51 @@ void DSynthFm::ChangeParam(DSynth::Param param, float value)
 {
     switch (param)
     {
-        case DSynth::DSYNTH_PARAM_AMP:
-            SetLevel(value);
-            break;
-        case DSynth::DSYNTH_PARAM_DELAY_FEEDBACK:
-            delay_feedback_ = base_config_.delay_feedback * value;
-            break;
-        case DSynth::DSYNTH_PARAM_DELAY_FREQ:
-            SetDelay(base_config_.delay_delay * value, delay_feedback_);
-            break;
-        case DSynth::DSYNTH_PARAM_DETUNE:
-            //SetTuning(tune_, base_config_.detune * value);
-            break;
-        case DSynth::DSYNTH_PARAM_FILTER_CUTOFF:
-            SetFilterFreq(base_config_.filter_cutoff * value);
-            break;
-        case DSynth::DSYNTH_PARAM_FILTER_RES:
-            SetFilterRes(base_config_.filter_res * value);
-            break;
-        case DSynth::DSYNTH_PARAM_LFO_AMP:
-            lfo_amp_ = value; // base_config_.lfo_amp * value;
-            lfo_.SetAmp(lfo_amp_);
-            break;
-        case DSynth::DSYNTH_PARAM_LFO_FREQ:
-            lfo_freq_ = base_config_.lfo_freq * value * 10;
-            lfo_.SetFreq(lfo_freq_);
-            break;
-        case DSynth::DSYNTH_PARAM_OVERDRIVE:
-            SetOverdrive(overdrive_gain_, base_config_.overdrive_drive + value);
-            break;
-        case DSynth::DSYNTH_PARAM_TRANSPOSE:
-            SetTranspose(base_config_.transpose * value);
-            break;
-        case DSynth::DSYNTH_PARAM_TUNE:
-            //SetTuning(base_config_.tune * value);
-            SetTuning(value * 100);
-            break;
-        case DSynth::DSYNTH_PARAM_FREQ:
-            note_freq_[0] = value;
-            break;
-    }   
-
+    case DSynth::DSYNTH_PARAM_AMP:
+        SetLevel(value);
+        break;
+    case DSynth::DSYNTH_PARAM_DELAY_FEEDBACK:
+        delay_feedback_ = base_config_.delay_feedback * value;
+        break;
+    case DSynth::DSYNTH_PARAM_DELAY_FREQ:
+        SetDelay(base_config_.delay_delay * value, delay_feedback_);
+        break;
+    case DSynth::DSYNTH_PARAM_DETUNE:
+        // SetTuning(tune_, base_config_.detune * value);
+        break;
+    case DSynth::DSYNTH_PARAM_FILTER_CUTOFF:
+        SetFilterFreq(base_config_.filter_cutoff * value);
+        break;
+    case DSynth::DSYNTH_PARAM_FILTER_RES:
+        SetFilterRes(base_config_.filter_res * value);
+        break;
+    case DSynth::DSYNTH_PARAM_LFO_AMP:
+        lfo_amp_ = value; // base_config_.lfo_amp * value;
+        lfo_.SetAmp(lfo_amp_);
+        break;
+    case DSynth::DSYNTH_PARAM_LFO_FREQ:
+        lfo_freq_ = base_config_.lfo_freq * value * 10;
+        lfo_.SetFreq(lfo_freq_);
+        break;
+    case DSynth::DSYNTH_PARAM_OVERDRIVE:
+        SetOverdrive(overdrive_gain_, base_config_.overdrive_drive + value);
+        break;
+    case DSynth::DSYNTH_PARAM_TRANSPOSE:
+        SetTranspose(base_config_.transpose * value);
+        break;
+    case DSynth::DSYNTH_PARAM_TUNE:
+        // SetTuning(base_config_.tune * value);
+        SetTuning(value * 100);
+        break;
+    case DSynth::DSYNTH_PARAM_FREQ:
+        note_freq_[0] = value;
+        break;
+    case DSynth::DSYNTH_PARAM_PAN:
+        break;
+    default:
+        break;
+    }
 }
-
-
 
 void DSynthFm::SetLevel(float level)
 {

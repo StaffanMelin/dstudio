@@ -26,27 +26,26 @@
 class DSynthVar : public DSynth
 {
 
-	public:
-
+public:
     DSynthVar() {}
     ~DSynthVar() {}
 
     struct Config
     {
-    	float sample_rate;
-    	uint8_t voices;
-        float waveshape; // 0 is saw/ramp/tri, 1 is square
+        float sample_rate;
+        uint8_t voices;
+        float waveshape;  // 0 is saw/ramp/tri, 1 is square
         float pulsewidth; // PW when shape is square. Saw, ramp, tri otherwise
         bool sync_enable; // Whether or not to sync to the sync oscillator
-        float sync_freq; // sync oscillator freq in Hz
+        float sync_freq;  // sync oscillator freq in Hz
         float tune;
         int8_t transpose;
         float osc_level;
         float noise_level;
 
         FilterType filter_type;
-		float filter_res;
-		float filter_cutoff;
+        float filter_res;
+        float filter_cutoff;
 
         uint8_t mod_eg_p;
         uint8_t mod_eg_f;
@@ -62,16 +61,21 @@ class DSynthVar : public DSynth
         float eg_0_decay;
         float eg_0_sustain;
         float eg_0_release;
+        bool eg_0_retrig;
+
         float eg_1_level;
         float eg_1_attack;
         float eg_1_decay;
         float eg_1_sustain;
         float eg_1_release;
+        bool eg_1_retrig;
+
         float eg_2_level;
         float eg_2_attack;
         float eg_2_decay;
         float eg_2_sustain;
         float eg_2_release;
+        bool eg_2_retrig;
 
         Waveform lfo_0_waveform;
         float lfo_0_freq;
@@ -112,13 +116,13 @@ class DSynthVar : public DSynth
         float overdrive_drive;
     };
 
-	void Init();
-	void Set(const Config&);
-	float Process();
+    void Init();
+    void Set(const Config &);
+    float Process();
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
     void NoteOn(uint8_t midi_note, uint8_t midi_velocity = MIDI_VELOCITY_MAX);
-	void NoteOff(uint8_t midi_note);
+    void NoteOff(uint8_t midi_note);
 
     void Silence();
     void SetWaveshape(float);
@@ -136,7 +140,7 @@ class DSynthVar : public DSynth
     void SetEG(uint8_t, float, float, float, float);
     void SetLFO(uint8_t, Waveform, float, float, float);
     void SetSM(uint8_t, uint8_t, float, float, float);
-    void SetSMSeq(uint8_t, uint8_t, std::vector<float>&);
+    void SetSMSeq(uint8_t, uint8_t, std::vector<float> &);
     void SetSMSeqStep(uint8_t, uint8_t, float);
     void SetPortamento(float);
     void SetDelay(float, float);
@@ -145,9 +149,8 @@ class DSynthVar : public DSynth
     void ChangeParam(DSynth::Param param, float value);
 
 private:
-
-	float sample_rate_;
-   	uint8_t voices_;
+    float sample_rate_;
+    uint8_t voices_;
     float waveshape_;
     float pulsewidth_;
     bool sync_enable_;
@@ -158,8 +161,8 @@ private:
 
     float noise_level_;
     FilterType filter_type_;
-	float filter_res_;
-	float filter_cutoff_;
+    float filter_res_;
+    float filter_cutoff_;
 
     uint8_t mod_eg_p_;
     uint8_t mod_eg_f_;
@@ -175,16 +178,21 @@ private:
     float eg_0_decay_;
     float eg_0_sustain_;
     float eg_0_release_;
+    bool eg_0_retrig_;
+
     float eg_1_level_;
     float eg_1_attack_;
     float eg_1_decay_;
     float eg_1_sustain_;
     float eg_1_release_;
+    bool eg_1_retrig_;
+
     float eg_2_level_;
     float eg_2_attack_;
     float eg_2_decay_;
     float eg_2_sustain_;
     float eg_2_release_;
+    bool eg_2_retrig_;
 
     Waveform lfo_0_waveform_;
     float lfo_0_freq_;
@@ -218,7 +226,7 @@ private:
     uint8_t sm_2_seq_len_;
     std::vector<float> sm_2_seq_val_;
 
-	float portamento_;
+    float portamento_;
     float delay_delay_;
     float delay_feedback_;
     float overdrive_gain_;
@@ -226,7 +234,7 @@ private:
 
     Config base_config_;
 
-	uint8_t osc_next_;
+    uint8_t osc_next_;
     uint8_t note_midi_[DSYNTH_VOICES_MAX];
     float note_freq_[DSYNTH_VOICES_MAX];
     float note_velocity_[DSYNTH_VOICES_MAX];

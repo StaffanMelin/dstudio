@@ -38,6 +38,10 @@ void DSynthVar::Init()
         note_velocity_[i] = 0.0f;
     }
 
+    eg_0_retrig_ = false;
+    eg_1_retrig_ = false;
+    eg_2_retrig_ = false;
+
 	// lfo
 
     lfo_[0].Init(sample_rate_);
@@ -96,16 +100,21 @@ void DSynthVar::Set(const Config& config)
     eg_0_decay_ = config.eg_0_decay;
     eg_0_sustain_ = config.eg_0_sustain;
     eg_0_release_ = config.eg_0_release;
+    eg_0_retrig_ = config.eg_0_retrig;
+
     eg_1_level_ = config.eg_1_level;
     eg_1_attack_ = config.eg_1_attack;
     eg_1_decay_ = config.eg_1_decay;
     eg_1_sustain_ = config.eg_1_sustain;
     eg_1_release_ = config.eg_1_release;
+    eg_1_retrig_ = config.eg_1_retrig;
+
     eg_2_level_ = config.eg_2_level;
     eg_2_attack_ = config.eg_2_attack;
     eg_2_decay_ = config.eg_2_decay;
     eg_2_sustain_ = config.eg_2_sustain;
     eg_2_release_ = config.eg_2_release;
+    eg_2_retrig_ = config.eg_2_retrig;
 
     lfo_0_waveform_ = config.lfo_0_waveform;
     lfo_0_freq_ = config.lfo_0_freq;
@@ -429,9 +438,9 @@ void DSynthVar::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 
     if (portamento_ == 0)
     {
-        eg_[osc_next_][0].Retrigger(false);
-        eg_[osc_next_][1].Retrigger(false);
-        eg_[osc_next_][2].Retrigger(false);
+        eg_[osc_next_][0].Retrigger(eg_0_retrig_);
+        eg_[osc_next_][1].Retrigger(eg_1_retrig_);
+        eg_[osc_next_][2].Retrigger(eg_2_retrig_);
     }
 }
 
