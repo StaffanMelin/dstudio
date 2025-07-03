@@ -286,10 +286,10 @@ void DSynthSub::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_dat
         switch (midi_data0 & MIDI_DATA_MASK)
         {
         case MIDI_CC_CUTOFF:
-            SetFilter(filter_type_, DSTUDIO_FILTER_BASE * ((midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX), filter_res_);
+            SetFilterFreq(DSTUDIO_FILTER_BASE * ((midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX));
             break;
         case MIDI_CC_RESONANCE:
-            SetFilter(filter_type_, filter_cutoff_, (midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX);
+            SetFilterRes((midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX);
             break;
         }
         break;

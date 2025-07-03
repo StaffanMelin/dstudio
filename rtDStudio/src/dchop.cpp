@@ -336,7 +336,6 @@ void DChop::Process(float *out_l, float *out_r)
 
     *out_l = filter_out_l;
     *out_r = filter_out_r;
-    
 }
 
 void DChop::Calc()
@@ -351,7 +350,7 @@ void DChop::Calc()
 
     // eg_a_.Retrigger(false);
     eg_a_.Retrigger(eg_retrig_);
-    //std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
+    // std::cout << "DChop - Calc() - chop_step " << (int)chop_step_ << " step " << (int)step << " note_midi " << (int)note_midi_ << std::endl;
 }
 
 // midi_data0 is the number of the chop to be played
@@ -368,7 +367,7 @@ void DChop::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1)
         {
             // TODO
             // NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
-            //std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
+            // std::cout << "DChop/MidiIn " << (int)(midi_data0 & MIDI_DATA_MASK) << std::endl;
             NoteOn(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
         }
         else
@@ -379,6 +378,18 @@ void DChop::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1)
     case MIDI_MESSAGE_NOTEOFF:
         NoteOff(midi_data0 & MIDI_DATA_MASK, midi_data1 & MIDI_DATA_MASK);
         break;
+    case MIDI_MESSAGE_CC:
+        switch (midi_data0 & MIDI_DATA_MASK)
+        {
+        case MIDI_CC_CUTOFF:
+            SetFilterFreq(DSTUDIO_FILTER_BASE * ((midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX));
+            break;
+        case MIDI_CC_RESONANCE:
+            SetFilterRes((midi_data1 & MIDI_DATA_MASK) / (float)MIDI_DATA_MAX);
+            break;
+        }
+        break;
+
     default:
         break;
     }
@@ -487,7 +498,6 @@ void DChop::SetEGRetrig(bool eg_retrig)
 {
     eg_retrig_ = eg_retrig;
 }
-
 
 void DChop::SetLFO(Waveform lfo_waveform, float lfo_freq, float lfo_amp, float lfo_p_level, float lfo_f_level, float lfo_a_level)
 {

@@ -3,8 +3,15 @@
 // helper macros
 #include <unistd.h>
 #define SLEEP(milliseconds) usleep((unsigned long)(milliseconds * 1000.0))
-#define DMAX(x,y) ((x > y) ? (x) : (y))
-#define DMIN(x,y) ((x > y) ? (y) : (x))
+#define DMAX(x, y) ((x > y) ? (x) : (y))
+#define DMIN(x, y) ((x > y) ? (y) : (x))
+#define DMAP(a, x1, y1, x2, y2) ((a - x1) * (y2 - x2) / (y1 - x1) + x2)
+/* Arduino
+long map(long x, long in_min, long in_max, long out_min, long out_max)
+{
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+*/
 
 // system
 #define DSTUDIO_SAMPLE_RATE 44100
@@ -61,11 +68,11 @@ int dRandWeightedList(float w[], int count);
 // class that measures interval in microseconds (millionth of a second)
 class DInterval
 {
-    public:
-        void Init(uint64_t interval_us);
-        bool Process();
+public:
+    void Init(uint64_t interval_us);
+    bool Process();
 
-    private:
-        uint64_t start_;
-        uint64_t interval_us_;
+private:
+    uint64_t start_;
+    uint64_t interval_us_;
 };
