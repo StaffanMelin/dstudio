@@ -302,6 +302,7 @@ void DSynthSub::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 {
     osc_next_ = (osc_next_ + 1) % voices_;
 
+    bool retrig = (portamento_ == 0) || (note_midi_[osc_next_] == 0);
     note_midi_[osc_next_] = midi_note + transpose_;
     // to: osc_frequency = note_frequency * 2 ** (tuning / 1200.0 + lfo_y * lfo_mod_depth)
     //     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_]);
@@ -313,7 +314,7 @@ void DSynthSub::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     //    eg_p_[osc_next_].SetSustainLevel((float)midi_velocity / MIDI_VELOCITY_MAX);
     //    eg_f_[osc_next_].SetSustainLevel((float)midi_velocity / MIDI_VELOCITY_MAX);
     //    eg_a_[osc_next_].SetSustainLevel((float)midi_velocity / MIDI_VELOCITY_MAX);
-    if (portamento_ == 0)
+    if (retrig)
     {
         eg_p_[osc_next_].Retrigger(eg_retrig_);
         eg_f_[osc_next_].Retrigger(eg_retrig_);
