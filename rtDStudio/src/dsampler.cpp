@@ -390,6 +390,7 @@ void DSampler::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 {
     osc_next_ = (osc_next_ + 1) % voices_;
 
+    bool retrig = (portamento_ == 0) || (note_midi_[osc_next_] == 0);
     note_midi_[osc_next_] = midi_note + transpose_;
     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_] + tune_);
     note_velocity_[osc_next_] = (float)midi_velocity / MIDI_VELOCITY_MAX;
@@ -397,7 +398,7 @@ void DSampler::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     sample_index_[osc_next_] = sample_phase_start_;
     sample_index_factor_[osc_next_] = (note_freq_[osc_next_] / DSAMPLER_BASE_FREQ); // * (fxSettings.oscDetune / 100.0f);
 
-    if (portamento_ == 0)
+    if (retrig)
     {
         eg_p_[osc_next_].Retrigger(eg_retrig_);
         eg_f_[osc_next_].Retrigger(eg_retrig_);

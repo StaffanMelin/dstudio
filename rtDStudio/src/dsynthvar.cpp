@@ -431,12 +431,13 @@ void DSynthVar::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 {
 	osc_next_ = (osc_next_ + 1) % voices_;
 
+    bool retrig = (portamento_ == 0) || (note_midi_[osc_next_] == 0);
     note_midi_[osc_next_] = midi_note + transpose_;
     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_]);
     note_velocity_[osc_next_] = (float)midi_velocity / MIDI_VELOCITY_MAX;
     osc_[osc_next_].SetFreq(note_freq_[osc_next_] + tune_);
 
-    if (portamento_ == 0)
+    if (retrig)
     {
         eg_[osc_next_][0].Retrigger(eg_0_retrig_);
         eg_[osc_next_][1].Retrigger(eg_1_retrig_);
