@@ -18,9 +18,16 @@ float dRandom(float max)
     return (max * rand() / float(RAND_MAX)) * (1.0f - std::numeric_limits<float>::epsilon());
 }
 
+// return random number from 0 to max (inclusive)
 float dRand(float max)
 {
     return (max * rand() / float(RAND_MAX));
+}
+
+// return random number from 0 to max (not inclusive)
+uint32_t dRandI(uint32_t max)
+{
+        return static_cast<int>(max * (rand() / float(RAND_MAX)));
 }
 
 int dRandWeightedList(float w[], int count)

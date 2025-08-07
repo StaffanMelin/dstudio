@@ -63,6 +63,7 @@ uint64_t dGetElapsedTimeMicros();
 uint32_t dGetElapsedTimeMillis();
 float dRandom(float max);
 float dRand(float max);
+uint32_t dRandI(uint32_t max);
 int dRandWeightedList(float w[], int count);
 
 // class that measures interval in microseconds (millionth of a second)
