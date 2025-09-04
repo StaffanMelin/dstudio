@@ -23,6 +23,7 @@ public:
 
     struct Config
     {
+        char settings_name[DSTUDIO_SETTINGS_NAME_MAX + 1];
         float sample_rate;
         uint8_t voices;
         Waveform waveform0;
@@ -73,6 +74,7 @@ public:
     void NoteOff(uint8_t midi_note);
 
     void Silence();
+    void SetVoicesLimit(uint8_t voices_limit);
     void SetWaveform(Waveform, Waveform);
     void SetTuning(float, float);
     void SetTranspose(uint8_t);
@@ -91,9 +93,11 @@ public:
     void SetLevel(float);
     void ChangeParam(DSynth::Param param, float value);
 
+    char *GetSettingsName();
     Config base_config_;
 
 private:
+    char settings_name_[DSTUDIO_SETTINGS_NAME_MAX + 1];
     float sample_rate_;
     uint8_t voices_;
     Waveform waveform0_;
@@ -150,4 +154,6 @@ private:
 
     daisysp::DelayLine<float, DSYNTH_DELAY_MAX> delay_;
     daisysp::Overdrive overdrive_;
+
+    uint8_t voices_limit_;
 };

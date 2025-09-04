@@ -32,6 +32,7 @@ public:
 
     struct Config
     {
+        char settings_name[DSTUDIO_SETTINGS_NAME_MAX + 1];
         float sample_rate;
         uint8_t voices;
         float waveshape;  // 0 is saw/ramp/tri, 1 is square
@@ -125,6 +126,7 @@ public:
     void NoteOff(uint8_t midi_note);
 
     void Silence();
+    void SetVoicesLimit(uint8_t voices_limit);
     void SetWaveshape(float);
     void SetPulsewidth(float);
     void SetSync(bool);
@@ -149,6 +151,7 @@ public:
     void ChangeParam(DSynth::Param param, float value);
 
 private:
+    char settings_name_[DSTUDIO_SETTINGS_NAME_MAX + 1];
     float sample_rate_;
     uint8_t voices_;
     float waveshape_;
@@ -249,4 +252,6 @@ private:
     daisysp::Overdrive overdrive_;
 
     float mod_value_[1 + DSYNTHVAR_EG_MAX + DSYNTHVAR_LFO_MAX + DSYNTHVAR_SM_MAX];
+
+    uint8_t voices_limit_;
 };

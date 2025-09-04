@@ -19,6 +19,12 @@ public:
         MIXER_SUB,
         MIXER_PERCUSSION,
         CONTROLLER,
+        SYNTHSUB,
+        SYNTHFM,
+        SYNTHVAR,
+        SAMPLER,
+        HITS,
+        CHOP,
         LAST
     };
 

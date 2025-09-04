@@ -94,9 +94,13 @@ void DXMLSettings::setValue(const std::string &tag, const std::string &value)
     size_t found = tag.find(":");
     if (found != std::string::npos)
     {
+        std::cout << "bb0" << std::endl;
         setting_ = new TiXmlElement(tag.substr(found + 1));
+        std::cout << "bb1" << tag.substr(found + 1) << " value: " << ofToString(value).c_str() << std::endl;
         setting_->LinkEndChild(new TiXmlText(ofToString(value).c_str()));
+        std::cout << "bb2" << std::endl;
         root_->LinkEndChild(setting_);
+        std::cout << "bb3" << std::endl;
     }
 }
 
@@ -104,7 +108,15 @@ void DXMLSettings::saveInit(const std::string &fileName)
 {
     fileName_ = fileName;
     doc_ = new TiXmlDocument();
-    root_ = doc_->RootElement();
+    TiXmlElement *element = new TiXmlElement("settings");
+    doc_->LinkEndChild(element);
+
+    //root_ = doc_->RootElement();
+    root_ = element;
+    if (doc_ == NULL)
+        std::cout << "sv doc" << std::endl;
+    if (root_ == NULL)
+        std::cout << "sv root" << std::endl;
 }
 
 void DXMLSettings::saveExit()
@@ -136,7 +148,6 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
 
     DXMLSettings settings;
     settings.saveInit(file_name);
-
     switch (type)
     {
     case DSettings::DSYNTHSUB:
@@ -144,6 +155,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         DSynthSub::Config *p;
         p = (DSynthSub::Config *)config;
         settings.setValue("settings:settingstype", "DSynthSub");
+        settings.setValue("settings:name", p->settings_name);
         settings.setValue("settings:voices", p->voices);
         settings.setValue("settings:waveform0", p->waveform0);
         settings.setValue("settings:waveform1", p->waveform1);
@@ -194,6 +206,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         DSynthFm::Config *p;
         p = (DSynthFm::Config *)config;
         settings.setValue("settings:settingstype", "DSynthFm");
+        settings.setValue("settings:name", p->settings_name);
         settings.setValue("settings:voices", p->voices);
         settings.setValue("settings:ratio", p->ratio);
         settings.setValue("settings:index", p->index);
@@ -242,6 +255,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         DSynthVar::Config *p;
         p = (DSynthVar::Config *)config;
         settings.setValue("settings:settingstype", "DSynthVar");
+        settings.setValue("settings:name", p->settings_name);
         settings.setValue("settings:voices", p->voices);
         settings.setValue("settings:waveshape", p->waveshape);
         settings.setValue("settings:pulsewidth", p->pulsewidth);
@@ -330,6 +344,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         DSampler::Config *p;
         p = (DSampler::Config *)config;
         settings.setValue("settings:settingstype", "DSampler");
+        settings.setValue("settings:name", p->settings_name);
         settings.setValue("settings:voices", p->voices);
         settings.setValue("settings:tune", p->tune);
         settings.setValue("settings:transpose", p->transpose);
@@ -386,6 +401,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         DChop::Config *p;
         p = (DChop::Config *)config;
         settings.setValue("settings:settingstype", "DChop");
+        settings.setValue("settings:name", p->settings_name);
         settings.setValue("settings:chop_gate", p->chop_gate);
         settings.setValue("settings:mode_internal", p->mode_internal);
         settings.setValue("settings:loop", p->loop);
@@ -557,6 +573,7 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         }
         break;
     }
+
     settings.saveExit();
 }
 
@@ -572,6 +589,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     {
         DSynthSub::Config *p;
         p = (DSynthSub::Config *)config;
+        strncpy(p->settings_name, settings.getValue("settings:name", "").c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         p->sample_rate = DSTUDIO_SAMPLE_RATE;
         p->voices = settings.getValue("settings:voices", 1);
         p->waveform0 = static_cast<DSynthSub::Waveform>(settings.getValue("settings:waveform0", DSynthSub::WAVE_TRI));
@@ -624,6 +642,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     {
         DSynthFm::Config *p;
         p = (DSynthFm::Config *)config;
+        strncpy(p->settings_name, settings.getValue("settings:name", "").c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         p->sample_rate = DSTUDIO_SAMPLE_RATE;
         p->voices = settings.getValue("settings:voices", 1);
         p->ratio = settings.getValue("settings:ratio", 0.5f);
@@ -674,6 +693,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     {
         DSynthVar::Config *p;
         p = (DSynthVar::Config *)config;
+        strncpy(p->settings_name, settings.getValue("settings:name", "").c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         p->sample_rate = DSTUDIO_SAMPLE_RATE;
         p->voices = settings.getValue("settings:voices", 1);
         p->waveshape = settings.getValue("settings:waveshape", 0.5f);
@@ -762,6 +782,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     {
         DSampler::Config *p;
         p = (DSampler::Config *)config;
+        strncpy(p->settings_name, settings.getValue("settings:name", "").c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         p->sample_rate = DSTUDIO_SAMPLE_RATE;
         p->voices = settings.getValue("settings:voices", 1);
         p->tune = settings.getValue("settings:tune", 0.0f);
@@ -817,6 +838,7 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
     {
         DChop::Config *p;
         p = (DChop::Config *)config;
+        strncpy(p->settings_name, settings.getValue("settings:name", "").c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         p->sample_rate = DSTUDIO_SAMPLE_RATE;
         p->tune = settings.getValue("settings:tune", 0.0f);
         p->loop = settings.getValue("settings:loop", false);
@@ -1096,38 +1118,6 @@ void DSettingsD::InitDir(DSoundType type, DSoundSubType subtype, std::string dir
     }
 }
 
-DSettings::DSoundType DSettingsD::MapSoundType(std::string sound_type)
-{
-    if (sound_type == "DSynthSub")
-    {
-        return DSettings::DSYNTHSUB;
-    }
-    else if (sound_type == "DSynthVar")
-    {
-        return DSettings::DSYNTHVAR;
-    }
-    else if (sound_type == "DSynthFm")
-    {
-        return DSettings::DSYNTHFM;
-    }
-    else if (sound_type == "DSampler")
-    {
-        return DSettings::DSAMPLER;
-    }
-    else if (sound_type == "DChop")
-    {
-        return DSettings::DCHOP;
-    }
-    else if (sound_type == "DHits")
-    {
-        return DSettings::DHITS;
-    }
-    else
-    {
-        return DSettings::UNKNOWN;
-    }
-}
-
 std::string DSettingsD::NextFile()
 {
     std::string file_name = "";
@@ -1168,4 +1158,44 @@ std::string DSettingsD::PrevFile()
     }
 
     return retval;
+}
+
+DSettings::DSoundType MapSoundType(std::string sound_type)
+{
+    if (sound_type == "DSynthSub")
+    {
+        return DSettings::DSYNTHSUB;
+    }
+    else if (sound_type == "DSynthVar")
+    {
+        return DSettings::DSYNTHVAR;
+    }
+    else if (sound_type == "DSynthFm")
+    {
+        return DSettings::DSYNTHFM;
+    }
+    else if (sound_type == "DSampler")
+    {
+        return DSettings::DSAMPLER;
+    }
+    else if (sound_type == "DChop")
+    {
+        return DSettings::DCHOP;
+    }
+    else if (sound_type == "DHits")
+    {
+        return DSettings::DHITS;
+    }
+    else if (sound_type == "player")
+    {
+        return DSettings::DPLAYER;
+    }
+    else if (sound_type == "seq")
+    {
+        return DSettings::DSEQ;
+    }
+    else
+    {
+        return DSettings::UNKNOWN;
+    }
 }

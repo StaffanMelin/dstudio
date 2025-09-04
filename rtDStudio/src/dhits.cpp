@@ -31,13 +31,14 @@ void DHits::Init()
 
     overdrive_.Init();
 
-    SetType(TUNED);
+    SetType(DSound::SoundType::HITS);
 }
 
 void DHits::Set(const Config &config)
 {
     base_config_ = config;
 
+    strncpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
     // sample_rate_ = config.sample_rate;
     for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
     {
@@ -195,7 +196,7 @@ void DHits::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     uint8_t hit = midi_note;
     if (hit < DHITS_HITS_MAX)
     {
-        //std::cout << "DHits note on:" << (int)hit << "\n";
+        // std::cout << "DHits note on:" << (int)hit << "\n";
 
         note_freq_[hit] = DHITS_BASE_FREQ * tune_[hit];
         note_velocity_[hit] = (float)midi_velocity / MIDI_VELOCITY_MAX;
@@ -367,10 +368,9 @@ void DHits::LoadHits(std::string file_name)
 
     if (NULL != pRoot)
     {
-                for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
+        for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
         {
             config.sample_file_name[i] = "";
-
         }
         config.sample_rate = DSTUDIO_SAMPLE_RATE;
 
@@ -380,7 +380,7 @@ void DHits::LoadHits(std::string file_name)
         pElt = pRoot->FirstChildElement("name");
         str_c = pElt->GetText(); // cchar
         std::string name = str_c;
-        pElt = pRoot->FirstChildElement("type");
+        pElt = pRoot->FirstChildElement("settingstype");
         str_c = pElt->GetText(); // cchar
         std::string type = str_c;
         std::cout << "Load DHits:"
@@ -393,7 +393,7 @@ void DHits::LoadHits(std::string file_name)
         pElt = pRoot->FirstChildElement("delay_feedback");
         str_c = pElt->GetText(); // cchar
         config.delay_feedback = atof(str_c);
-        pElt= pRoot->FirstChildElement("overdrive_gain");
+        pElt = pRoot->FirstChildElement("overdrive_gain");
         str_c = pElt->GetText(); // cchar
         config.overdrive_gain = atof(str_c);
         pElt = pRoot->FirstChildElement("overdrive_drive");
@@ -418,7 +418,7 @@ void DHits::LoadHits(std::string file_name)
             pElt->QueryFloatAttribute("eg_a_sustain", &eg_a_sustain);
             pElt->QueryFloatAttribute("eg_a_release", &eg_a_release);
 
-            config.level[channel]=level;
+            config.level[channel] = level;
             config.pan[channel] = pan;
             config.tune[channel] = tune;
             config.eg_a_attack[channel] = eg_a_attack;
@@ -444,9 +444,8 @@ void DHits::LoadHits(std::string file_name)
         {
             if (config.sample_file_name[i] != "")
             {
-            Load(i, config.sample_file_name[i], true);
+                Load(i, config.sample_file_name[i], true);
             }
-
         }
     }
 

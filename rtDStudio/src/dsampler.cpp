@@ -1,11 +1,13 @@
 #include <string>
 
 #include "dsampler.h"
+#include <cstring>
 
 void DSampler::Init()
 {
     sample_rate_ = DSTUDIO_SAMPLE_RATE;
     voices_ = DSYNTH_VOICES_MAX;
+    voices_limit_ = DSYNTH_VOICES_MAX;
 
     // noise, shared
     noise_.Init();
@@ -60,15 +62,16 @@ void DSampler::Init()
     // init
     osc_next_ = 0; // circular buffer of midi notes
 
-    SetType(TUNED);
+    SetType(DSound::SoundType::SAMPLER);
 }
 
 void DSampler::Set(const Config &config)
 {
     base_config_ = config;
 
+    strncpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
     // sample_rate_ = config.sample_rate;
-    voices_ = config.voices;
+    voices_ = config.voices > voices_limit_ ? voices_limit_ : config.voices;
     tune_ = config.tune;
     transpose_ = config.transpose;
     osc0_level_ = config.osc0_level;
@@ -391,7 +394,13 @@ void DSampler::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     osc_next_ = (osc_next_ + 1) % voices_;
 
     bool retrig = (portamento_ == 0) || (note_midi_[osc_next_] == 0);
-    note_midi_[osc_next_] = midi_note + transpose_;
+    if (midi_note + transpose_ > 0 && midi_note + transpose_ < 128)
+    {
+        note_midi_[osc_next_] = midi_note + transpose_;
+    } else
+    {
+        note_midi_[osc_next_] = midi_note;
+    }
     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_] + tune_);
     note_velocity_[osc_next_] = (float)midi_velocity / MIDI_VELOCITY_MAX;
 
@@ -424,6 +433,11 @@ void DSampler::Silence()
         note_midi_[i] = 0;
         note_velocity_[i] = 0;
     }
+}
+
+void DSampler::SetVoicesLimit(uint8_t voices_limit)
+{
+    voices_limit_ = voices_limit;
 }
 
 void DSampler::SetFreq(float freq)

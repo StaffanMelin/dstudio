@@ -11,7 +11,7 @@
 // base freq
 #define DSAMPLER_BASE_FREQ 440.0f
 // max sample time in seconds
-#define SAMPLE_TIME_MAX 30
+#define SAMPLE_TIME_MAX 70
 #define SAMPLE_BUFFER_MAX (DSTUDIO_SAMPLE_RATE * SAMPLE_TIME_MAX * 2) // 60 secs; 48k * 2 * 4 = 384k/s
 
 class DSampler : public DSynth
@@ -30,10 +30,11 @@ public:
 
     struct Config
     {
+        char settings_name[DSTUDIO_SETTINGS_NAME_MAX + 1];
         float sample_rate;
         uint8_t voices;
         float tune;
-        uint8_t transpose;
+        int8_t transpose;
         float osc0_level;
         float noise_level;
         FilterType filter_type;
@@ -84,6 +85,7 @@ public:
     void NoteOff(uint8_t midi_note);
 
     void Silence();
+    void SetVoicesLimit(uint8_t voices_limit);
     void SetFreq(float);
     void SetTuning(float);
     void SetTranspose(uint8_t);
@@ -116,10 +118,11 @@ public:
     Config base_config_;
 
 private:
+    char settings_name_[DSTUDIO_SETTINGS_NAME_MAX + 1];
     float sample_rate_;
     uint8_t voices_;
     float tune_;
-    uint8_t transpose_;
+    int8_t transpose_;
     float osc0_level_;
     float noise_level_;
     FilterType filter_type_;
@@ -191,4 +194,6 @@ private:
     daisysp::DelayLine<float, DSYNTH_DELAY_MAX> delay_l_;
     daisysp::DelayLine<float, DSYNTH_DELAY_MAX> delay_r_;
     daisysp::Overdrive overdrive_;
+
+    uint8_t voices_limit_;
 };

@@ -24,54 +24,54 @@
 /// \param value The value to convert to a string.
 /// \returns A string representing the value or an empty string on failure.
 template <class T>
-std::string ofToString(const T& value){
-	std::ostringstream out;
-	out << value;
-	return out.str();
+std::string ofToString(const T &value)
+{
+    std::ostringstream out;
+    out << value;
+    return out.str();
 }
 /// \brief Convert a string to a given data type.
 /// \tparam T The return type.
 /// \param value The string value to convert to a give type.
 /// \returns the string converted to the type.
-template<typename T>
-T ofTo(const std::string & str){
-	T x;
-	std::istringstream cur(str);
-	cur >> x;
-	return x;
+template <typename T>
+T ofTo(const std::string &str)
+{
+    T x;
+    std::istringstream cur(str);
+    cur >> x;
+    return x;
 }
-
-
 
 // DXMLSettings
 class DXMLSettings
 {
 
-    public:
-        DXMLSettings()
-        {
-        }
-        ~DXMLSettings()
-        {
-        }
+public:
+    DXMLSettings()
+    {
+    }
+    ~DXMLSettings()
+    {
+    }
 
-        void setValue(const std::string& tag, int value);
-        void setValue(const std::string& tag, float value);
-        void setValue(const std::string& tag, const std::string& value);
-        int getValue(const std::string& tag, int defaultValue);
-        float getValue(const std::string& tag, float defaultValue);
-        std::string getValue(const std::string& tag, const std::string& defaultValue);
-        
-        void loadInit(const std::string& fileName);
-        void loadExit();
-        void saveInit(const std::string& fileName);
-        void saveExit();
-    
-    private:
-        std::string fileName_;
-    	TiXmlDocument *doc_;  
-	    TiXmlElement *setting_;
-        TiXmlElement *root_;
+    void setValue(const std::string &tag, int value);
+    void setValue(const std::string &tag, float value);
+    void setValue(const std::string &tag, const std::string &value);
+    int getValue(const std::string &tag, int defaultValue);
+    float getValue(const std::string &tag, float defaultValue);
+    std::string getValue(const std::string &tag, const std::string &defaultValue);
+
+    void loadInit(const std::string &fileName);
+    void loadExit();
+    void saveInit(const std::string &fileName);
+    void saveExit();
+
+private:
+    std::string fileName_;
+    TiXmlDocument *doc_;
+    TiXmlElement *setting_;
+    TiXmlElement *root_;
 };
 
 // static methods - no need to instantiate
@@ -79,24 +79,25 @@ class DXMLSettings
 class DSettings
 {
 
-	public:
-
+public:
     enum DSoundType
     {
-        DSYNTHSUB,
+        DSYNTHSUB = 0,
         DSYNTHFM,
         DSYNTHVAR,
         DSAMPLER,
         DRUM,
         DCHOP,
         DHITS,
+        DSEQ,
+        DPLAYER,
         UNKNOWN
         // more to come: mixer, fx, seq etc
     };
 
     enum DSoundSubType
     {
-        NONE,
+        NONE = 0,
         DBASS,
         DSNARE,
         DHIHAT,
@@ -107,17 +108,14 @@ class DSettings
 
     DSettings() {}
     ~DSettings() {}
-    
+
     void static SaveSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config);
     void static LoadSetting(DSoundType type, DSoundSubType subtype, std::string file_name, void *config);
 
 private:
-
     std::string static VecToStr(std::vector<float> vec);
     std::vector<float> static StrToVec(std::string str);
 };
-
-
 
 class DSettingsD : public DSettings
 {
@@ -128,11 +126,11 @@ public:
     std::string PrevFile();
 
 private:
-    DSettings::DSoundType MapSoundType(std::string sound_type);
-
-    DSoundType type_; 
-    DSoundSubType subtype_; 
+    DSoundType type_;
+    DSoundSubType subtype_;
     std::string dir_name_;
     std::vector<std::string> files_;
     int file_at_;
 };
+
+DSettings::DSoundType MapSoundType(std::string sound_type);

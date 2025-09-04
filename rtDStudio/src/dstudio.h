@@ -18,6 +18,8 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 #define DSTUDIO_BUFFER_SIZE 512
 #define DSTUDIO_NUM_BUFFERS 4
 #define DSTUDIO_FILTER_BASE (DSTUDIO_SAMPLE_RATE / 2)
+#define DSTUDIO_SETTINGS_NAME_MAX 24 // 24 + terminating zero
+
 // mixer
 #define MIXER_CHANNELS_MAX 16
 

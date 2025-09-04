@@ -31,6 +31,7 @@ public:
 
     struct Config
     {
+        char settings_name[DSTUDIO_SETTINGS_NAME_MAX];
         float sample_rate;
         uint8_t chops[DCHOP_CHOPS];
         uint8_t chops_notes[DCHOP_CHOPS];
@@ -100,6 +101,7 @@ public:
     Config base_config_;
 
 private:
+    char settings_name_[DSTUDIO_SETTINGS_NAME_MAX];
     float sample_rate_;
     uint8_t chops_[DCHOP_CHOPS];
     uint8_t chops_notes_[DCHOP_CHOPS];

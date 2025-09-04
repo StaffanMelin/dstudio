@@ -1,6 +1,6 @@
 #pragma once
 
-//#include <string>
+// #include <string>
 #include "../rtDStudio/src/libs/tinyxml.h"
 
 #include "dstudio.h"
@@ -20,26 +20,25 @@ class DHits : public DSynth
 {
 
 public:
-
     DHits()
     {
         for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
         {
             sample_buffer_[i] = new (std::nothrow) float[DHITS_SAMPLE_BUFFER_MAX];
         }
-
     }
 
     ~DHits()
     {
         for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
         {
-        delete sample_buffer_[i];
+            delete sample_buffer_[i];
+        }
     }
-}
 
     struct Config
     {
+        char settings_name[DSTUDIO_SETTINGS_NAME_MAX + 1];
         float sample_rate;
         float level[DHITS_HITS_MAX];
         float pan[DHITS_HITS_MAX];
@@ -59,7 +58,7 @@ public:
     };
 
     void Init();
-    void Set(const Config&);
+    void Set(const Config &);
     void Process(float *, float *);
     void MidiIn(uint8_t, uint8_t, uint8_t);
     void NoteOn(uint8_t midi_note, uint8_t midi_velocity = MIDI_VELOCITY_MAX);
@@ -90,7 +89,7 @@ public:
     Config base_config_;
 
 private:
-
+    char settings_name_[DSTUDIO_SETTINGS_NAME_MAX + 1];
     float sample_rate_;
     float level_[DHITS_HITS_MAX];
     float pan_[DHITS_HITS_MAX];
@@ -106,7 +105,7 @@ private:
     std::string sample_file_name_[DHITS_HITS_MAX];
     uint32_t sample_phase_start_[DHITS_HITS_MAX];
     uint32_t sample_phase_end_[DHITS_HITS_MAX]; // if 0, set to sample_length_ - 1 when loading sample
-    uint32_t sample_length_[DHITS_HITS_MAX]; // set when loading sample; length of sample, < BUFFER_MAX
+    uint32_t sample_length_[DHITS_HITS_MAX];    // set when loading sample; length of sample, < BUFFER_MAX
 
     // MIDI
     float note_freq_[DHITS_HITS_MAX];
@@ -120,7 +119,7 @@ private:
     // start lstart lend end
     // gate--<--------->
     // sample - runtime
-    float sample_index_[DHITS_HITS_MAX]; // index into buffer
+    float sample_index_[DHITS_HITS_MAX];        // index into buffer
     float sample_index_factor_[DHITS_HITS_MAX]; // how much to advance index for a new sample
 
     // objects

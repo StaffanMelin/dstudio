@@ -1,11 +1,13 @@
 #include "dsynthsub.h"
 #include <iostream>
 #include <stdio.h>
+#include <cstring>
 
 void DSynthSub::Init()
 {
     sample_rate_ = DSTUDIO_SAMPLE_RATE;
     voices_ = DSYNTH_VOICES_MAX;
+    voices_limit_ = DSYNTH_VOICES_MAX;
 
     // noise, shared
     noise_.Init();
@@ -49,15 +51,17 @@ void DSynthSub::Init()
     // init
     osc_next_ = 0; // circular buffer of midi notes
 
-    SetType(TUNED);
+    SetType(DSound::SoundType::SYNTHSUB);
 }
 
 void DSynthSub::Set(const Config &config)
 {
     base_config_ = config;
-
+    // settings_name_ is not copied, only pointer
+    
+    strncpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
     // sample_rate_ = config.sample_rate;
-    voices_ = config.voices;
+    voices_ = config.voices > voices_limit_ ? voices_limit_ : config.voices;
     waveform0_ = config.waveform0;
     waveform1_ = config.waveform1;
     tune_ = config.tune;
@@ -303,7 +307,13 @@ void DSynthSub::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     osc_next_ = (osc_next_ + 1) % voices_;
 
     bool retrig = (portamento_ == 0) || (note_midi_[osc_next_] == 0);
-    note_midi_[osc_next_] = midi_note + transpose_;
+    if (midi_note + transpose_ > 0 && midi_note + transpose_ < 128)
+    {
+        note_midi_[osc_next_] = midi_note + transpose_;
+    } else
+    {
+        note_midi_[osc_next_] = midi_note;
+    }
     // to: osc_frequency = note_frequency * 2 ** (tuning / 1200.0 + lfo_y * lfo_mod_depth)
     //     note_freq_[osc_next_] = daisysp::mtof(note_midi_[osc_next_]);
     float f = daisysp::mtof(note_midi_[osc_next_]);
@@ -340,6 +350,11 @@ void DSynthSub::Silence()
         note_midi_[i] = 0;
         note_velocity_[i] = 0;
     }
+}
+
+void DSynthSub::SetVoicesLimit(uint8_t voices_limit)
+{
+    voices_limit_ = voices_limit;
 }
 
 void DSynthSub::SetWaveform(Waveform waveform0, Waveform waveform1)
@@ -566,4 +581,9 @@ void DSynthSub::SetLevel(float level)
     osc0_level_ = base_config_.osc0_level * level;
     osc1_level_ = base_config_.osc0_level * level;
     noise_level_ = base_config_.noise_level * level;
+}
+
+char *DSynthSub::GetSettingsName()
+{
+    return settings_name_;
 }

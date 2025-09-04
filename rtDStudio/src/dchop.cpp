@@ -48,7 +48,7 @@ void DChop::Init()
 
     // init
 
-    SetType(TUNED);
+    SetType(DSound::SoundType::CHOP);
 }
 
 void DChop::Set(const Config &config)
