@@ -150,6 +150,8 @@ public:
     void SetLevel(float);
     void ChangeParam(DSynth::Param param, float value);
 
+    char *GetSettingsName();
+
 private:
     char settings_name_[DSTUDIO_SETTINGS_NAME_MAX + 1];
     float sample_rate_;

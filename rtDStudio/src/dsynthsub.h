@@ -94,6 +94,7 @@ public:
     void ChangeParam(DSynth::Param param, float value);
 
     char *GetSettingsName();
+    
     Config base_config_;
 
 private:

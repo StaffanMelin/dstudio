@@ -788,3 +788,8 @@ void DSampler::SetLevel(float level)
     osc0_level_ = base_config_.osc0_level * level;
     noise_level_ = base_config_.noise_level * level;
 }
+
+char *DSampler::GetSettingsName()
+{
+    return settings_name_;
+}

@@ -879,10 +879,13 @@ void DSynthVar::ChangeParam(DSynth::Param param, float value)
 
 }
 
-
-
 void DSynthVar::SetLevel(float level)
 {
     osc_level_ = base_config_.osc_level * level;
     noise_level_ = base_config_.noise_level * level;
+}
+
+char *DSynthVar::GetSettingsName()
+{
+    return settings_name_;
 }
