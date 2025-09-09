@@ -134,3 +134,4 @@ private:
 };
 
 DSettings::DSoundType MapSoundType(std::string sound_type);
+std::string StrSoundType(DSettings::DSoundType sound_type_enum);

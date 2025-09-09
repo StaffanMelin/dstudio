@@ -76,6 +76,7 @@ public:
     void SetPhase(uint8_t hit, uint32_t, uint32_t);
     uint32_t GetLength(uint8_t hit);
     void LoadHits(std::string file_name);
+    void SaveHits(std::string file_name);
 
     /*
     float GetLevel(uint8_t  hit);
@@ -129,4 +130,8 @@ private:
     daisysp::DelayLine<float, DSYNTH_DELAY_MAX> delay_l_;
     daisysp::DelayLine<float, DSYNTH_DELAY_MAX> delay_r_;
     daisysp::Overdrive overdrive_;
+
+    TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, int value);
+    TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, float value);
+    TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, const std::string &value);
 };

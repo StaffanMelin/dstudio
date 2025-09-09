@@ -111,7 +111,7 @@ void DXMLSettings::saveInit(const std::string &fileName)
     TiXmlElement *element = new TiXmlElement("settings");
     doc_->LinkEndChild(element);
 
-    //root_ = doc_->RootElement();
+    // root_ = doc_->RootElement();
     root_ = element;
     if (doc_ == NULL)
         std::cout << "sv doc" << std::endl;
@@ -1198,4 +1198,48 @@ DSettings::DSoundType MapSoundType(std::string sound_type)
     {
         return DSettings::UNKNOWN;
     }
+}
+
+std::string StrSoundType(DSettings::DSoundType sound_type_enum)
+{
+    std::string sound_type;
+
+    if (sound_type_enum == DSettings::DSYNTHSUB)
+    {
+        sound_type = "DSynthSub";
+    }
+    else if (sound_type_enum == DSettings::DSYNTHVAR)
+    {
+        sound_type = "DSynthVar";
+    }
+    else if (sound_type_enum == DSettings::DSYNTHFM)
+    {
+        sound_type = "DSynthFm";
+    }
+    else if (sound_type_enum == DSettings::DSAMPLER)
+    {
+        sound_type = "DSampler";
+    }
+    else if (sound_type_enum == DSettings::DCHOP)
+    {
+        sound_type == "DChop";
+    }
+    else if (sound_type_enum == DSettings::DHITS)
+    {
+        sound_type = "DHits";
+    }
+    else if (sound_type_enum == DSettings::DPLAYER)
+    {
+        sound_type = "player";
+    }
+    else if (sound_type_enum == DSettings::DSEQ)
+    {
+        sound_type = "seq";
+    }
+    else
+    {
+        sound_type = "unknown";
+    }
+
+    return sound_type;
 }

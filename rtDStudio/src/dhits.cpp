@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "dhits.h"
+#include "../rtDStudio/src/dsettings.h"
 
 void DHits::Init()
 {
@@ -450,4 +451,113 @@ void DHits::LoadHits(std::string file_name)
     }
 
     delete pDoc;
+}
+
+void DHits::SaveHits(std::string file_name)
+{
+    TiXmlDocument *doc;
+    TiXmlElement *root;
+    TiXmlElement *settings_root;
+
+    doc = new TiXmlDocument();
+    root = doc->RootElement();
+    settings_root = new TiXmlElement("settings");
+    doc->LinkEndChild(settings_root);
+
+    // name (from file name)
+    std::string base_filename = file_name.substr(file_name.find_last_of("/\\") + 1);
+    std::string::size_type const p(base_filename.find_last_of('.'));
+    std::string file_without_extension = base_filename.substr(0, p);
+    std::cout << "Save: " << file_without_extension << std::endl;
+    SettingSetValue_(settings_root, "name", file_without_extension);
+
+    SettingSetValue_(settings_root, "settingstype", StrSoundType(DSettings::DHITS));
+
+    /*
+    // random
+    for (int drama = 0; drama < DRAMA_MAX; drama++)
+    {
+        TiXmlElement *pElt;
+        pElt = SettingSetValue_(player_root, "random", "");
+        pElt->SetAttribute("drama", drama);
+        pElt->SetAttribute("random_note_len_min", config->random_note_len_min[drama]);
+        pElt->SetAttribute("random_note_len_max", config->random_note_len_max[drama]);
+        pElt->SetAttribute("random_rest_len_min", config->random_rest_len_min[drama]);
+        pElt->SetAttribute("random_rest_len_max", config->random_rest_len_max[drama]);
+        pElt->SetAttribute("random_note_order", config->random_note_order[drama]);
+        pElt->SetAttribute("random_note_len", config->random_note_len[drama]);
+    }
+
+    // creator
+    SettingSetValue_(settings_root, "creator_type", config->creator_type);
+
+    // mod source
+    SettingSetValue_(settings_root, "mod_length", config->mod_length);
+
+    // mod  limit
+    SettingSetValue_(settings_root, "mod_length_min", (int)config->mod_length_min);
+    SettingSetValue_(player_root, "mod_length_max", (int)config->mod_length_max);
+    SettingSetValue_(player_root, "mod_pitch_min", config->mod_pitch_min);
+    SettingSetValue_(player_root, "mod_pitch_max", config->mod_pitch_max);
+    SettingSetValue_(player_root, "mod_filter_min", config->mod_filter_min);
+    SettingSetValue_(player_root, "mod_filter_max", config->mod_filter_max);
+    SettingSetValue_(player_root, "mod_velocity_min", config->mod_velocity_min);
+    SettingSetValue_(player_root, "mod_velocity_max", config->mod_velocity_max);
+    SettingSetValue_(player_root, "mod_length_fixed", (int)config->mod_length_fixed);
+    SettingSetValue_(player_root, "mod_pitch_fixed", config->mod_pitch_fixed);
+    SettingSetValue_(player_root, "mod_velocity_fixed", config->mod_velocity_fixed);
+    SettingSetValue_(player_root, "mod_filter_fixed", config->mod_filter_fixed);
+
+    // sm
+    for (int sm = 0; sm < SM_MAX; sm++)
+    {
+        TiXmlElement *pElt;
+        pElt = SettingSetValue_(player_root, "sm", config->sm_type[sm]);
+
+        pElt->SetAttribute("index", sm);
+        pElt->SetAttribute("sm_freq", config->sm_freq[sm]);
+        pElt->SetAttribute("sm_amp", config->sm_amp[sm]);
+        pElt->SetAttribute("sm_offset", config->sm_offset[sm]);
+        pElt->SetAttribute("sm_pw", config->sm_pw[sm]);
+        pElt->SetAttribute("sm_threshold", config->sm_threshold[sm]);
+        pElt->SetAttribute("sm_free", config->sm_free[sm] ? 1 : 0);
+    }
+
+    // record/pitch detect
+    SettingSetValue_(player_root, "record_mode", config->record_mode);
+    SettingSetValue_(player_root, "record_type", config->record_type);
+    SettingSetValue_(player_root, "record_transpose", config->record_transpose);
+*/
+    doc->SaveFile(file_name.c_str());
+    delete doc;
+}
+
+TiXmlElement *DHits::SettingSetValue_(TiXmlElement *root, const std::string &tag, int value)
+{
+    TiXmlElement *pElt;
+    pElt = new TiXmlElement(tag.c_str());
+    pElt->LinkEndChild(new TiXmlText(std::to_string(value).c_str()));
+    root->LinkEndChild(pElt);
+
+    return pElt;
+}
+
+TiXmlElement *DHits::SettingSetValue_(TiXmlElement *root, const std::string &tag, float value)
+{
+    TiXmlElement *pElt;
+    pElt = new TiXmlElement(tag.c_str());
+    pElt->LinkEndChild(new TiXmlText(std::to_string(value).c_str()));
+    root->LinkEndChild(pElt);
+
+    return pElt;
+}
+
+TiXmlElement *DHits::SettingSetValue_(TiXmlElement *root, const std::string &tag, const std::string &value)
+{
+    TiXmlElement *pElt;
+    pElt = new TiXmlElement(tag);
+    pElt->LinkEndChild(new TiXmlText(value.c_str()));
+    root->LinkEndChild(pElt);
+
+    return pElt;
 }

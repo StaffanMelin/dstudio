@@ -174,6 +174,9 @@ void DSampler::Set(const Config &config)
 
     overdrive_.SetDrive(overdrive_drive_);
 
+    // load sample wav
+    Load(sample_file_name_, true);
+
     // init
     osc_next_ = 0; // circular buffer of midi notes
 }
