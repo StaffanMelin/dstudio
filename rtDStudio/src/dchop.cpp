@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <cstring>
 
 #include "dchop.h"
 
@@ -55,6 +56,8 @@ void DChop::Set(const Config &config)
 {
     base_config_ = config;
     // chop arrays NOTE copied!
+
+    strncpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
 
     // sample_rate_ = config.sample_rate;
     tune_ = config.tune;
@@ -746,3 +749,8 @@ void DChop::ChangeParam(DSynth::Param param, float value)
     }
 }
 */
+
+char *DChop::GetSettingsName()
+{
+    return settings_name_;
+}

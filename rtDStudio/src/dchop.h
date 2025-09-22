@@ -97,6 +97,7 @@ public:
     uint8_t GetSampleChannels();
     // uint32_t *GetSamplePhaseStart();
     // void ChangeParam(DSynth::Param param, float value);
+    char *GetSettingsName();
 
     Config base_config_;
 

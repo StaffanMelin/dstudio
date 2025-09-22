@@ -388,15 +388,22 @@ void DHits::LoadHits(std::string file_name)
                   << name << " "
                   << type << " "
                   << std::endl;
+
+        strncpy(config.settings_name, name.c_str(), DSTUDIO_SETTINGS_NAME_MAX);
+        config.sample_rate = DSTUDIO_SAMPLE_RATE;
+
         pElt = pRoot->FirstChildElement("delay_delay");
         str_c = pElt->GetText(); // cchar
         config.delay_delay = atof(str_c);
+
         pElt = pRoot->FirstChildElement("delay_feedback");
         str_c = pElt->GetText(); // cchar
         config.delay_feedback = atof(str_c);
+
         pElt = pRoot->FirstChildElement("overdrive_gain");
         str_c = pElt->GetText(); // cchar
         config.overdrive_gain = atof(str_c);
+        
         pElt = pRoot->FirstChildElement("overdrive_drive");
         str_c = pElt->GetText(); // cchar
         config.overdrive_drive = atof(str_c);
@@ -440,7 +447,11 @@ void DHits::LoadHits(std::string file_name)
 
             pElt = pElt->NextSiblingElement("voice");
         }
+
+        // set
         Set(config);
+
+        // load individual samples
         for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
         {
             if (config.sample_file_name[i] != "")
@@ -453,7 +464,7 @@ void DHits::LoadHits(std::string file_name)
     delete pDoc;
 }
 
-void DHits::SaveHits(std::string file_name)
+void DHits::SaveHits(std::string file_name, DHits::Config *config)
 {
     TiXmlDocument *doc;
     TiXmlElement *root;
@@ -470,64 +481,26 @@ void DHits::SaveHits(std::string file_name)
     std::string file_without_extension = base_filename.substr(0, p);
     std::cout << "Save: " << file_without_extension << std::endl;
     SettingSetValue_(settings_root, "name", file_without_extension);
-
     SettingSetValue_(settings_root, "settingstype", StrSoundType(DSettings::DHITS));
+    SettingSetValue_(settings_root, "delay_delay", config->delay_delay);
+    SettingSetValue_(settings_root, "delay_feedback", config->delay_feedback);
+    SettingSetValue_(settings_root, "overdrive_gain", config->overdrive_gain);
+    SettingSetValue_(settings_root, "overdrive_drive", config->overdrive_drive);
 
-    /*
     // random
-    for (int drama = 0; drama < DRAMA_MAX; drama++)
+    for (int v = 0; v < DHITS_HITS_MAX; v++)
     {
         TiXmlElement *pElt;
-        pElt = SettingSetValue_(player_root, "random", "");
-        pElt->SetAttribute("drama", drama);
-        pElt->SetAttribute("random_note_len_min", config->random_note_len_min[drama]);
-        pElt->SetAttribute("random_note_len_max", config->random_note_len_max[drama]);
-        pElt->SetAttribute("random_rest_len_min", config->random_rest_len_min[drama]);
-        pElt->SetAttribute("random_rest_len_max", config->random_rest_len_max[drama]);
-        pElt->SetAttribute("random_note_order", config->random_note_order[drama]);
-        pElt->SetAttribute("random_note_len", config->random_note_len[drama]);
+        pElt = SettingSetValue_(settings_root, "voice", config->sample_file_name[v]);
+        pElt->SetAttribute("channel", v);
+        pElt->SetAttribute("level", config->level[v]);
+        pElt->SetAttribute("pan", config->pan[v]);
+        pElt->SetAttribute("tune", config->tune[v]);
+        pElt->SetAttribute("eg_a_attack", config->eg_a_attack[v]);
+        pElt->SetAttribute("eg_a_decay", config->eg_a_decay[v]);
+        pElt->SetAttribute("eg_a_sustain", config->eg_a_sustain[v]);
+        pElt->SetAttribute("eg_a_release", config->eg_a_release[v]);
     }
-
-    // creator
-    SettingSetValue_(settings_root, "creator_type", config->creator_type);
-
-    // mod source
-    SettingSetValue_(settings_root, "mod_length", config->mod_length);
-
-    // mod  limit
-    SettingSetValue_(settings_root, "mod_length_min", (int)config->mod_length_min);
-    SettingSetValue_(player_root, "mod_length_max", (int)config->mod_length_max);
-    SettingSetValue_(player_root, "mod_pitch_min", config->mod_pitch_min);
-    SettingSetValue_(player_root, "mod_pitch_max", config->mod_pitch_max);
-    SettingSetValue_(player_root, "mod_filter_min", config->mod_filter_min);
-    SettingSetValue_(player_root, "mod_filter_max", config->mod_filter_max);
-    SettingSetValue_(player_root, "mod_velocity_min", config->mod_velocity_min);
-    SettingSetValue_(player_root, "mod_velocity_max", config->mod_velocity_max);
-    SettingSetValue_(player_root, "mod_length_fixed", (int)config->mod_length_fixed);
-    SettingSetValue_(player_root, "mod_pitch_fixed", config->mod_pitch_fixed);
-    SettingSetValue_(player_root, "mod_velocity_fixed", config->mod_velocity_fixed);
-    SettingSetValue_(player_root, "mod_filter_fixed", config->mod_filter_fixed);
-
-    // sm
-    for (int sm = 0; sm < SM_MAX; sm++)
-    {
-        TiXmlElement *pElt;
-        pElt = SettingSetValue_(player_root, "sm", config->sm_type[sm]);
-
-        pElt->SetAttribute("index", sm);
-        pElt->SetAttribute("sm_freq", config->sm_freq[sm]);
-        pElt->SetAttribute("sm_amp", config->sm_amp[sm]);
-        pElt->SetAttribute("sm_offset", config->sm_offset[sm]);
-        pElt->SetAttribute("sm_pw", config->sm_pw[sm]);
-        pElt->SetAttribute("sm_threshold", config->sm_threshold[sm]);
-        pElt->SetAttribute("sm_free", config->sm_free[sm] ? 1 : 0);
-    }
-
-    // record/pitch detect
-    SettingSetValue_(player_root, "record_mode", config->record_mode);
-    SettingSetValue_(player_root, "record_type", config->record_type);
-    SettingSetValue_(player_root, "record_transpose", config->record_transpose);
-*/
     doc->SaveFile(file_name.c_str());
     delete doc;
 }
@@ -560,4 +533,9 @@ TiXmlElement *DHits::SettingSetValue_(TiXmlElement *root, const std::string &tag
     root->LinkEndChild(pElt);
 
     return pElt;
+}
+
+char *DHits::GetSettingsName()
+{
+    return settings_name_;
 }

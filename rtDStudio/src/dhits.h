@@ -71,21 +71,14 @@ public:
     void SetEG(uint8_t hit, float, float, float, float);
     void SetDelay(float, float);
     void SetOverdrive(float, float);
-    bool Load(uint8_t hit, std::string, bool reset = true);
+    bool Load(uint8_t hit, const std::string sample_file_name, bool reset = true);
     void GetPhase(uint8_t hit, uint32_t *, uint32_t *);
     void SetPhase(uint8_t hit, uint32_t, uint32_t);
     uint32_t GetLength(uint8_t hit);
     void LoadHits(std::string file_name);
-    void SaveHits(std::string file_name);
+    void SaveHits(std::string file_name, DHits::Config *config);
 
-    /*
-    float GetLevel(uint8_t  hit);
-    float GetPan(uint8_t  hit);
-    float GetTune(uint8_t  hit);
-    void GetEG(uint8_t hit, float a, float d, float s, float r);
-    void GetDelay(float delay, float feedback);
-    void GetOverdrive(float gain, float drive);
-    */
+    char *GetSettingsName();
 
     Config base_config_;
 
@@ -134,4 +127,5 @@ private:
     TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, int value);
     TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, float value);
     TiXmlElement *SettingSetValue_(TiXmlElement *root, const std::string &tag, const std::string &value);
+
 };

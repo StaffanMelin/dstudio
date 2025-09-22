@@ -47,6 +47,8 @@ class DMixer : public DSound
     void SetReverbReturn(float);
     void SetMixDry(float);
     DSound *GetSynth(uint8_t synth);
+    void SettingsToConfig(DMixer::Config *config);
+
 
 
 	float sample_rate_;

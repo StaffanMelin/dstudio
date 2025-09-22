@@ -1,11 +1,9 @@
 #include "dstudio.h"
 #include "dmixer.h"
 
-
-
 void DMixer::Init()
 {
-	sample_rate_ = DSTUDIO_SAMPLE_RATE;
+    sample_rate_ = DSTUDIO_SAMPLE_RATE;
 
     chorus_.Init(sample_rate_);
     reverb_.Init(sample_rate_);
@@ -13,19 +11,17 @@ void DMixer::Init()
     SetType(DSound::MIXER); // default
 }
 
-
-
-void DMixer::Set(const Config& config)
+void DMixer::Set(const Config &config)
 {
 
-	//sample_rate_ = config.sample_rate;
-	channels_ = config.channels;
+    // sample_rate_ = config.sample_rate;
+    channels_ = config.channels;
 
     amp_ = config.amp;
 
-	for (uint8_t i = 0; i < channels_; i++)
-	{
-		synth_[i] = config.synth[i];
+    for (uint8_t i = 0; i < channels_; i++)
+    {
+        synth_[i] = config.synth[i];
         level_[i] = config.level[i];
         pan_[i] = config.pan[i];
         chorus_level_[i] = config.chorus_level[i];
@@ -37,28 +33,25 @@ void DMixer::Set(const Config& config)
     reverb_return_ = config.reverb_return;
     chorus_return_ = config.chorus_return;
     mix_dry_ = config.mix_dry;
-    
+
     // chorus
-    chorus_delay_ = 0.75f; // 0-1
+    chorus_delay_ = 0.75f;   // 0-1
     chorus_feedback_ = 0.2f; // 0-1
     chorus_lfo_depth_ = 0.5; // 0-1
     chorus_lfo_freq_ = 0.3f; // Hz
-    chorus_pan_ = 0.5f; // 0-1
+    chorus_pan_ = 0.5f;      // 0-1
     chorus_.SetDelay(chorus_delay_);
     chorus_.SetFeedback(chorus_feedback_);
     chorus_.SetLfoDepth(chorus_lfo_depth_);
     chorus_.SetLfoFreq(chorus_lfo_freq_);
     chorus_.SetPan(chorus_pan_);
 
-	// reverb
+    // reverb
     reverb_feedback_ = 0.4f;
-	reverb_lpffreq_ = 6000;
-	reverb_.SetFeedback(reverb_feedback_);
-	reverb_.SetLpFreq(reverb_lpffreq_);
-
+    reverb_lpffreq_ = 6000;
+    reverb_.SetFeedback(reverb_feedback_);
+    reverb_.SetLpFreq(reverb_lpffreq_);
 }
-
-
 
 void DMixer::Process(float *out_left, float *out_right)
 {
@@ -70,11 +63,11 @@ void DMixer::Process(float *out_left, float *out_right)
     float reverb_send_left = 0;
     float reverb_send_right = 0;
     float reverb_out_left, reverb_out_right;
-	
-	// voices
-	
+
+    // voices
+
     for (uint8_t i = 0; i < channels_; i++)
-	{
+    {
         if (mono_[i])
         {
             // level
@@ -83,7 +76,9 @@ void DMixer::Process(float *out_left, float *out_right)
             // pan
             synth_left = synth_out * (1.0f - pan_[i]);
             synth_right = synth_out * (pan_[i]);
-        } else {
+        }
+        else
+        {
             synth_[i]->Process(&synth_left, &synth_right);
             // level and pan
             synth_left = synth_left * level_[i] * (1.0f - pan_[i]);
@@ -97,11 +92,11 @@ void DMixer::Process(float *out_left, float *out_right)
         // reverb send
         reverb_send_left += synth_left * reverb_level_[i];
         reverb_send_right += synth_right * reverb_level_[i];
-		
-		// mix
+
+        // mix
         mix_left += synth_left;
         mix_right += synth_right;
-	}
+    }
 
     // chorus send fx
     chorus_.Process(chorus_send);
@@ -110,15 +105,12 @@ void DMixer::Process(float *out_left, float *out_right)
     reverb_.Process(reverb_send_left, reverb_send_right, &reverb_out_left, &reverb_out_right);
 
     // add chorus and reverb
-    *out_left = (mix_left * mix_dry_+ 
-        reverb_out_left * reverb_return_ + 
-        chorus_.GetLeft() * chorus_return_) * amp_;
-    *out_right = (mix_right * mix_dry_ 
-        + reverb_out_right * reverb_return_ 
-        + chorus_.GetRight() * chorus_return_) * amp_;
+    *out_left = (mix_left * mix_dry_ +
+                 reverb_out_left * reverb_return_ +
+                 chorus_.GetLeft() * chorus_return_) *
+                amp_;
+    *out_right = (mix_right * mix_dry_ + reverb_out_right * reverb_return_ + chorus_.GetRight() * chorus_return_) * amp_;
 }
-
-
 
 void DMixer::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 = 0)
 {
@@ -195,17 +187,12 @@ void DMixer::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 
     default:
         break;
     } // switch GetType()
-
 }
-
-
 
 void DMixer::Silence(uint8_t c)
 {
     synth_[c]->Silence();
 }
-
-
 
 void DMixer::Silence()
 {
@@ -215,18 +202,13 @@ void DMixer::Silence()
     }
 }
 
-
-
 void DMixer::SetPan(uint8_t channel, float value)
 {
     if (channel < channels_)
     {
         pan_[channel] = value;
-
     }
 }
-
-
 
 void DMixer::SetLevel(uint8_t channel, float value)
 {
@@ -236,25 +218,20 @@ void DMixer::SetLevel(uint8_t channel, float value)
     }
 }
 
-
-
 void DMixer::SetChorus(float delay, float feedback, float lfo_depth, float lfo_freq, float pan)
 {
-    chorus_delay_ = delay; // 0-1
-    chorus_feedback_ = feedback; // 0-1
+    chorus_delay_ = delay;         // 0-1
+    chorus_feedback_ = feedback;   // 0-1
     chorus_lfo_depth_ = lfo_depth; // 0-1
-    chorus_lfo_freq_ = lfo_freq; // Hz
-    chorus_pan_ = pan; // 0-1
+    chorus_lfo_freq_ = lfo_freq;   // Hz
+    chorus_pan_ = pan;             // 0-1
 
     chorus_.SetDelay(chorus_delay_);
     chorus_.SetFeedback(chorus_feedback_);
     chorus_.SetLfoDepth(chorus_lfo_depth_);
     chorus_.SetLfoFreq(chorus_lfo_freq_);
     chorus_.SetPan(chorus_pan_);
-
 }
-
-
 
 void DMixer::SetChorusLevel(uint8_t channel, float value)
 {
@@ -264,8 +241,6 @@ void DMixer::SetChorusLevel(uint8_t channel, float value)
     }
 }
 
-
-
 void DMixer::SetReverb(float feedback, float lpffreq)
 {
     reverb_feedback_ = feedback;
@@ -273,8 +248,6 @@ void DMixer::SetReverb(float feedback, float lpffreq)
     reverb_.SetFeedback(reverb_feedback_);
     reverb_.SetLpFreq(reverb_lpffreq_);
 }
-
-
 
 void DMixer::SetReverbLevel(uint8_t channel, float value)
 {
@@ -284,28 +257,20 @@ void DMixer::SetReverbLevel(uint8_t channel, float value)
     }
 }
 
-
-
 uint8_t DMixer::GetChannels()
 {
     return (channels_);
 }
-
-
 
 void DMixer::SetChorusReturn(float chorus_return)
 {
     chorus_return_ = chorus_return;
 }
 
-
-
 void DMixer::SetReverbReturn(float reverb_return)
 {
     reverb_return_ = reverb_return;
 }
-
-
 
 void DMixer::SetMixDry(float mix_dry)
 {
@@ -317,8 +282,30 @@ DSound *DMixer::GetSynth(uint8_t synth)
     if (synth < channels_)
     {
         return synth_[synth];
-    } else {
+    }
+    else
+    {
         return NULL;
     }
+}
 
+// note! this returns pointers ot objects, not copies!
+void DMixer::SettingsToConfig(DMixer::Config *config)
+{
+    config->sample_rate = sample_rate_;
+    config->amp = amp_;
+    config->channels = channels_;
+    for (uint8_t c = 0; c < channels_; c++)
+    {
+        config->synth[c] = synth_[c];
+        config->pan[c] = pan_[c];
+        config->level[c] = level_[c];
+        config->chorus_level[c] = chorus_level_[c];
+        config->reverb_level[c] = reverb_level_[c];
+        config->mono[c] = mono_[c];
+        config->group[c] = group_[c];
+    }
+    config->chorus_return = chorus_return_;
+    config->reverb_return = reverb_return_;
+    config->mix_dry = mix_dry_;
 }
