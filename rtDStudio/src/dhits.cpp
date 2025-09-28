@@ -194,11 +194,9 @@ void DHits::MidiIn(uint8_t midi_status, uint8_t midi_data0, uint8_t midi_data1 =
 
 void DHits::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 {
-    uint8_t hit = midi_note;
+    uint8_t hit = midi_note - MIDI_PERCUSSION_START;
     if (hit < DHITS_HITS_MAX)
     {
-        // std::cout << "DHits note on:" << (int)hit << "\n";
-
         note_freq_[hit] = DHITS_BASE_FREQ * tune_[hit];
         note_velocity_[hit] = (float)midi_velocity / MIDI_VELOCITY_MAX;
 

@@ -125,10 +125,14 @@ void DChop::Set(const Config &config)
 
     overdrive_.SetDrive(overdrive_drive_);
 
+    // load sample wav
+    Load(sample_file_name_, true);
+
     // init
     chop_step_ = 0;
-    // note data
-    // Calc();
+
+    // TODO ?
+    Calc();
 }
 
 void DChop::Process(float *out_l, float *out_r)

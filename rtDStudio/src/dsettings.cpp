@@ -1236,6 +1236,10 @@ std::string StrSoundType(DSettings::DSoundType sound_type_enum)
     {
         sound_type = "seq";
     }
+    else if (sound_type_enum == DSettings::DSETUP)
+    {
+        sound_type = "setup";
+    }
     else
     {
         sound_type = "unknown";

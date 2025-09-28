@@ -91,6 +91,7 @@ public:
         DHITS,
         DSEQ,
         DPLAYER,
+        DSETUP,
         UNKNOWN
         // more to come: mixer, fx, seq etc
     };
