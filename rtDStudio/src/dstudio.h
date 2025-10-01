@@ -21,7 +21,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 #define DSTUDIO_SETTINGS_NAME_MAX 24
 
 // mixer
-#define MIXER_CHANNELS_MAX 16
+#define MIXER_CHANNELS_MAX 8
 
 // drums
 #define DTYPE_ANALOG 1
