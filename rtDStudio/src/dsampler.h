@@ -11,7 +11,7 @@
 // base freq
 #define DSAMPLER_BASE_FREQ 440.0f
 // max sample time in seconds
-#define SAMPLE_TIME_MAX 70
+#define SAMPLE_TIME_MAX 60
 #define SAMPLE_BUFFER_MAX (DSTUDIO_SAMPLE_RATE * SAMPLE_TIME_MAX * 2) // 60 secs; 48k * 2 * 4 = 384k/s
 
 class DSampler : public DSynth
