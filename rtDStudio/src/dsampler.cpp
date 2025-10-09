@@ -253,16 +253,18 @@ void DSampler::Process(float *out_l, float *out_r)
             {
             case 1:
                 a = sample_buffer_[index];
-                b = sample_buffer_[index + 1];
+                b = sample_buffer_[index + 1]; // one sample ahead
                 osc_out_l = (a + (b - a) * sample_index_fraction_); // * env_a_out;
                 osc_out_r = osc_out_l;
                 break;
             case 2:
                 a = sample_buffer_[index];
-                b = sample_buffer_[index + 2];
+                b = sample_buffer_[index + 2]; // one sample ahead
                 osc_out_l = (a + (b - a) * sample_index_fraction_); // * env_a_out;
-                a = sample_buffer_[index + sample_channels_];
-                b = sample_buffer_[index + sample_channels_ + 2];
+                // a = sample_buffer_[index + sample_channels_];
+                // b = sample_buffer_[index + sample_channels_ + 2];
+                a = sample_buffer_[index + 1]; // sample data is interleaved
+                b = sample_buffer_[index + 3]; // one sample ahead
                 osc_out_r = (a + (b - a) * sample_index_fraction_); // * env_a_out;
                 break;
             default:

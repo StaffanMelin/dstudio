@@ -107,7 +107,7 @@ private:
     uint8_t chops_[DCHOP_CHOPS];
     uint8_t chops_notes_[DCHOP_CHOPS];
     float chop_gate_;
-    float mode_internal_;
+    bool mode_internal_;
     float tune_;
     FilterType filter_type_;
     float filter_res_;
