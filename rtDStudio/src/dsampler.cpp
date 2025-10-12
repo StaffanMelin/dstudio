@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #include "dsampler.h"
 #include <cstring>
@@ -106,6 +107,7 @@ void DSampler::Set(const Config &config)
     overdrive_gain_ = config.overdrive_gain;
     overdrive_drive_ = config.overdrive_drive;
     loop_ = config.loop;
+    xfade_dist_ = config.xfade_dist;
     sample_file_name_ = config.sample_file_name;
     sample_phase_start_ = config.sample_phase_start;
     sample_phase_loop_start_ = config.sample_phase_loop_start;
@@ -175,7 +177,7 @@ void DSampler::Set(const Config &config)
     overdrive_.SetDrive(overdrive_drive_);
 
     // load sample wav
-    Load(sample_file_name_, true);
+    Load(sample_file_name_, false);
 
     // init
     osc_next_ = 0; // circular buffer of midi notes
@@ -214,7 +216,6 @@ void DSampler::Process(float *out_l, float *out_r)
         // amplitude
         // amp can be affected by:
         // lfo, eg (always), velocity
-
         env_a_out = eg_a_[i].Process(note_on) * (1 + lfo_out * lfo_a_level_);
         noise_.SetAmp(env_a_out);
 
@@ -253,19 +254,61 @@ void DSampler::Process(float *out_l, float *out_r)
             {
             case 1:
                 a = sample_buffer_[index];
-                b = sample_buffer_[index + 1]; // one sample ahead
+                b = sample_buffer_[index + 1];                      // one sample ahead
                 osc_out_l = (a + (b - a) * sample_index_fraction_); // * env_a_out;
+
+                // xfade
+                if (xfade_dist_ > 0)
+                {
+                    // when in the sample to start xfade
+                    // precalced: uint32_t xfade_start = sample_phase_loop_end_ - xfade_dist_;
+                    if (index > xfade_start)
+                    {
+                        // xfade loop repeat
+                        // get other interpolated sample
+                        uint32_t xfade_index = sample_phase_loop_start_ - (sample_phase_loop_end_ - index);
+                        float c = sample_buffer_[xfade_index];
+                        float d = sample_buffer_[xfade_index + 1];
+                        float x_l = (c + (d - c) * sample_index_fraction_);
+                        // calc mix of original and xfade
+                        float xfade_fraction = (index - xfade_start) / (xfade_dist_);
+                        osc_out_l = osc_out_l * (1 - xfade_fraction) + x_l * (xfade_fraction);
+                    }
+                }
                 osc_out_r = osc_out_l;
                 break;
             case 2:
                 a = sample_buffer_[index];
-                b = sample_buffer_[index + 2]; // one sample ahead
+                b = sample_buffer_[index + 2];                      // one sample ahead
                 osc_out_l = (a + (b - a) * sample_index_fraction_); // * env_a_out;
                 // a = sample_buffer_[index + sample_channels_];
                 // b = sample_buffer_[index + sample_channels_ + 2];
-                a = sample_buffer_[index + 1]; // sample data is interleaved
-                b = sample_buffer_[index + 3]; // one sample ahead
+                a = sample_buffer_[index + 1];                      // sample data is interleaved
+                b = sample_buffer_[index + 3];                      // one sample ahead
                 osc_out_r = (a + (b - a) * sample_index_fraction_); // * env_a_out;
+
+                // xfade
+                if (xfade_dist_ > 0)
+                {
+                    // when in the sample to start xfade
+                    // precalced: uint32_t xfade_start = sample_phase_loop_end_ - xfade_dist_;
+                    if (index > xfade_start)
+                    {
+                        // get other interpolated sample
+                        uint32_t xfade_index = sample_phase_loop_start_ - (sample_phase_loop_end_ - index);
+                        float c = sample_buffer_[xfade_index];
+                        float d = sample_buffer_[xfade_index + 2];
+                        float x_l = (c + (d - c) * sample_index_fraction_);
+                        // get other interpolated sample
+                        c = sample_buffer_[xfade_index + 1];
+                        d = sample_buffer_[xfade_index + 3];
+                        float x_r = (c + (d - c) * sample_index_fraction_);
+                        // calc mix of original and xfade
+                        float xfade_fraction = (index - xfade_start) / (xfade_dist_);
+                        osc_out_l = osc_out_l * (1 - xfade_fraction) + x_l * (xfade_fraction);
+                        osc_out_r = osc_out_r * (1 - xfade_fraction) + x_r * (xfade_fraction);
+                    }
+                }
                 break;
             default:
                 osc_out_l = 0.0f;
@@ -402,7 +445,8 @@ void DSampler::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
     if (midi_note + transpose_ > 0 && midi_note + transpose_ < 128)
     {
         note_midi_[osc_next_] = midi_note + transpose_;
-    } else
+    }
+    else
     {
         note_midi_[osc_next_] = midi_note;
     }
@@ -641,12 +685,11 @@ bool DSampler::Load(const std::string sample_file_name, bool reset)
         {
             sample_length_ = frame_count;
             sample_phase_start_ = 0;
-            sample_phase_loop_start_ = 0;
-            // if (sample_phase_loop_end_ == 0)
-            sample_phase_loop_end_ = frame_count - 1;
-            // if (sample_phase_end_ == 0)
+            sample_phase_loop_start_ = 0.2 * sample_length_;
+            sample_phase_loop_end_ = 0.8 * sample_length_;
             sample_phase_end_ = frame_count - 1;
             sample_file_name_ = sample_file_name;
+            xfade_dist_ = 0.1 * sample_length_;
         }
         // always set from sample data
         sample_channels_ = frame_size;
@@ -660,6 +703,7 @@ bool DSampler::Load(const std::string sample_file_name, bool reset)
         sample_phase_loop_end_ = 0;
         sample_phase_end_ = 0;
         sample_channels_ = frame_size;
+        xfade_dist_ = 0;
     }
     base_config_.sample_length = sample_length_;
     base_config_.sample_phase_start = sample_phase_start_;
@@ -669,12 +713,21 @@ bool DSampler::Load(const std::string sample_file_name, bool reset)
 
     sf_close(sample_file);
 
+    std::cout << "Read WAV, length:" << sample_length_
+              << " start:" << sample_phase_start_
+              << " end:" << sample_phase_end_
+              << " loop start:" << sample_phase_loop_start_
+              << " loop end:" << sample_phase_loop_end_
+              << " loop:" << loop_
+              << std::endl;
+
     for (uint8_t i = 0; i < voices_; i++)
     {
         sample_index_[i] = sample_phase_start_;
         sample_index_factor_[i] = 1.0f;
     }
 
+    xfade_start = sample_phase_loop_end_ - xfade_dist_;
     return (retval);
 }
 
@@ -727,6 +780,16 @@ void DSampler::SetPhase(uint32_t sample_phase_start,
 uint32_t DSampler::GetLength()
 {
     return (sample_length_);
+}
+
+void DSampler::SetXFade(uint32_t xfade_dist)
+{
+    xfade_dist_ = xfade_dist;
+}
+
+uint32_t DSampler::GetXFade()
+{
+    return xfade_dist_;
 }
 
 float *DSampler::GetSampleData()

@@ -386,6 +386,8 @@ void DSettings::SaveSetting(DSoundType type, DSoundSubType subtype, std::string 
         settings.setValue("settings:overdrive_drive", p->overdrive_drive);
 
         settings.setValue("settings:loop", p->loop);
+        settings.setValue("settings:xfade_dist", (int)p->xfade_dist);
+
         settings.setValue("settings:sample_file_name", p->sample_file_name);
         settings.setValue("settings:sample_phase_start", (int)(p->sample_phase_start));
         settings.setValue("settings:sample_phase_loop_start", (int)(p->sample_phase_loop_start));
@@ -824,12 +826,16 @@ void DSettings::LoadSetting(DSoundType type, DSoundSubType subtype, std::string 
         p->delay_feedback = settings.getValue("settings:delay_feedback", 0.0f);
         p->overdrive_gain = settings.getValue("settings:overdrive_gain", 0.0f);
         p->overdrive_drive = settings.getValue("settings:overdrive_drive", 0.0f);
+
         p->loop = settings.getValue("settings:loop", false);
+        p->xfade_dist = settings.getValue("settings:xfade_dist", 0);
+
         p->sample_file_name = settings.getValue("settings:sample_file_name", "");
         p->sample_phase_start = settings.getValue("settings:sample_phase_start", 0);
         p->sample_phase_loop_start = settings.getValue("settings:sample_phase_loop_start", 0);
         p->sample_phase_loop_end = settings.getValue("settings:sample_phase_loop_end", 0);
         p->sample_phase_end = settings.getValue("settings:sample_phase_end", 0);
+
         p->sample_length = settings.getValue("settings:sample_length", 0);
         p->sample_channels = settings.getValue("settings:sample_channels", 0);
     }

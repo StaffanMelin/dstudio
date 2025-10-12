@@ -67,6 +67,7 @@ public:
         float overdrive_gain;
         float overdrive_drive;
         bool loop;
+        uint32_t xfade_dist;
         std::string sample_file_name;
         uint32_t sample_phase_start;
         uint32_t sample_phase_loop_start;
@@ -112,6 +113,8 @@ public:
     float *GetSampleData();
     uint8_t GetSampleChannels();
     uint32_t GetLength();
+    void SetXFade(uint32_t xfade_dist);
+    uint32_t GetXFade();
     void SetLevel(float);
     void ChangeParam(DSynth::Param param, float value);
 
@@ -157,6 +160,7 @@ private:
     float overdrive_gain_;
     float overdrive_drive_;
     bool loop_;
+    uint32_t xfade_dist_;
     std::string sample_file_name_;
     uint32_t sample_phase_start_;
     uint32_t sample_phase_loop_start_;
@@ -181,6 +185,9 @@ private:
     // sample - runtime
     float sample_index_[DSYNTH_VOICES_MAX];        // index into buffer
     float sample_index_factor_[DSYNTH_VOICES_MAX]; // how much to advance index for a new sample
+
+    // when should sample start xfade?
+    uint32_t xfade_start = sample_phase_loop_end_ - xfade_dist_;
 
     daisysp::WhiteNoise noise_;
 
