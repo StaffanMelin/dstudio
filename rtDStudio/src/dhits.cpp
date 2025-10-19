@@ -56,7 +56,7 @@ void DHits::Set(const Config &config)
         sample_length_[i] = config.sample_length[i];
 
         // samples
-        sample_index_[i] = 0.0f;
+        sample_index_[i] = sample_phase_end_[i]; // init so nothing is heard when starting up without note
         sample_index_factor_[0] = 1.0f;
         note_freq_[i] = 0;
 
@@ -124,16 +124,9 @@ void DHits::Process(float *out_l, float *out_r)
             // get samples and interpolate
             a = sample_buffer_[i][sample_index_int_];
             b = sample_buffer_[i][sample_index_int_ + 1];
-            osc_out = (a + (b - a) * sample_index_fraction_) * env_a_out; // * note_velocity_[i];
+            osc_out = (a + (b - a) * sample_index_fraction_) * env_a_out * note_velocity_[i];
 
             sample_index_[i] += sample_index_factor_[i];
-            /*
-            if (i == 0)
-            {
-                std::cout << "DHits audio:" << osc_out << "," << a << "\n";
-
-            }
-            */
         }
         else
         {
@@ -210,6 +203,7 @@ void DHits::NoteOn(uint8_t midi_note, uint8_t midi_velocity)
 
 void DHits::NoteOff(uint8_t midi_note)
 {
+    // TODO?
 }
 
 void DHits::Silence()
