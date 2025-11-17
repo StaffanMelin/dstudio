@@ -63,6 +63,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 #include <chrono>
 uint64_t dGetElapsedTimeMicros();
 uint32_t dGetElapsedTimeMillis();
+void dSleepMs(uint32_t ms);
 float dRandom(float max);
 float dRand(float max);
 uint32_t dRandI(uint32_t max);

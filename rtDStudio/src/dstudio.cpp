@@ -13,6 +13,15 @@ uint32_t dGetElapsedTimeMillis()
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
+void dSleepMs(uint32_t ms)
+{
+    uint32_t start = dGetElapsedTimeMillis();
+    while (start - dGetElapsedTimeMillis() < ms)
+    {
+        // do nothing, just wait
+    }
+}
+
 float dRandom(float max)
 {
     return (max * rand() / float(RAND_MAX)) * (1.0f - std::numeric_limits<float>::epsilon());
