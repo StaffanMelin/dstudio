@@ -11,7 +11,7 @@
 // base freq
 #define DCHOP_BASE_FREQ 261.6f // MIDI note 60
 // max sample time in seconds
-#define DCHOP_SAMPLE_TIME_MAX 30
+#define DCHOP_SAMPLE_TIME_MAX 10 // 30
 #define DCHOP_SAMPLE_BUFFER_MAX (DSTUDIO_SAMPLE_RATE * DCHOP_SAMPLE_TIME_MAX * 2) // 60 secs; 48k * 2 * 4 = 384k/s
 #define DCHOP_CHOPS 8
 
