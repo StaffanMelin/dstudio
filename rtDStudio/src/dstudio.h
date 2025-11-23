@@ -14,7 +14,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 */
 
 // system
-#define DSTUDIO_SAMPLE_RATE 44100
+#define DSTUDIO_SAMPLE_RATE 48000
 #define DSTUDIO_BUFFER_SIZE 512
 #define DSTUDIO_NUM_BUFFERS 4
 #define DSTUDIO_FILTER_BASE (DSTUDIO_SAMPLE_RATE / 2)
