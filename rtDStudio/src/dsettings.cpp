@@ -1200,6 +1200,10 @@ DSettings::DSoundType MapSoundType(std::string sound_type)
     {
         return DSettings::DSEQ;
     }
+    else if (sound_type == "setup")
+    {
+        return DSettings::DSETUP;
+    }
     else
     {
         return DSettings::UNKNOWN;

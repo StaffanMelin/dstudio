@@ -4,6 +4,8 @@
 #include "dhits.h"
 #include "../rtDStudio/src/dsettings.h"
 
+#include "/home/staffan/debiandata/projects/tech/gecho/code/gecho-b/src/main.h"
+
 void DHits::Init()
 {
     sample_rate_ = DSTUDIO_SAMPLE_RATE;
@@ -21,6 +23,8 @@ void DHits::Init()
         // note data
         note_freq_[i] = 0.0f;
         note_velocity_[i] = 0.0f;
+
+        sample_file_name_[i] = "unknown";
     }
 
     // delay
@@ -39,7 +43,8 @@ void DHits::Set(const Config &config)
 {
     base_config_ = config;
 
-    strncpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
+    strlcpy(settings_name_, config.settings_name, DSTUDIO_SETTINGS_NAME_MAX);
+
     // sample_rate_ = config.sample_rate;
     for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
     {
@@ -50,14 +55,17 @@ void DHits::Set(const Config &config)
         eg_a_decay_[i] = config.eg_a_decay[i];
         eg_a_sustain_[i] = config.eg_a_sustain[i];
         eg_a_release_[i] = config.eg_a_release[i];
-        sample_file_name_[i] = config.sample_file_name[i];
+//        if (config.sample_file_name[i].length() > 0)
+//        {
+            sample_file_name_[i] = config.sample_file_name[i];
+//        }
         sample_phase_start_[i] = config.sample_phase_start[i];
         sample_phase_end_[i] = config.sample_phase_end[i];
         sample_length_[i] = config.sample_length[i];
 
         // samples
         sample_index_[i] = sample_phase_end_[i]; // init so nothing is heard when starting up without note
-        sample_index_factor_[0] = 1.0f;
+        sample_index_factor_[i] = 1.0f;
         note_freq_[i] = 0;
 
         // EG
@@ -273,6 +281,8 @@ bool DHits::Load(uint8_t hit, const std::string sample_file_name, bool reset)
     if (frame_count < DHITS_SAMPLE_BUFFER_MAX)
     {
         // read sample data
+        std::cout << "DHits before read:" << (int)hit << "\n";
+
         frame_count = sf_readf_float(sample_file, sample_buffer_[hit], sample_file_info.frames);
         std::cout << "DHits frame_count read:" << (int)frame_count << "\n";
 
@@ -381,7 +391,7 @@ void DHits::LoadHits(std::string file_name)
                   << type << " "
                   << std::endl;
 
-        strncpy(config.settings_name, name.c_str(), DSTUDIO_SETTINGS_NAME_MAX);
+        strlcpy(config.settings_name, name.c_str(), DSTUDIO_SETTINGS_NAME_MAX);
         config.sample_rate = DSTUDIO_SAMPLE_RATE;
 
         pElt = pRoot->FirstChildElement("delay_delay");
@@ -395,7 +405,7 @@ void DHits::LoadHits(std::string file_name)
         pElt = pRoot->FirstChildElement("overdrive_gain");
         str_c = pElt->GetText(); // cchar
         config.overdrive_gain = atof(str_c);
-        
+
         pElt = pRoot->FirstChildElement("overdrive_drive");
         str_c = pElt->GetText(); // cchar
         config.overdrive_drive = atof(str_c);
@@ -448,6 +458,8 @@ void DHits::LoadHits(std::string file_name)
         {
             if (config.sample_file_name[i] != "")
             {
+                displayAvailableRAM(false);
+
                 Load(i, config.sample_file_name[i], true);
             }
         }

@@ -25,6 +25,9 @@ public:
         for (uint8_t i = 0; i < DHITS_HITS_MAX; i++)
         {
             sample_buffer_[i] = new (std::nothrow) float[DHITS_SAMPLE_BUFFER_MAX];
+            if (sample_buffer_[i] == nullptr) {
+                std::cout << "DHits buffer allocation fail! " << i << std::endl;
+            }
         }
     }
 
