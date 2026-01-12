@@ -1,7 +1,7 @@
 #pragma once
 
 // #include <string>
-#include "../rtDStudio/src/libs/tinyxml.h"
+#include "libs/tinyxml.h"
 
 #include "dstudio.h"
 #include "dsound.h"
